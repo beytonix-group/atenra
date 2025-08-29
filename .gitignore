@@ -45,3 +45,5 @@ next-env.d.ts
 
 # drizzle studio
 .studio.pid
+
+.claude

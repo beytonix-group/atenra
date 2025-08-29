@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:simple": "SKIP_CF_SETUP=true next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -11,6 +12,10 @@
     "preview": "bun pages:build && wrangler pages dev",
     "deploy": "bun pages:build && wrangler pages deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv env.d.ts",
+    "deploy:full": "bun run lint && bun run db:migrate:prod && bun run pages:build && wrangler pages deploy",
+    "deploy:staging": "bun pages:build && wrangler pages deploy --env staging",
+    "ci:build": "bun run lint && bun run pages:build",
+    "ci:deploy": "bun run db:migrate:prod && wrangler pages deploy",
     "setup": "bun run scripts/setup.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate:dev": "drizzle-kit migrate",
@@ -29,8 +34,11 @@
     "@iarna/toml": "^2.2.5",
     "@libsql/client": "^0.10.0",
     "@radix-ui/react-icons": "^1.3.0",
-    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
     "@t3-oss/env-nextjs": "^0.11.1",
+    "@types/bcryptjs": "^3.0.0",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "drizzle-kit": "^0.24.2",
@@ -42,7 +50,7 @@
     "react-dom": "^18",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.23.8"
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "1",

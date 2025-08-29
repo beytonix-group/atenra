@@ -1,129 +1,228 @@
-# 🚀 Full-Stack Cloudflare SaaS Kit
+# Atenra
 
-**_Build and deploy scalable products on Cloudflare with ease._**
+A comprehensive SaaS platform for service matching and asset management, built on Cloudflare's edge infrastructure.
 
-An opinionated, batteries-included starter kit for quickly building and deploying SaaS products on Cloudflare. This is a [Next.js](https://nextjs.org/) project bootstrapped with [`c3`](https://developers.cloudflare.com/pages/get-started/c3).
+## Tech Stack
 
-This is the same stack used to build [Supermemory.ai](https://Supermemory.ai) which is open source at [git.new/memory](https://git.new/memory)
+- **Next.js 14** with App Router and Edge Runtime
+- **Cloudflare Pages** for hosting and global deployment
+- **Cloudflare D1** serverless SQLite database
+- **Drizzle ORM** for type-safe database operations
+- **NextAuth v5** for authentication (Google OAuth + Credentials)
+- **Shadcn UI + Tailwind CSS** for modern component library
+- **TypeScript** for type safety
+- **Bun** for fast package management and runtime
 
-Supermemory now has 20k+ users and it runs on $5/month. safe to say, it's _very_ effective.
+## Features
 
-## The stack includes:
+- 🌍 **Multi-language support** (English, Spanish, French, German, Chinese)
+- 🔐 **Authentication system** with Google OAuth and email/password
+- 👤 **User profile management** with comprehensive form validation
+- 🎨 **Dark/light theme support** with system preference detection
+- 📱 **Responsive design** with mobile-first approach
+- 🚀 **Edge runtime** for global performance
+- 🔒 **RBAC system** for role-based access control
+- 💾 **Asset management** with user relationships
 
-- [Next.js](https://nextjs.org/) for frontend
-- [TailwindCSS](https://tailwindcss.com/) for styling
-- [Drizzle ORM](https://orm.drizzle.team/) for database access
-- [NextAuth](https://next-auth.js.org/) for authentication
-- [Cloudflare D1](https://www.cloudflare.com/developer-platform/d1/) for serverless databases
-- [Cloudflare Pages](https://pages.cloudflare.com/) for hosting
-- [ShadcnUI](https://shadcn.com/) as the component library
+## Quick Start (Brand New Setup)
 
-## Getting Started
+### Prerequisites
 
-1. Make sure that you have [Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/#installupdate-wrangler) installed. And also that you have logged in with `wrangler login` (You'll need a Cloudflare account)
+- [Bun](https://bun.sh/) installed
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed
+- Cloudflare account with `wrangler login`
 
-2. Clone the repository and install dependencies:
-   ```bash
-   git clone https://github.com/Dhravya/cloudflare-saas-stack
-   cd cloudflare-saas-stack
-   npm i -g bun
-   bun install
-   bun run setup
-   ```
+### Local Development
 
-3. Run the development server:
-   ```bash
-   bun run dev
-   ```
+```bash
+# 1. Install dependencies
+bun install
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# 2. Run interactive setup (creates .dev.vars, configures database)
+bun run setup
 
-## Cloudflare Integration
+# 3. Setup database
+bun run db:migrate:dev
 
-Besides the `dev` script, `c3` has added extra scripts for Cloudflare Pages integration:
-- `pages:build`: Build the application for Pages using [`@cloudflare/next-on-pages`](https://github.com/cloudflare/next-on-pages) CLI
-- `preview`: Locally preview your Pages application using [Wrangler](https://developers.cloudflare.com/workers/wrangler/) CLI
-- `deploy`: Deploy your Pages application using Wrangler CLI
-- `cf-typegen`: Generate typescript types for Cloudflare env.
-
-> __Note:__ While the `dev` script is optimal for local development, you should preview your Pages application periodically to ensure it works properly in the Pages environment.
-
-## Bindings
-
-Cloudflare [Bindings](https://developers.cloudflare.com/pages/functions/bindings/) allow you to interact with Cloudflare Platform resources. You can use bindings during development, local preview, and in the deployed application.
-
-For detailed instructions on setting up bindings, refer to the Cloudflare documentation.
-
-## Database Migrations
-Quick explaination of D1 set up:
-- D1 is a serverless database that follows SQLite convention.
-- Within Cloudflare pages and workers, you can directly query d1 with [client api](https://developers.cloudflare.com/d1/build-with-d1/d1-client-api/) exposed by bindings (eg. `env.BINDING`)
-- You can also query d1 via [rest api](https://developers.cloudflare.com/api/operations/cloudflare-d1-create-database)
-- Locally, wrangler auto generates sqlite files at `.wrangler/state/v3/d1` after `bun run dev`.
-- Local dev environment (`bun run dev`) interact with [local d1 session](https://developers.cloudflare.com/d1/build-with-d1/local-development/#start-a-local-development-session), which is based on some SQlite files located at `.wrangler/state/v3/d1`.
-- In dev mode (`bun run db:<migrate or studio>:dev`), Drizzle-kit (migrate and studio) directly modifies these files as regular SQlite db. While `bun run db:<migrate or studio>:prod` use d1-http driver to interact with remote d1 via rest api. Therefore we need to set env var at `.env.example`
-
-To generate migrations files:
-- `bun run db:generate`
-
-To apply database migrations:
-- For development: `bun run db:migrate:dev`
-- For production: `bun run db:migrate:prd`
-
-To inspect database:
-- For local database `bun run db:studio:dev`
-- For remote database `bun run db:studio:prod`
-
-## Cloudflare R2 Bucket CORS / File Upload
-
-Don't forget to add the CORS policy to the R2 bucket. The CORS policy should look like this:
-
-```json
-[
-  {
-    "AllowedOrigins": [
-      "http://localhost:3000",
-      "https://your-domain.com"
-    ],
-    "AllowedMethods": [
-      "GET",
-      "PUT"
-    ],
-    "AllowedHeaders": [
-      "Content-Type"
-    ],
-    "ExposeHeaders": [
-      "ETag"
-    ]
-  }
-]
+# 4. Start development server
+bun run dev
 ```
 
-You can now even set up object upload.
+**One-liner for fresh start:**
 
-## Manual Setup
+```bash
+bun install && bun run setup && bun run db:migrate:dev && bun run dev
+```
 
-If you prefer manual setup:
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-1. Create a Cloudflare account and install Wrangler CLI.
-2. Create a D1 database: `bunx wrangler d1 create ${dbName}`
-3. Create a `.dev.vars` file in the project root with your Google OAuth credentials and NextAuth secret.
-   1. `AUTH_SECRET`, generate by command `openssl rand -base64 32` or `bunx auth secret`
-   2. `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` for google oauth.
-      1. First create [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent). Tips: no wait time if you skip logo upload.
-      2. Create [credential](https://console.cloud.google.com/apis/credentials). Put `https://your-domain` and `http://localhost:3000` at "Authorized JavaScript origins". Put `https://your-domain/api/auth/callback/google` and `http://localhost:3000/api/auth/callback/google` at "Authorized redirect URIs".
-4. Generate db migration files: `bun run db:generate`
-5. Run local migration: `bunx wrangler d1 execute ${dbName} --local --file=migrations/0000_setup.sql` or using drizzle `bun run db:migrate:dev`
-6. Run remote migration: `bunx wrangler d1 execute ${dbName} --remote --file=migrations/0000_setup.sql` or using drizzle `bun run db:migrate:prod`
-7. Start development server: `bun run dev`
-8. Deploy: `bun run deploy`
+## Development Commands
 
-## The Beauty of This Stack
+### Core Development
 
-- Fully scalable and composable
-- No environment variables needed (use `env.DB`, `env.KV`, `env.Queue`, `env.AI`, etc.)
-- Powerful tools like Wrangler for database management and migrations
-- Cost-effective scaling (e.g., $5/month for multiple high-traffic projects)
+```bash
+bun run dev              # Start local development server
+bun run lint             # Run ESLint for code quality
+bun run build            # Build Next.js application
+```
 
-Just change your Cloudflare account ID in the project settings, and you're good to go!
+### Database Management
 
+```bash
+bun run db:generate      # Generate migration files from schema changes
+bun run db:migrate:dev   # Apply migrations to local database
+bun run db:migrate:prod  # Apply migrations to production database
+bun run db:studio:dev    # Open Drizzle Studio for local database
+bun run db:studio:prod   # Open Drizzle Studio for production database
+```
+
+### Cloudflare Deployment
+
+```bash
+bun run pages:build      # Build for Cloudflare Pages
+bun run preview          # Preview built app locally with Wrangler
+bun run deploy           # Quick deploy to Cloudflare Pages
+bun run deploy:full      # Full deploy with linting and migrations
+bun run deploy:staging   # Deploy to staging environment
+```
+
+### CI/CD Scripts
+
+```bash
+bun run ci:build         # CI build step (lint + pages:build)
+bun run ci:deploy        # CI deploy step (migrate + deploy)
+```
+
+### Utilities
+
+```bash
+bun run cf-typegen       # Generate TypeScript types for Cloudflare environment
+bun run setup            # Interactive project setup
+```
+
+## Environment Configuration
+
+### Local Development (`.dev.vars`)
+
+```bash
+AUTH_SECRET=your-auth-secret          # Generate with: openssl rand -base64 32
+AUTH_GOOGLE_ID=your-google-client-id
+AUTH_GOOGLE_SECRET=your-google-secret
+SUPER_USER_EMAIL=admin@example.com    # Optional: Super admin email
+```
+
+### Production Database Operations (`.env.local`)
+
+Required for production database migrations and studio access:
+
+```bash
+CLOUDFLARE_ACCOUNT_ID=your-cloudflare-account-id     # Your Cloudflare account ID
+CLOUDFLARE_DATABASE_ID=your-d1-database-id           # D1 database ID from wrangler.toml
+CLOUDFLARE_D1_TOKEN=your-api-token                   # Cloudflare API token with D1 permissions
+AUTH_SECRET=your-auth-secret                         # Same as .dev.vars
+AUTH_GOOGLE_ID=your-google-client-id                 # Same as .dev.vars
+AUTH_GOOGLE_SECRET=your-google-secret                # Same as .dev.vars
+SUPER_USER_EMAIL=admin@example.com                   # Same as .dev.vars
+```
+
+### Environment Variable Details
+
+| Variable                 | Purpose                            | How to Get                                 |
+| ------------------------ | ---------------------------------- | ------------------------------------------ |
+| `AUTH_SECRET`            | Encrypts NextAuth sessions/tokens  | Generate: `openssl rand -base64 32`        |
+| `AUTH_GOOGLE_ID`         | Google OAuth client ID             | Google Cloud Console → Credentials         |
+| `AUTH_GOOGLE_SECRET`     | Google OAuth client secret         | Google Cloud Console → Credentials         |
+| `SUPER_USER_EMAIL`       | Auto-assigns super admin role      | Your admin email address                   |
+| `CLOUDFLARE_ACCOUNT_ID`  | Your Cloudflare account identifier | Cloudflare Dashboard → Right sidebar       |
+| `CLOUDFLARE_DATABASE_ID` | D1 database identifier             | From `wrangler.toml` or `wrangler d1 list` |
+| `CLOUDFLARE_D1_TOKEN`    | API token for D1 operations        | Cloudflare → My Profile → API Tokens       |
+
+## Project Structure
+
+```
+src/
+├── app/                 # Next.js App Router pages
+│   ├── api/            # API routes (edge runtime)
+│   ├── auth/           # Authentication pages
+│   └── profile/        # User profile management
+├── components/         # React components
+│   ├── ui/            # Shadcn UI components
+│   ├── auth/          # Authentication forms
+│   ├── landing/       # Landing page components
+│   └── profile/       # Profile management components
+├── lib/               # Utility libraries
+│   ├── i18n/         # Internationalization
+│   ├── utils/        # Helper functions
+│   └── theme/        # Theme management
+└── server/            # Server-side code
+    ├── auth.ts        # NextAuth configuration
+    └── db/            # Database schema and connection
+```
+
+## Authentication Setup
+
+### Google OAuth Configuration
+
+1. Create OAuth consent screen in [Google Cloud Console](https://console.cloud.google.com/apis/credentials/consent)
+2. Create OAuth 2.0 credentials with:
+   - **Authorized JavaScript origins**:
+     - `https://your-domain.com`
+     - `http://localhost:3000`
+   - **Authorized redirect URIs**:
+     - `https://your-domain.com/api/auth/callback/google`
+     - `http://localhost:3000/api/auth/callback/google`
+
+### Super Admin Setup
+
+Add admin emails to `SUPER_USER_EMAIL` in env (comma-separated for multiple admins). The accounts will be assigned super admin role upon log in the first time
+
+## Deployment
+
+### Production Deployment
+
+```bash
+# Full deployment with all checks
+bun run deploy:full
+
+# Quick deployment
+bun run deploy
+```
+
+### CI/CD Pipeline Example
+
+```yaml
+- name: Build
+  run: bun run ci:build
+
+- name: Deploy
+  run: bun run ci:deploy
+  env:
+    CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+```
+
+## Database Schema
+
+The application includes comprehensive tables for:
+
+- **User Management**: Users, authentication, profiles
+- **Asset Management**: Asset types, user assets, relationships
+- **Service Management**: Companies, services, job matching
+- **Subscription System**: Plans, billing, usage tracking
+- **RBAC**: Roles, permissions, access control
+- **Content Management**: Dynamic content, plan-based access
+
+## Development Notes
+
+- All components use **TypeScript** with strict type checking
+- **Server Components** by default, `"use client"` only when needed
+- **Edge Runtime** for optimal Cloudflare compatibility
+- **Mobile-first responsive design** with Tailwind CSS
+- **Security-first approach** with input validation and sanitization
+
+## Performance Features
+
+- **Edge deployment** for global low-latency
+- **Image optimization** with proper fallbacks
+- **Lazy loading** for non-critical components
+- **Suspense boundaries** for progressive loading
+- **Optimized database queries** with proper indexing

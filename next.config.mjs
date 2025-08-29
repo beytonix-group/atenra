@@ -1,13 +1,20 @@
-import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
-
-// Here we use the @cloudflare/next-on-pages next-dev module to allow us to use bindings during local development
-// (when running the application with `next dev`), for more information see:
-// https://github.com/cloudflare/next-on-pages/blob/main/internal-packages/next-dev/README.md
-if (process.env.NODE_ENV === 'development') {
-  await setupDevPlatform();
+// Conditionally setup Cloudflare dev platform
+if (process.env.NODE_ENV === 'development' && !process.env.SKIP_CF_SETUP) {
+  try {
+    const { setupDevPlatform } = await import('@cloudflare/next-on-pages/next-dev');
+    await setupDevPlatform();
+  } catch (error) {
+    console.warn('Cloudflare dev setup failed, continuing without bindings:', error.message);
+  }
 }
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  experimental: {
+    outputFileTracingExcludes: {
+      '*': ['./archive/**/*'],
+    },
+  },
+};
 
 export default nextConfig;
