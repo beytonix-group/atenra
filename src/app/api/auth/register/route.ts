@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 		
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
-				{ error: "VALIDATION_ERROR", message: error.errors[0]?.message },
+				{ error: "VALIDATION_ERROR", message: "Invalid input" },
 				{ status: 400 }
 			);
 		}

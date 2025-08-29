@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
 		await db
 			.update(users)
 			.set({ 
-				password: hashedPassword,
-				emailVerified: new Date(),
+				passwordHash: hashedPassword,
+				emailVerified: 1,
 			})
 			.where(eq(users.email, existingToken.identifier));
 
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
-				{ message: error.errors[0]?.message || "Invalid input" },
+				{ message: "Invalid input" },
 				{ status: 400 }
 			);
 		}

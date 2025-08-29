@@ -105,8 +105,7 @@ export async function PATCH(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json({ 
-        error: "Invalid data", 
-        details: error.errors 
+        error: "Invalid data"
       }, { status: 400 });
     }
     

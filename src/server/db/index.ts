@@ -5,7 +5,7 @@ import { createClient } from "@libsql/client";
 import * as schema from "./schema";
 
 // Use different database connection based on runtime
-const isEdgeRuntime = typeof EdgeRuntime !== "undefined";
+const isEdgeRuntime = typeof globalThis !== "undefined" && "EdgeRuntime" in globalThis;
 
 export const db = isEdgeRuntime && process.env.DATABASE
   ? drizzle(process.env.DATABASE, { schema, logger: true })

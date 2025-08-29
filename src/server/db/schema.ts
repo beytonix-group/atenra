@@ -10,8 +10,8 @@ import { db } from "."
 
 export const authUsers = sqliteTable('auth_users', {
   id: text('id').primaryKey(),
-  email: text('email').unique(),
-  emailVerified: text('emailVerified'),
+  email: text('email').notNull().unique(),
+  emailVerified: integer('emailVerified', { mode: 'timestamp' }),
   name: text('name'),
   image: text('image'),
 });
@@ -42,13 +42,13 @@ export const accounts = sqliteTable('accounts', {
 export const sessions = sqliteTable('sessions', {
   sessionToken: text('sessionToken').primaryKey(),
   userId: text('userId').notNull().references(() => authUsers.id, { onDelete: 'cascade' }),
-  expires: text('expires').notNull(),
+  expires: integer('expires', { mode: 'timestamp' }).notNull(),
 });
 
 export const verificationTokens = sqliteTable('verificationTokens', {
   identifier: text('identifier').notNull(),
   token: text('token').notNull(),
-  expires: text('expires').notNull(),
+  expires: integer('expires', { mode: 'timestamp' }).notNull(),
 }, (vt) => ({
   pk: primaryKey({ columns: [vt.identifier, vt.token] }),
 }));

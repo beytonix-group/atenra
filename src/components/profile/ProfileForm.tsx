@@ -42,7 +42,7 @@ export function ProfileForm() {
 		try {
 			const response = await fetch("/api/profile");
 			if (response.ok) {
-				const data = await response.json();
+				const data = await response.json() as UserProfile;
 				setProfile(data);
 			}
 		} catch (error) {
@@ -81,7 +81,7 @@ export function ProfileForm() {
 				setMessage("Profile updated successfully!");
 				setTimeout(() => setMessage(""), 3000);
 			} else {
-				const error = await response.json();
+				const error = await response.json() as { error?: string };
 				setMessage(error.error || "Failed to update profile");
 			}
 		} catch (error) {
@@ -114,8 +114,8 @@ export function ProfileForm() {
 				{sanitizeAvatarUrl(session?.user?.image) ? (
 					<>
 						<img 
-							src={sanitizeAvatarUrl(session.user.image)!} 
-							alt={session.user.name || "User"}
+							src={sanitizeAvatarUrl(session?.user?.image)!} 
+							alt={session?.user?.name || "User"}
 							className="w-16 h-16 rounded-full object-cover"
 							onError={(e) => {
 								e.currentTarget.style.display = 'none';

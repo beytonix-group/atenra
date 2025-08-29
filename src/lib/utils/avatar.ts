@@ -7,13 +7,6 @@ export function isValidImageUrl(url: string): boolean {
     // Only allow https protocol for security
     if (parsedUrl.protocol !== 'https:') return false;
     
-    // Block JavaScript and data URLs
-    if (parsedUrl.protocol === 'javascript:' || 
-        parsedUrl.protocol === 'data:' || 
-        parsedUrl.protocol === 'vbscript:') {
-      return false;
-    }
-    
     // Check for valid image file extensions
     const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
     const hasValidExtension = validExtensions.some(ext => 
