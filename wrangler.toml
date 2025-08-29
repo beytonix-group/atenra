@@ -8,6 +8,6 @@ mode = "smart"
 
 [[d1_databases]]
 binding = "DATABASE"
-database_name = "atenra-production-db"
-database_id = "8ba42c49-e797-4443-b4e6-49bf2ccbfa85"
+database_name = "atenra-dev-db"
+database_id = "7ed327c0-e838-4fd5-8369-a6b5e90dd04d"
 migrations_dir = "./drizzle"

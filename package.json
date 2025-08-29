@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:simple": "SKIP_CF_SETUP=true next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -25,8 +24,8 @@
     "studio:start": "drizzle-kit studio > /dev/null 2>&1 & echo $! > .studio.pid && echo 'Drizzle Studio started at https://local.drizzle.studio'",
     "studio:stop": "if [ -f .studio.pid ]; then kill $(cat .studio.pid) && rm .studio.pid && echo 'Drizzle Studio stopped'; else echo 'Drizzle Studio is not running'; fi",
     "studio:restart": "npm run studio:stop && npm run studio:start",
-    "db:query": "npx wrangler d1 execute atenra-db --local --command",
-    "db:query:prod": "npx wrangler d1 execute atenra-db --command"
+    "db:query": "npx wrangler d1 execute atenra-dev-db --local --command",
+    "db:query:prod": "npx wrangler d1 execute atenra-dev-db --command"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.4.2",
