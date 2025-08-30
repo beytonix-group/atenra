@@ -6,7 +6,7 @@ import { auth } from "@/server/auth";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
-export const runtime = process.env.NODE_ENV === "production" ? "edge" : undefined;
+export const runtime = "edge";
 
 export const metadata = {
 	title: "Profile - Atenra",

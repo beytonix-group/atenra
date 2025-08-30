@@ -5,7 +5,7 @@ import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-export const runtime = process.env.NODE_ENV === "production" ? "edge" : undefined;
+export const runtime = "edge";
 
 const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(50).optional(),
@@ -105,8 +105,7 @@ export async function PATCH(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json({ 
-        error: "Invalid data", 
-        details: error.errors 
+        error: "Invalid data"
       }, { status: 400 });
     }
     

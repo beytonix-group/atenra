@@ -28,7 +28,7 @@ export function ForgotPasswordForm() {
 			if (response.ok) {
 				setEmailSent(true);
 			} else {
-				const result = await response.json();
+				const result = await response.json() as { message?: string };
 				setError(result.message || "Something went wrong");
 			}
 		} catch (error) {

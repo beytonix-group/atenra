@@ -4,6 +4,8 @@ import { verificationTokens } from "@/server/db/schema";
 import { eq, and, gt } from "drizzle-orm";
 import { z } from "zod";
 
+export const runtime = "edge";
+
 const verifyTokenSchema = z.object({
 	token: z.string().min(1, "Token is required"),
 });
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
-				{ message: error.errors[0]?.message || "Invalid input" },
+				{ message: "Invalid input" },
 				{ status: 400 }
 			);
 		}

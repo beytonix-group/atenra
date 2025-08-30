@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { users, verificationTokens } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { randomBytes } from "crypto";
 import { z } from "zod";
+
+export const runtime = "edge";
 
 const forgotPasswordSchema = z.object({
 	email: z.string().email("Invalid email address"),
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		const token = randomBytes(32).toString("hex");
+		const token = crypto.randomUUID();
 		const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
 		await db
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
-				{ message: error.errors[0]?.message || "Invalid input" },
+				{ message: "Invalid input" },
 				{ status: 400 }
 			);
 		}

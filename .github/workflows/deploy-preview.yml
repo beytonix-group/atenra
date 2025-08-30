@@ -1,0 +1,52 @@
+name: Deploy Preview
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-preview:
+    name: Deploy Preview to Cloudflare Pages
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for Cloudflare Pages
+        run: npm run pages:build
+
+      - name: Verify Cloudflare Pages build output
+        run: |
+          if [ ! -d ".vercel/output/static" ]; then
+            echo "❌ Cloudflare Pages build output not found"
+            exit 1
+          fi
+          echo "✅ Cloudflare Pages build verification successful"
+
+      - name: Comment PR with build status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ **Cloudflare Pages build verified!**\n\n🔧 Build output generated successfully and ready for deployment.`
+            });

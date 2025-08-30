@@ -4,19 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:simple": "SKIP_CF_SETUP=true next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "bunx @cloudflare/next-on-pages",
-    "preview": "bun pages:build && wrangler pages dev",
-    "deploy": "bun pages:build && wrangler pages deploy",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "preview": "npm run pages:build && wrangler pages dev",
+    "deploy": "npm run pages:build && wrangler pages deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv env.d.ts",
-    "deploy:full": "bun run lint && bun run db:migrate:prod && bun run pages:build && wrangler pages deploy",
-    "deploy:staging": "bun pages:build && wrangler pages deploy --env staging",
-    "ci:build": "bun run lint && bun run pages:build",
-    "ci:deploy": "bun run db:migrate:prod && wrangler pages deploy",
-    "setup": "bun run scripts/setup.ts",
+    "deploy:full": "npm run lint && npm run db:migrate:prod && npm run pages:build && wrangler pages deploy",
+    "deploy:staging": "npm run pages:build && wrangler pages deploy --env staging",
+    "ci:build": "npm run lint && npm run pages:build",
+    "ci:deploy": "npm run db:migrate:prod && wrangler pages deploy",
+    "setup": "npx tsx scripts/setup.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate:dev": "drizzle-kit migrate",
     "db:migrate:prod": "NODE_ENV=production drizzle-kit migrate",
@@ -24,9 +23,9 @@
     "db:studio:prod": "NODE_ENV=production drizzle-kit studio",
     "studio:start": "drizzle-kit studio > /dev/null 2>&1 & echo $! > .studio.pid && echo 'Drizzle Studio started at https://local.drizzle.studio'",
     "studio:stop": "if [ -f .studio.pid ]; then kill $(cat .studio.pid) && rm .studio.pid && echo 'Drizzle Studio stopped'; else echo 'Drizzle Studio is not running'; fi",
-    "studio:restart": "bun run studio:stop && bun run studio:start",
-    "db:query": "bunx wrangler d1 execute atenra-db --local --command",
-    "db:query:prod": "bunx wrangler d1 execute atenra-db --command"
+    "studio:restart": "npm run studio:stop && npm run studio:start",
+    "db:query": "npx wrangler d1 execute atenra-dev-db --local --command",
+    "db:query:prod": "npx wrangler d1 execute atenra-dev-db --command"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.4.2",
@@ -50,10 +49,10 @@
     "react-dom": "^18",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.1.5"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "1",
+    "@cloudflare/next-on-pages": "^1.13.2",
     "@cloudflare/workers-types": "^4.20240903.0",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -65,6 +64,6 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vercel": "^37.3.0",
-    "wrangler": "^4.32.0"
+    "wrangler": "^3.28.2"
   }
 }

@@ -74,7 +74,7 @@ export function SignUpForm() {
 				}),
 			});
 
-			const result = await response.json();
+			const result = await response.json() as { error?: string; message?: string };
 
 			if (!response.ok) {
 				if (result.error === "EMAIL_EXISTS") {

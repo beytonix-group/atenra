@@ -63,7 +63,7 @@ function ResetPasswordFormContent() {
 			if (response.ok) {
 				setPasswordReset(true);
 			} else {
-				const result = await response.json();
+				const result = await response.json() as { message?: string };
 				setError(result.message || "Something went wrong");
 			}
 		} catch (error) {

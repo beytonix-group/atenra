@@ -5,6 +5,8 @@ import { eq, and, gt } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
+export const runtime = "edge";
+
 const resetPasswordSchema = z.object({
 	token: z.string().min(1, "Token is required"),
 	password: z.string().min(8, "Password must be at least 8 characters long"),
@@ -36,8 +38,8 @@ export async function POST(req: NextRequest) {
 		await db
 			.update(users)
 			.set({ 
-				password: hashedPassword,
-				emailVerified: new Date(),
+				passwordHash: hashedPassword,
+				emailVerified: 1,
 			})
 			.where(eq(users.email, existingToken.identifier));
 
@@ -52,7 +54,7 @@ export async function POST(req: NextRequest) {
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
-				{ message: error.errors[0]?.message || "Invalid input" },
+				{ message: "Invalid input" },
 				{ status: 400 }
 			);
 		}

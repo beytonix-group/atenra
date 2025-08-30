@@ -18,8 +18,8 @@ function createD1Adapter(): Adapter {
       const sessionData = {
         ...session,
         expires: session.expires instanceof Date 
-          ? session.expires.toISOString() 
-          : session.expires
+          ? session.expires 
+          : session.expires ? new Date(session.expires) : new Date()
       };
       
       const result = await db
@@ -37,8 +37,8 @@ function createD1Adapter(): Adapter {
       const sessionData = {
         ...session,
         expires: session.expires instanceof Date 
-          ? session.expires.toISOString() 
-          : session.expires
+          ? session.expires 
+          : session.expires ? new Date(session.expires) : new Date()
       };
       
       const result = await db
@@ -57,10 +57,7 @@ function createD1Adapter(): Adapter {
     },
     getSessionAndUser: async (sessionToken) => {
       const result = await db
-        .select({
-          session: sessions,
-          user: authUsers,
-        })
+        .select()
         .from(sessions)
         .innerJoin(authUsers, eq(authUsers.id, sessions.userId))
         .where(eq(sessions.sessionToken, sessionToken))
@@ -70,10 +67,10 @@ function createD1Adapter(): Adapter {
       
       return {
         session: {
-          ...result.session,
-          expires: new Date(result.session.expires)
+          ...result.sessions,
+          expires: new Date(result.sessions.expires)
         },
-        user: result.user
+        user: result.auth_users
       };
     },
     deleteSession: async (sessionToken) => {
@@ -94,8 +91,8 @@ function createD1Adapter(): Adapter {
       const tokenData = {
         ...verificationToken,
         expires: verificationToken.expires instanceof Date 
-          ? verificationToken.expires.toISOString() 
-          : verificationToken.expires
+          ? verificationToken.expires 
+          : verificationToken.expires ? new Date(verificationToken.expires) : new Date()
       };
       
       const result = await db

@@ -116,7 +116,7 @@ export function Navigation() {
 										</Link>
 										<button 
 											onClick={() => {
-												signOut({ redirectTo: "/" });
+												signOut({ redirect: true });
 												setUserMenuOpen(false);
 											}}
 											className="w-full flex items-center space-x-2 px-4 py-2 text-sm hover:bg-muted transition-colors text-left text-red-600"
@@ -208,7 +208,7 @@ export function Navigation() {
 										size="sm" 
 										className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
 										onClick={() => {
-											signOut({ redirectTo: "/" });
+											signOut({ redirect: true });
 											setMobileMenuOpen(false);
 										}}
 									>
