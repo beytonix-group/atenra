@@ -1,12 +1,10 @@
 version: 2
 updates:
-  # Enable version updates for npm
+  # Enable version and security updates for npm
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: "daily"
     open-pull-requests-limit: 5
     commit-message:
       prefix: "deps"
@@ -14,20 +12,7 @@ updates:
     labels:
       - "dependencies"
       - "automated"
-
-  # Enable security updates for npm
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 3
-    commit-message:
-      prefix: "security"
-    labels:
-      - "security"
-      - "dependencies"
-      - "automated"
-
+    
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
