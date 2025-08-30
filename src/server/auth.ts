@@ -16,15 +16,21 @@ export const {
 	secret: process.env.AUTH_SECRET,
 	trustHost: true,
 	adapter: D1Adapter,
-	basePath: "/api/auth",
 	pages: {
 		signIn: "/login",
 		error: "/auth/error",
 	},
 	providers: [
 		Google({
-			clientId: process.env.AUTH_GOOGLE_ID!,
-			clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+			clientId: process.env.AUTH_GOOGLE_ID || "",
+			clientSecret: process.env.AUTH_GOOGLE_SECRET || "",
+			authorization: {
+				params: {
+					prompt: "consent",
+					access_type: "offline",
+					response_type: "code"
+				}
+			}
 		}),
 		Credentials({
 			name: "credentials",
