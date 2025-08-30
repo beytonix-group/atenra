@@ -2,7 +2,7 @@ name: PR Verification
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -11,38 +11,39 @@ jobs:
   verify:
     name: Build and Test
     runs-on: ubuntu-latest
-    
+    if: github.event.pull_request.state == 'open'
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run ESLint
-      run: npm run lint
-      
-    - name: Build Next.js application
-      run: npm run build
-      
-    - name: Build Cloudflare Pages
-      run: npm run pages:build
-      
-    - name: Verify build output
-      run: |
-        if [ ! -d ".vercel/output/static" ]; then
-          echo "❌ Cloudflare Pages build output not found"
-          exit 1
-        fi
-        echo "✅ Cloudflare Pages build successful"
-        
-    - name: Check build size
-      run: |
-        OUTPUT_SIZE=$(du -sh .vercel/output/static | cut -f1)
-        echo "📦 Build output size: $OUTPUT_SIZE"
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Build Next.js application
+        run: npm run build
+
+      - name: Build Cloudflare Pages
+        run: npm run pages:build
+
+      - name: Verify build output
+        run: |
+          if [ ! -d ".vercel/output/static" ]; then
+            echo "❌ Cloudflare Pages build output not found"
+            exit 1
+          fi
+          echo "✅ Cloudflare Pages build successful"
+
+      - name: Check build size
+        run: |
+          OUTPUT_SIZE=$(du -sh .vercel/output/static | cut -f1)
+          echo "📦 Build output size: $OUTPUT_SIZE"
