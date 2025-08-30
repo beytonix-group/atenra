@@ -11,7 +11,7 @@ A comprehensive SaaS platform for service matching and asset management, built o
 - **NextAuth v5** for authentication (Google OAuth + Credentials)
 - **Shadcn UI + Tailwind CSS** for modern component library
 - **TypeScript** for type safety
-- **Bun** for fast package management and runtime
+- **npm** for package management
 
 ## Features
 
@@ -28,7 +28,7 @@ A comprehensive SaaS platform for service matching and asset management, built o
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) installed
+- [Node.js](https://nodejs.org/) and npm installed
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed
 - Cloudflare account with `wrangler login`
 
@@ -36,22 +36,22 @@ A comprehensive SaaS platform for service matching and asset management, built o
 
 ```bash
 # 1. Install dependencies
-bun install
+npm install
 
 # 2. Run interactive setup (creates .dev.vars, configures database)
-bun run setup
+npm run setup
 
 # 3. Setup database
-bun run db:migrate:dev
+npm run db:migrate:dev
 
 # 4. Start development server
-bun run dev
+npm run dev
 ```
 
 **One-liner for fresh start:**
 
 ```bash
-bun install && bun run setup && bun run db:migrate:dev && bun run dev
+npm install && npm run setup && npm run db:migrate:dev && npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
@@ -61,43 +61,43 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 ### Core Development
 
 ```bash
-bun run dev              # Start local development server
-bun run lint             # Run ESLint for code quality
-bun run build            # Build Next.js application
+npm run dev              # Start local development server
+npm run lint             # Run ESLint for code quality
+npm run build            # Build Next.js application
 ```
 
 ### Database Management
 
 ```bash
-bun run db:generate      # Generate migration files from schema changes
-bun run db:migrate:dev   # Apply migrations to local database
-bun run db:migrate:prod  # Apply migrations to production database
-bun run db:studio:dev    # Open Drizzle Studio for local database
-bun run db:studio:prod   # Open Drizzle Studio for production database
+npm run db:generate      # Generate migration files from schema changes
+npm run db:migrate:dev   # Apply migrations to local database
+npm run db:migrate:prod  # Apply migrations to production database
+npm run db:studio:dev    # Open Drizzle Studio for local database
+npm run db:studio:prod   # Open Drizzle Studio for production database
 ```
 
 ### Cloudflare Deployment
 
 ```bash
-bun run pages:build      # Build for Cloudflare Pages
-bun run preview          # Preview built app locally with Wrangler
-bun run deploy           # Quick deploy to Cloudflare Pages
-bun run deploy:full      # Full deploy with linting and migrations
-bun run deploy:staging   # Deploy to staging environment
+npm run pages:build      # Build for Cloudflare Pages
+npm run preview          # Preview built app locally with Wrangler
+npm run deploy           # Quick deploy to Cloudflare Pages
+npm run deploy:full      # Full deploy with linting and migrations
+npm run deploy:staging   # Deploy to staging environment
 ```
 
 ### CI/CD Scripts
 
 ```bash
-bun run ci:build         # CI build step (lint + pages:build)
-bun run ci:deploy        # CI deploy step (migrate + deploy)
+npm run ci:build         # CI build step (lint + pages:build)
+npm run ci:deploy        # CI deploy step (migrate + deploy)
 ```
 
 ### Utilities
 
 ```bash
-bun run cf-typegen       # Generate TypeScript types for Cloudflare environment
-bun run setup            # Interactive project setup
+npm run cf-typegen       # Generate TypeScript types for Cloudflare environment
+npm run setup            # Interactive project setup
 ```
 
 ## Environment Configuration
@@ -192,10 +192,10 @@ bun run deploy
 
 ```yaml
 - name: Build
-  run: bun run ci:build
+  run: npm run ci:build
 
 - name: Deploy
-  run: bun run ci:deploy
+  run: npm run ci:deploy
   env:
     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```
