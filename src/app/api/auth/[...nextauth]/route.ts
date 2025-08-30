@@ -13,7 +13,8 @@ export const runtime = "edge";
 const auth = NextAuth({
     secret: getEnv("AUTH_SECRET"),
     trustHost: true,
-    adapter: D1Adapter,
+    // Temporarily disable adapter to test if it's causing Configuration error
+    // adapter: D1Adapter,
     pages: {
       signIn: "/login",
       error: "/auth/error",
