@@ -89,61 +89,12 @@ const auth = NextAuth({
         }
       })
     ],
-    events: {
-      async signIn({ user, account, profile }) {
-        try {
-          if (user.id && user.email) {
-            const existingUser = await db
-              .select()
-              .from(users)
-              .where(eq(users.authUserId, user.id))
-              .get();
-
-            if (!existingUser) {
-              const nameParts = user.name?.split(' ') || [];
-              const firstName = nameParts[0] || '';
-              const lastName = nameParts.slice(1).join(' ') || '';
-              
-              const newUser = await db.insert(users).values({
-                authUserId: user.id,
-                email: user.email,
-                passwordHash: '',
-                firstName,
-                lastName,
-                displayName: user.name,
-                avatarUrl: user.image,
-                emailVerified: 1,
-              }).returning().get();
-
-              // Check if user should be assigned super admin role
-              const superUserEmails = 
-                (getEnv("SUPER_USER_EMAIL") ?? "")
-                  .split(",")
-                  .map((email: string) => email.trim())
-                  .filter(Boolean);
-              const isSuperUser = user.email && superUserEmails.includes(user.email);
-              
-              if (isSuperUser && newUser) {
-                const superAdminRole = await db
-                  .select()
-                  .from(roles)
-                  .where(eq(roles.name, 'super_admin'))
-                  .get();
-                  
-                if (superAdminRole) {
-                  await db.insert(userRoles).values({
-                    userId: newUser.id,
-                    roleId: superAdminRole.id,
-                  });
-                }
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error creating user profile:', error);
-        }
-      },
-    },
+    // Temporarily disable events to test if they're causing Configuration error
+    // events: {
+    //   async signIn({ user, account, profile }) {
+    //     // User profile creation logic here
+    //   },
+    // },
   });
 
 export const { GET, POST } = auth.handlers;
