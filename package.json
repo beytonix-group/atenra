@@ -28,7 +28,7 @@
     "db:query:prod": "npx wrangler d1 execute atenra-dev-db --command"
   },
   "dependencies": {
-    "@auth/drizzle-adapter": "^1.4.2",
+    "@auth/drizzle-adapter": "^1.10.0",
     "@clack/prompts": "^0.7.0",
     "@iarna/toml": "^2.2.5",
     "@libsql/client": "^0.10.0",
