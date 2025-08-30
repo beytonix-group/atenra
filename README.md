@@ -44,9 +44,30 @@ npm run setup
 # 3. Setup database
 npm run db:migrate:dev
 
-# 4. Start development server
+# 4. Apply NextAuth schema fixes (if needed)
+npm run db:migrate:dev
+
+# 5. Start development server
 npm run dev
 ```
+
+### ⚠️ NextAuth Database Schema Fix
+
+If you encounter authentication "Configuration" errors, apply the NextAuth schema fix:
+
+```bash
+# Apply the NextAuth schema fix migration
+bunx wrangler d1 execute atenra-dev-db --file=drizzle/0001_nextauth_schema_fix.sql
+
+# For production database:
+bunx wrangler d1 execute atenra-dev-db --remote --file=drizzle/0001_nextauth_schema_fix.sql
+```
+
+This migration fixes:
+- ✅ `sessions.expires` field from TEXT to INTEGER
+- ✅ `verificationTokens.expires` field from TEXT to INTEGER  
+- ✅ `auth_users.emailVerified` field from TEXT to INTEGER
+- ✅ Creates missing `accounts` table for OAuth providers
 
 **One-liner for fresh start:**
 
