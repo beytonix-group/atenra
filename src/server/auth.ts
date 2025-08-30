@@ -7,13 +7,20 @@ import { users, roles, userRoles } from "./db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
+// Helper to get environment variables that works in both local and Cloudflare
+function getEnvVar(name: string): string {
+	// In Cloudflare Pages, env vars are available via process.env
+	// In local dev, they come from .env.local or .dev.vars
+	return process.env[name] || "";
+}
+
 export const { 
 	auth, 
 	handlers, 
 	signIn, 
 	signOut 
 } = NextAuth({
-	secret: process.env.AUTH_SECRET,
+	secret: getEnvVar("AUTH_SECRET"),
 	trustHost: true,
 	adapter: D1Adapter,
 	pages: {
@@ -22,8 +29,8 @@ export const {
 	},
 	providers: [
 		Google({
-			clientId: process.env.AUTH_GOOGLE_ID || "",
-			clientSecret: process.env.AUTH_GOOGLE_SECRET || "",
+			clientId: getEnvVar("AUTH_GOOGLE_ID"),
+			clientSecret: getEnvVar("AUTH_GOOGLE_SECRET"),
 			authorization: {
 				params: {
 					prompt: "consent",
