@@ -118,7 +118,11 @@ const handler = async (req: Request) => {
               }).returning().get();
 
               // Check if user should be assigned super admin role
-              const superUserEmails = getEnv("SUPER_USER_EMAIL")?.split(',').map(email => email.trim()) || [];
+              const superUserEmails = 
+                (getEnv("SUPER_USER_EMAIL") ?? "")
+                  .split(",")
+                  .map((email: string) => email.trim())
+                  .filter(Boolean);
               const isSuperUser = user.email && superUserEmails.includes(user.email);
               
               if (isSuperUser && newUser) {
