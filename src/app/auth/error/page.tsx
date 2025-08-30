@@ -37,14 +37,8 @@ function AuthErrorContent() {
           {error === "Configuration" && (
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
               <p className="text-sm text-yellow-800">
-                Please ensure the following environment variables are set:
+                Server configuration error. Please contact support.
               </p>
-              <ul className="mt-2 text-xs text-left text-yellow-700">
-                <li>• AUTH_SECRET</li>
-                <li>• AUTH_GOOGLE_ID</li>
-                <li>• AUTH_GOOGLE_SECRET</li>
-                <li>• NEXTAUTH_URL (https://atenra.com)</li>
-              </ul>
             </div>
           )}
         </div>
