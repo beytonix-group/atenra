@@ -10,9 +10,7 @@ import { getEnv } from "@/lib/env-edge";
 
 export const runtime = "edge";
 
-const handler = async (req: Request) => {
-  
-  const authHandler = NextAuth({
+const auth = NextAuth({
     secret: getEnv("AUTH_SECRET"),
     trustHost: true,
     adapter: D1Adapter,
@@ -148,15 +146,4 @@ const handler = async (req: Request) => {
     },
   });
 
-  return authHandler.handlers;
-};
-
-export async function GET(req: Request) {
-  const { GET } = await handler(req);
-  return GET(req);
-}
-
-export async function POST(req: Request) {
-  const { POST } = await handler(req);
-  return POST(req);
-}
+export const { GET, POST } = auth.handlers;

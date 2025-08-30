@@ -33,7 +33,6 @@ export const {
 	secret: getEnvVar("AUTH_SECRET"),
 	trustHost: true,
 	adapter: D1Adapter,
-	url: url,
 	pages: {
 		signIn: "/login",
 		error: "/auth/error",
