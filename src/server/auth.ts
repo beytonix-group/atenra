@@ -11,8 +11,18 @@ import bcrypt from "bcryptjs";
 function getEnvVar(name: string): string {
 	// In Cloudflare Pages, env vars are available via process.env
 	// In local dev, they come from .env.local or .dev.vars
-	return process.env[name] || "";
+	const value = process.env[name] || "";
+	
+	// Debug logging for production
+	if (name === "AUTH_SECRET" && !value) {
+		console.error(`Missing required environment variable: ${name}`);
+	}
+	
+	return value;
 }
+
+// Get the URL for NextAuth
+const url = process.env.NEXTAUTH_URL || "https://atenra.com";
 
 export const { 
 	auth, 
@@ -23,9 +33,21 @@ export const {
 	secret: getEnvVar("AUTH_SECRET"),
 	trustHost: true,
 	adapter: D1Adapter,
+	url: url,
 	pages: {
 		signIn: "/login",
 		error: "/auth/error",
+	},
+	callbacks: {
+		async session({ session, token }) {
+			return session;
+		},
+		async jwt({ token, user }) {
+			if (user) {
+				token.id = user.id;
+			}
+			return token;
+		}
 	},
 	providers: [
 		Google({
