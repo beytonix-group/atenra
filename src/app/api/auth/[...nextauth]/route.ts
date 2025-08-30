@@ -14,6 +14,7 @@ const auth = NextAuth({
     secret: getEnv("AUTH_SECRET"),
     trustHost: true,
     adapter: D1Adapter,
+    debug: true,
     pages: {
       signIn: "/login",
       error: "/auth/error",
