@@ -11,6 +11,7 @@ jobs:
   verify:
     name: Build and Test
     runs-on: ubuntu-latest
+    if: github.event.pull_request.state == 'open'
     
     steps:
     - name: Checkout code
