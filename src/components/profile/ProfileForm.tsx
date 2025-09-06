@@ -23,7 +23,18 @@ interface UserProfile {
 	status: string;
 	emailVerified: number;
 	createdAt: string;
+	roles?: string[];
 }
+
+const formatRoleName = (role: string): string => {
+	const roleFormatMap: Record<string, string> = {
+		'super_admin': 'Super Admin',
+		'manager': 'Manager',
+		'admin': 'Admin',
+		'user': 'User',
+	};
+	return roleFormatMap[role.toLowerCase()] || role;
+};
 
 export function ProfileForm() {
 	const { data: session } = useSession();
@@ -136,6 +147,11 @@ export function ProfileForm() {
 					<h2 className="text-2xl font-semibold">{profile.displayName || session?.user?.name}</h2>
 					<p className="text-muted-foreground">{profile.email}</p>
 					<div className="flex items-center gap-2 mt-2">
+						{profile.roles && profile.roles.length > 0 && (
+							<span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 font-medium">
+								{profile.roles.map(role => formatRoleName(role)).join(', ')}
+							</span>
+						)}
 						<span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
 							{profile.status}
 						</span>

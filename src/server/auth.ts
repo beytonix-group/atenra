@@ -6,6 +6,7 @@ import { db } from "./db";
 import { users, roles, userRoles } from "./db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { ROLES } from "@/lib/auth/roles";
 
 // Helper to get environment variables that works in both local and Cloudflare
 function getEnvVar(name: string): string {
@@ -134,21 +135,26 @@ export const {
 							emailVerified: 1,
 						}).returning().get();
 
-						// Check if user should be assigned super admin role
-						const superUserEmails = process.env.SUPER_USER_EMAIL?.split(',').map(email => email.trim()) || [];
-						const isSuperUser = user.email && superUserEmails.includes(user.email);
-						
-						if (isSuperUser && newUser) {
-							const superAdminRole = await db
+						if (newUser) {
+							// Check if user should be assigned super admin role
+							const superUserEmails = process.env.SUPER_USER_EMAIL?.split(',').map(email => email.trim()) || [];
+							const isSuperUser = user.email && superUserEmails.includes(user.email);
+							
+							// Determine which role to assign
+							const roleName = isSuperUser ? ROLES.SUPER_ADMIN : ROLES.USER;
+							
+							// Get the role from database
+							const role = await db
 								.select()
 								.from(roles)
-								.where(eq(roles.name, 'super_admin'))
+								.where(eq(roles.name, roleName))
 								.get();
 								
-							if (superAdminRole) {
+							if (role) {
+								// Assign the role to the new user
 								await db.insert(userRoles).values({
 									userId: newUser.id,
-									roleId: superAdminRole.id,
+									roleId: role.id,
 								});
 							}
 						}
