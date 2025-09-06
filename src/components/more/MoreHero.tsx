@@ -6,7 +6,7 @@ export function MoreHero() {
 	const { t } = useLanguage();
 	
 	return (
-		<section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative">
+		<section className="pt-12 pb-12 px-4 sm:px-6 lg:px-8 relative">
 			<div className="max-w-6xl mx-auto">
 				<div className="text-center mb-16">
 					<h1 className="text-4xl md:text-5xl font-light text-foreground mb-6 tracking-tight">
