@@ -44,7 +44,7 @@ export function AdminDashboard() {
 			setLoading(true);
 			const response = await fetch("/api/admin/users");
 			if (!response.ok) throw new Error("Failed to fetch users");
-			const data = await response.json();
+			const data = await response.json() as User[];
 			setUsers(data);
 		} catch (error) {
 			console.error("Error fetching users:", error);
@@ -118,21 +118,21 @@ export function AdminDashboard() {
 			value: users.length.toString(),
 			icon: Users,
 			change: "+12%",
-			changeType: "positive" as const,
+			changeType: "positive" as "positive" | "negative" | "neutral",
 		},
 		{
 			title: "Active Users",
 			value: users.filter(u => u.status === "active").length.toString(),
 			icon: Activity,
 			change: "+8%",
-			changeType: "positive" as const,
+			changeType: "positive" as "positive" | "negative" | "neutral",
 		},
 		{
 			title: "Super Admins",
 			value: users.filter(u => u.roles.some(r => r.name === ROLES.SUPER_ADMIN)).length.toString(),
 			icon: Shield,
 			change: "0%",
-			changeType: "neutral" as const,
+			changeType: "neutral" as "positive" | "negative" | "neutral",
 		},
 	];
 

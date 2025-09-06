@@ -67,11 +67,11 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 				setLoading(true);
 				const response = await fetch("/api/admin/roles");
 				if (!response.ok) throw new Error("Failed to fetch roles");
-				const roles = await response.json();
+				const roles = await response.json() as Role[];
 				setAvailableRoles(roles);
 				
 				// Auto-select 'user' role if available
-				const userRole = roles.find((role: Role) => role.name === "user");
+				const userRole = roles.find((role) => role.name === "user");
 				if (userRole) {
 					setSelectedRoles([userRole.id]);
 				}

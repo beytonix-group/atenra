@@ -59,7 +59,23 @@ export async function POST(request: NextRequest) {
 		// Ensure user is super_admin
 		await requireRole(ROLES.SUPER_ADMIN);
 
-		const data = await request.json();
+		const data = await request.json() as {
+			firstName?: string;
+			lastName?: string;
+			displayName?: string;
+			email?: string;
+			password?: string;
+			phone?: string;
+			addressLine1?: string;
+			addressLine2?: string;
+			city?: string;
+			state?: string;
+			zipCode?: string;
+			country?: string;
+			status?: "active" | "suspended" | "deleted";
+			emailVerified?: number;
+			roleIds?: number[];
+		};
 		const {
 			firstName,
 			lastName,
@@ -67,8 +83,11 @@ export async function POST(request: NextRequest) {
 			email,
 			password,
 			phone,
+			addressLine1,
+			addressLine2,
 			city,
 			state,
+			zipCode,
 			country = "US",
 			status = "active",
 			emailVerified = 0,
@@ -110,8 +129,11 @@ export async function POST(request: NextRequest) {
 				email,
 				passwordHash,
 				phone,
+				addressLine1,
+				addressLine2,
 				city,
 				state,
+				zipCode,
 				country,
 				status,
 				emailVerified,

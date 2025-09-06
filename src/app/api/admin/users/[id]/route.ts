@@ -24,15 +24,33 @@ export async function PUT(
 			);
 		}
 
-		const data = await request.json();
+		const data = await request.json() as {
+			firstName?: string;
+			lastName?: string;
+			displayName?: string;
+			email?: string;
+			phone?: string;
+			addressLine1?: string;
+			addressLine2?: string;
+			city?: string;
+			state?: string;
+			zipCode?: string;
+			country?: string;
+			status?: "active" | "suspended" | "deleted";
+			emailVerified?: number;
+			roleIds?: number[];
+		};
 		const {
 			firstName,
 			lastName,
 			displayName,
 			email,
 			phone,
+			addressLine1,
+			addressLine2,
 			city,
 			state,
+			zipCode,
 			country,
 			status,
 			emailVerified,
@@ -86,8 +104,11 @@ export async function PUT(
 				displayName,
 				email,
 				phone,
+				addressLine1,
+				addressLine2,
 				city,
 				state,
+				zipCode,
 				country,
 				status,
 				emailVerified,

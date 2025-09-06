@@ -110,21 +110,20 @@ export function Navigation() {
 											<p className="text-sm font-medium">{session.user.name}</p>
 											<p className="text-xs text-muted-foreground">{session.user.email}</p>
 										</div>
-										{isSuperAdmin && (
-											<>
-												<Link href="/dashboard" onClick={() => setUserMenuOpen(false)}>
-													<button className="w-full flex items-center space-x-2 px-4 py-2 text-sm hover:bg-muted transition-colors text-left">
-														<LayoutDashboard className="h-4 w-4" />
-														<span>Dashboard</span>
-													</button>
-												</Link>
-												<Link href="/admin" onClick={() => setUserMenuOpen(false)}>
-													<button className="w-full flex items-center space-x-2 px-4 py-2 text-sm hover:bg-muted transition-colors text-left">
-														<Shield className="h-4 w-4" />
-														<span>Admin Dashboard</span>
-													</button>
-												</Link>
-											</>
+										{isSuperAdmin ? (
+											<Link href="/admin" onClick={() => setUserMenuOpen(false)}>
+												<button className="w-full flex items-center space-x-2 px-4 py-2 text-sm hover:bg-muted transition-colors text-left">
+													<Shield className="h-4 w-4" />
+													<span>Admin Dashboard</span>
+												</button>
+											</Link>
+										) : (
+											<Link href="/dashboard" onClick={() => setUserMenuOpen(false)}>
+												<button className="w-full flex items-center space-x-2 px-4 py-2 text-sm hover:bg-muted transition-colors text-left">
+													<LayoutDashboard className="h-4 w-4" />
+													<span>Dashboard</span>
+												</button>
+											</Link>
 										)}
 										<Link href="/profile" onClick={() => setUserMenuOpen(false)}>
 											<button className="w-full flex items-center space-x-2 px-4 py-2 text-sm hover:bg-muted transition-colors text-left">
@@ -208,21 +207,20 @@ export function Navigation() {
 										<p className="text-sm font-medium">{session.user.name}</p>
 										<p className="text-xs text-muted-foreground">{session.user.email}</p>
 									</div>
-									{isSuperAdmin && (
-										<>
-											<Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-												<Button variant="ghost" size="sm" className="w-full justify-start">
-													<LayoutDashboard className="mr-2 h-4 w-4" />
-													Dashboard
-												</Button>
-											</Link>
-											<Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-												<Button variant="ghost" size="sm" className="w-full justify-start">
-													<Shield className="mr-2 h-4 w-4" />
-													Admin Dashboard
-												</Button>
-											</Link>
-										</>
+									{isSuperAdmin ? (
+										<Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+											<Button variant="ghost" size="sm" className="w-full justify-start">
+												<Shield className="mr-2 h-4 w-4" />
+												Admin Dashboard
+											</Button>
+										</Link>
+									) : (
+										<Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+											<Button variant="ghost" size="sm" className="w-full justify-start">
+												<LayoutDashboard className="mr-2 h-4 w-4" />
+												Dashboard
+											</Button>
+										</Link>
 									)}
 									<Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
 										<Button variant="ghost" size="sm" className="w-full justify-start">

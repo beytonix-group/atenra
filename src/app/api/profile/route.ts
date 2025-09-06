@@ -11,13 +11,13 @@ const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(50).optional().nullable(),
   lastName: z.string().min(1).max(50).optional().nullable(),
   displayName: z.string().min(1).max(100).optional().nullable(),
-  phone: z.string().max(20).optional().nullable().transform(val => val || null),
-  addressLine1: z.string().max(100).optional().nullable().transform(val => val || null),
-  addressLine2: z.string().max(100).optional().nullable().transform(val => val || null),
-  city: z.string().max(50).optional().nullable().transform(val => val || null),
-  state: z.string().max(50).optional().nullable().transform(val => val || null),
-  zipCode: z.string().max(20).optional().nullable().transform(val => val || null),
-  country: z.string().max(50).optional().nullable().transform(val => val || null),
+  phone: z.string().max(20).optional().nullable().transform(val => val || undefined),
+  addressLine1: z.string().max(100).optional().nullable().transform(val => val || undefined),
+  addressLine2: z.string().max(100).optional().nullable().transform(val => val || undefined),
+  city: z.string().max(50).optional().nullable().transform(val => val || undefined),
+  state: z.string().max(50).optional().nullable().transform(val => val || undefined),
+  zipCode: z.string().max(20).optional().nullable().transform(val => val || undefined),
+  country: z.string().max(50).optional().nullable().transform(val => val || undefined),
 });
 
 export async function GET() {
@@ -82,10 +82,15 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const validatedData = updateProfileSchema.parse(body);
 
+    // Remove undefined values from validatedData
+    const updateData = Object.fromEntries(
+      Object.entries(validatedData).filter(([_, v]) => v !== undefined)
+    );
+
     const updatedUser = await db
       .update(users)
       .set({
-        ...validatedData,
+        ...updateData,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(users.authUserId, session.user.id))

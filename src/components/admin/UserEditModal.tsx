@@ -53,7 +53,7 @@ export function UserEditModal({ user, isOpen, onClose, onSuccess }: UserEditModa
 				setLoading(true);
 				const response = await fetch("/api/admin/roles");
 				if (!response.ok) throw new Error("Failed to fetch roles");
-				const roles = await response.json();
+				const roles = await response.json() as Role[];
 				setAvailableRoles(roles);
 			} catch (error) {
 				console.error("Error fetching roles:", error);

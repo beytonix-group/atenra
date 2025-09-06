@@ -24,7 +24,7 @@ export function useUserRole() {
 			try {
 				const response = await fetch("/api/auth/user-roles");
 				if (response.ok) {
-					const userRoles = await response.json();
+					const userRoles = await response.json() as UserRole[];
 					setRoles(userRoles);
 				}
 			} catch (error) {
