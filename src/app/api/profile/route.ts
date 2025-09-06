@@ -1,23 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { users } from "@/server/db/schema";
+import { users, userRoles, roles } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const runtime = "edge";
 
 const updateProfileSchema = z.object({
-  firstName: z.string().min(1).max(50).optional(),
-  lastName: z.string().min(1).max(50).optional(),
-  displayName: z.string().min(1).max(100).optional(),
-  phone: z.string().max(20).optional(),
-  addressLine1: z.string().max(100).optional(),
-  addressLine2: z.string().max(100).optional(),
-  city: z.string().max(50).optional(),
-  state: z.string().max(50).optional(),
-  zipCode: z.string().max(20).optional(),
-  country: z.string().max(50).optional(),
+  firstName: z.string().min(1).max(50).optional().nullable(),
+  lastName: z.string().min(1).max(50).optional().nullable(),
+  displayName: z.string().min(1).max(100).optional().nullable(),
+  phone: z.string().max(20).optional().nullable().transform(val => val || undefined),
+  addressLine1: z.string().max(100).optional().nullable().transform(val => val || undefined),
+  addressLine2: z.string().max(100).optional().nullable().transform(val => val || undefined),
+  city: z.string().max(50).optional().nullable().transform(val => val || undefined),
+  state: z.string().max(50).optional().nullable().transform(val => val || undefined),
+  zipCode: z.string().max(20).optional().nullable().transform(val => val || undefined),
+  country: z.string().max(50).optional().nullable().transform(val => val || undefined),
 });
 
 export async function GET() {
@@ -38,6 +38,16 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Fetch user roles
+    const userRolesList = await db
+      .select({
+        roleName: roles.name,
+      })
+      .from(userRoles)
+      .innerJoin(roles, eq(userRoles.roleId, roles.id))
+      .where(eq(userRoles.userId, user.id))
+      .all();
+
     return NextResponse.json({
       firstName: user.firstName,
       lastName: user.lastName,
@@ -53,6 +63,7 @@ export async function GET() {
       status: user.status,
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,
+      roles: userRolesList.map(r => r.roleName),
     });
   } catch (error) {
     console.error("Get profile error:", error);
@@ -71,10 +82,15 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const validatedData = updateProfileSchema.parse(body);
 
+    // Remove undefined values from validatedData
+    const updateData = Object.fromEntries(
+      Object.entries(validatedData).filter(([_, v]) => v !== undefined)
+    );
+
     const updatedUser = await db
       .update(users)
       .set({
-        ...validatedData,
+        ...updateData,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(users.authUserId, session.user.id))

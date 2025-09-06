@@ -7,6 +7,7 @@ import { users, roles, userRoles } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { getEnv } from "@/lib/env-edge";
+import { ROLES } from "@/lib/auth/roles";
 
 export const runtime = "edge";
 
@@ -129,7 +130,7 @@ const auth = NextAuth({
                 const superAdminRole = await db
                   .select()
                   .from(roles)
-                  .where(eq(roles.name, 'super_admin'))
+                  .where(eq(roles.name, ROLES.SUPER_ADMIN))
                   .get();
                   
                 if (superAdminRole) {

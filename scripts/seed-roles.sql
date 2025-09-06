@@ -41,9 +41,12 @@ INSERT INTO permissions (action, resource, description) VALUES
   ('manage', 'roles', 'Manage user roles and permissions'),
   ('manage', 'system', 'System configuration and maintenance');
 
--- Create super admin role
+-- Create roles
 INSERT INTO roles (name, description) VALUES
-  ('super_admin', 'Super administrator with full system access');
+  ('super_admin', 'Super administrator with full system access'),
+  ('manager', 'Manager with team and resource management capabilities'),
+  ('employee', 'Employee with standard operational access'),
+  ('user', 'Regular user with basic access permissions');
 
 -- Assign ALL permissions to super admin role
 INSERT INTO role_permissions (role_id, permission_id)
@@ -51,3 +54,32 @@ SELECT
   (SELECT id FROM roles WHERE name = 'super_admin'),
   id
 FROM permissions;
+
+-- Assign manager permissions
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 
+  (SELECT id FROM roles WHERE name = 'manager'),
+  id
+FROM permissions
+WHERE (action = 'read' AND resource IN ('users', 'companies', 'assets', 'subscriptions', 'content', 'jobs'))
+   OR (action = 'create' AND resource IN ('assets', 'content', 'jobs'))
+   OR (action = 'update' AND resource IN ('assets', 'content', 'jobs'))
+   OR (action = 'delete' AND resource IN ('content', 'jobs'));
+
+-- Assign employee permissions
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 
+  (SELECT id FROM roles WHERE name = 'employee'),
+  id
+FROM permissions
+WHERE (action = 'read' AND resource IN ('companies', 'assets', 'content', 'jobs'))
+   OR (action = 'create' AND resource IN ('content', 'jobs'))
+   OR (action = 'update' AND resource IN ('content', 'jobs'));
+
+-- Assign user permissions (basic read-only access)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 
+  (SELECT id FROM roles WHERE name = 'user'),
+  id
+FROM permissions
+WHERE action = 'read' AND resource IN ('content', 'companies');
