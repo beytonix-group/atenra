@@ -35,7 +35,7 @@ export function Navigation() {
 				<div className="flex items-center justify-between h-16">
 					<div className="flex items-center">
 						<Link href="/" className="flex items-center space-x-2">
-							<span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+							<span className="text-2xl font-bold text-foreground">
 								Atenra
 							</span>
 						</Link>
@@ -128,18 +128,11 @@ export function Navigation() {
 								)}
 							</div>
 						) : (
-							<>
-								<Link href="/login">
-									<Button variant="ghost" size="sm">
-										{t.navigation.signIn}
-									</Button>
-								</Link>
-								<Link href="/register">
-									<Button size="sm">
-										{t.navigation.getStarted}
-									</Button>
-								</Link>
-							</>
+							<Link href="/login">
+								<Button variant="ghost" size="sm">
+									{t.navigation.signIn}
+								</Button>
+							</Link>
 						)}
 					</div>
 
@@ -217,18 +210,11 @@ export function Navigation() {
 									</Button>
 								</div>
 							) : (
-								<>
-									<Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-										<Button variant="ghost" size="sm" className="w-full">
-											{t.navigation.signIn}
-										</Button>
-									</Link>
-									<Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-										<Button size="sm" className="w-full">
-											{t.navigation.getStarted}
-										</Button>
-									</Link>
-								</>
+								<Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+									<Button variant="ghost" size="sm" className="w-full">
+										{t.navigation.signIn}
+									</Button>
+								</Link>
 							)}
 						</div>
 					</div>

@@ -39,25 +39,21 @@ export function SupportedServices() {
 		}
 	];
 	return (
-		<section className="py-20 md:py-32 bg-muted/20">
+		<section className="py-12 md:py-16 bg-muted/10">
 			<div className="max-w-6xl mx-auto px-4">
-				<div className="text-center mb-16">
-					<h2 className="text-4xl md:text-5xl font-light mb-6">{t.about.supportedServices}</h2>
+				<div className="text-center mb-20">
+					<h2 className="text-4xl md:text-5xl font-light">{t.about.supportedServices}</h2>
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
 					{services.map((service, index) => {
 						const Icon = service.icon;
 						return (
-							<div key={index} className="group">
-								<div className="flex items-start space-x-4 p-6 rounded-2xl bg-card border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-									<div className="flex-shrink-0">
-										<div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-											<Icon className="h-6 w-6 text-orange-600" />
-										</div>
-									</div>
+							<div key={index} className="flex flex-col">
+								<div className="flex items-start gap-4 mb-3">
+									<Icon className="h-5 w-5 text-muted-foreground mt-0.5" />
 									<div className="flex-grow">
-										<h3 className="text-xl font-semibold mb-2">{service.title}</h3>
+										<h3 className="text-lg font-medium mb-2">{service.title}</h3>
 										<p className="text-muted-foreground text-sm leading-relaxed">
 											{service.description}
 										</p>

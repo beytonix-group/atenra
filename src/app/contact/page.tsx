@@ -15,9 +15,9 @@ export default function ContactPage() {
 	return (
 		<main className="min-h-screen bg-background">
 			<Navigation />
-			<div className="pt-16">
+			<div className="pt-8">
 				<ContactHero />
-				<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+				<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 						<ContactForm />
 						<ContactInfo />

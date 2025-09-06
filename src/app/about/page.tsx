@@ -16,7 +16,7 @@ export default function AboutPage() {
 	return (
 		<main className="min-h-screen bg-background">
 			<Navigation />
-			<div className="pt-16">
+			<div className="pt-8">
 				<AboutHero />
 				<OurStory />
 				<OurValues />
