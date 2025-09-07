@@ -10,8 +10,10 @@ if (process.env.NODE_ENV === 'development' && !process.env.SKIP_CF_SETUP) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  outputFileTracingExcludes: {
-    '*': ['./archive/**/*'],
+  experimental: {
+    outputFileTracingExcludes: {
+      '*': ['./archive/**/*'],
+    },
   },
   webpack: (config, { isServer, nextRuntime }) => {
     if (nextRuntime === 'edge') {

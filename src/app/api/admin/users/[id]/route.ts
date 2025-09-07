@@ -11,14 +11,13 @@ export const runtime = 'edge';
 // PUT - Update user
 export async function PUT(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: { id: string } }
 ) {
 	try {
 		// Ensure user is super_admin
 		await requireRole(ROLES.SUPER_ADMIN);
 
-		const { id } = await params;
-		const userId = parseInt(id);
+		const userId = parseInt(params.id);
 		if (isNaN(userId)) {
 			return NextResponse.json(
 				{ error: "Invalid user ID" },
@@ -145,14 +144,13 @@ export async function PUT(
 // DELETE - Delete user
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: { id: string } }
 ) {
 	try {
 		// Ensure user is super_admin
 		await requireRole(ROLES.SUPER_ADMIN);
 
-		const { id } = await params;
-		const userId = parseInt(id);
+		const userId = parseInt(params.id);
 		if (isNaN(userId)) {
 			return NextResponse.json(
 				{ error: "Invalid user ID" },
