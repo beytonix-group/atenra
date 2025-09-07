@@ -2,8 +2,8 @@
 
 echo "🔄 Setting nodejs runtime for local development..."
 
-# Find and temporarily modify files
-find src -type f \( -name "*.ts" -o -name "*.tsx" \) -exec grep -l "export const runtime = 'edge'" {} \; > /tmp/runtime-files.txt
+# Find and temporarily modify only route.ts files (API routes)
+find src/app -type f -name "route.ts" -exec grep -l "export const runtime = 'edge'" {} \; > /tmp/runtime-files.txt
 
 # Backup and modify
 while read -r file; do

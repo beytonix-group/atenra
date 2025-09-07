@@ -1,5 +1,5 @@
 import { integer, sqliteTable, text, primaryKey, index, uniqueIndex } from "drizzle-orm/sqlite-core"
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { drizzle } from "drizzle-orm/libsql"
 import type { AdapterAccountType } from "next-auth/adapters"
 import { db } from "."
@@ -622,7 +622,7 @@ export const userActivities = sqliteTable('user_activities', {
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   action: text('action').notNull(), // e.g. 'page_view', 'user_created', 'deal_closed'
   info: text('info'), // extra context: page path, details, etc.
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
   userTimeIdx: index('idx_ua_user_time').on(table.userId, table.createdAt),
   actionTimeIdx: index('idx_ua_action_time').on(table.action, table.createdAt),

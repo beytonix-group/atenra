@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { UsersTable } from "./UsersTable";
 import { UserEditModal } from "./UserEditModal";
 import { UserCreateModal } from "./UserCreateModal";
+import { UsersList } from "./UsersList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -230,8 +231,11 @@ export function AdminDashboard() {
 				
 				<TabsContent value="activity" className="mt-6">
 					<div className="bg-card border border-border/50 p-6">
-						<h2 className="text-xl font-medium mb-4">Activity Log</h2>
-						<p className="text-muted-foreground">Activity logging coming soon...</p>
+						<h2 className="text-xl font-medium mb-4">User Activities</h2>
+						<p className="text-muted-foreground mb-6">
+							View users and monitor their activities across the platform
+						</p>
+						<UsersList />
 					</div>
 				</TabsContent>
 			</Tabs>
