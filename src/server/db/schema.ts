@@ -1,5 +1,5 @@
 import { integer, sqliteTable, text, primaryKey, index, uniqueIndex } from "drizzle-orm/sqlite-core"
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { drizzle } from "drizzle-orm/libsql"
 import type { AdapterAccountType } from "next-auth/adapters"
 import { db } from "."
@@ -398,6 +398,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   // RBAC
   rolesAssigned: many(userRoles, { relationName: 'userRole' }),
   roleAssignments: many(userRoles, { relationName: 'assignedByUser' }),
+  
+  // Activity tracking
+  activities: many(userActivities),
 }));
 
 export const userRelationshipsRelations = relations(userRelationships, ({ one }) => ({
@@ -609,3 +612,28 @@ export type NewContentItem = typeof contentItems.$inferInsert;
 
 export type UsageCounter = typeof usageCounters.$inferSelect;
 export type NewUsageCounter = typeof usageCounters.$inferInsert;
+
+// ----------------------------------------------------------
+// User Activity Tracking
+// ----------------------------------------------------------
+
+export const userActivities = sqliteTable('user_activities', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  action: text('action').notNull(), // e.g. 'page_view', 'user_created', 'deal_closed'
+  info: text('info'), // extra context: page path, details, etc.
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  userTimeIdx: index('idx_ua_user_time').on(table.userId, table.createdAt),
+  actionTimeIdx: index('idx_ua_action_time').on(table.action, table.createdAt),
+}));
+
+export const userActivitiesRelations = relations(userActivities, ({ one }) => ({
+  user: one(users, {
+    fields: [userActivities.userId],
+    references: [users.id],
+  }),
+}));
+
+export type UserActivity = typeof userActivities.$inferSelect;
+export type NewUserActivity = typeof userActivities.$inferInsert;

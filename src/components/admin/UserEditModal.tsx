@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { StateSelector } from "@/components/ui/state-selector";
 import { CitySelector } from "@/components/ui/city-selector";
+import { formatPhoneNumber, unformatPhoneNumber } from "@/lib/utils/phone";
+import { formatStatusName, formatRoleName } from "@/lib/utils/format";
 import { X, Save, Loader2 } from "lucide-react";
 import type { User } from "./AdminDashboard";
 
@@ -74,12 +76,6 @@ export function UserEditModal({ user, isOpen, onClose, onSuccess }: UserEditModa
 		}));
 	};
 
-	const formatRoleName = (role: string): string => {
-		return role.split('_').map(word => 
-			word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-		).join(' ');
-	};
-
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		
@@ -143,6 +139,7 @@ export function UserEditModal({ user, isOpen, onClose, onSuccess }: UserEditModa
 									value={formData.firstName}
 									onChange={(e) => handleInputChange("firstName", e.target.value)}
 									placeholder="Enter first name"
+									maxLength={25}
 								/>
 							</div>
 							<div>
@@ -152,6 +149,7 @@ export function UserEditModal({ user, isOpen, onClose, onSuccess }: UserEditModa
 									value={formData.lastName}
 									onChange={(e) => handleInputChange("lastName", e.target.value)}
 									placeholder="Enter last name"
+									maxLength={25}
 								/>
 							</div>
 						</div>
@@ -163,6 +161,7 @@ export function UserEditModal({ user, isOpen, onClose, onSuccess }: UserEditModa
 								value={formData.displayName}
 								onChange={(e) => handleInputChange("displayName", e.target.value)}
 								placeholder="Enter display name"
+								maxLength={60}
 							/>
 						</div>
 
@@ -182,9 +181,15 @@ export function UserEditModal({ user, isOpen, onClose, onSuccess }: UserEditModa
 								<Label htmlFor="phone">Phone</Label>
 								<Input
 									id="phone"
-									value={formData.phone}
-									onChange={(e) => handleInputChange("phone", e.target.value)}
-									placeholder="Enter phone number"
+									value={formatPhoneNumber(formData.phone)}
+									onChange={(e) => {
+										const formatted = formatPhoneNumber(e.target.value);
+										const unformatted = unformatPhoneNumber(formatted);
+										handleInputChange("phone", unformatted);
+									}}
+									placeholder="(555) 123-4567"
+									maxLength={14}
+									type="tel"
 								/>
 							</div>
 						</div>
@@ -200,6 +205,7 @@ export function UserEditModal({ user, isOpen, onClose, onSuccess }: UserEditModa
 									value={formData.addressLine1}
 									onChange={(e) => handleInputChange("addressLine1", e.target.value)}
 									placeholder="Street address"
+									maxLength={50}
 								/>
 							</div>
 							<div>
@@ -209,6 +215,7 @@ export function UserEditModal({ user, isOpen, onClose, onSuccess }: UserEditModa
 									value={formData.addressLine2}
 									onChange={(e) => handleInputChange("addressLine2", e.target.value)}
 									placeholder="Apartment, suite, etc. (optional)"
+									maxLength={50}
 								/>
 							</div>
 						</div>
@@ -237,8 +244,13 @@ export function UserEditModal({ user, isOpen, onClose, onSuccess }: UserEditModa
 								<Input
 									id="zipCode"
 									value={formData.zipCode}
-									onChange={(e) => handleInputChange("zipCode", e.target.value)}
+									onChange={(e) => {
+										const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+										handleInputChange("zipCode", value);
+									}}
 									placeholder="Enter ZIP code"
+									maxLength={5}
+									pattern="[0-9]{5}"
 								/>
 							</div>
 							<div>

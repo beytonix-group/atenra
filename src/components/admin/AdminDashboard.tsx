@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { UsersTable } from "./UsersTable";
 import { UserEditModal } from "./UserEditModal";
 import { UserCreateModal } from "./UserCreateModal";
+import { UsersList } from "./UsersList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Users, Shield, Activity, Search } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { ROLES } from "@/lib/auth/roles";
+import { useActivityTracker } from "@/hooks/use-activity-tracker";
 
 export interface User {
 	id: number;
@@ -38,6 +40,7 @@ export function AdminDashboard() {
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const { t } = useLanguage();
+	const { trackAction } = useActivityTracker();
 
 	const fetchUsers = async () => {
 		try {
@@ -60,6 +63,7 @@ export function AdminDashboard() {
 	const handleEditUser = (user: User) => {
 		setSelectedUser(user);
 		setIsEditModalOpen(true);
+		trackAction("Admin Action", `Opened edit modal for user: ${user.email}`);
 	};
 
 	const handleUserUpdated = () => {
@@ -139,9 +143,20 @@ export function AdminDashboard() {
 	return (
 		<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 			{/* Header */}
-			<div className="mb-8">
-				<h1 className="text-3xl font-light text-foreground mb-2">Admin Dashboard</h1>
-				<p className="text-muted-foreground">Manage users, roles, and system settings</p>
+			<div className="mb-8 flex justify-between items-start">
+				<div>
+					<h1 className="text-3xl font-light text-foreground mb-2">Admin Dashboard</h1>
+					<p className="text-muted-foreground">Manage users, roles, and system settings</p>
+				</div>
+				<div className="flex gap-2">
+					<Button 
+						variant="outline" 
+						onClick={() => window.location.href = '/admin/activities'}
+					>
+						<Activity className="h-4 w-4 mr-2" />
+						View Activities
+					</Button>
+				</div>
 			</div>
 
 			{/* Stats Cards */}
@@ -216,8 +231,11 @@ export function AdminDashboard() {
 				
 				<TabsContent value="activity" className="mt-6">
 					<div className="bg-card border border-border/50 p-6">
-						<h2 className="text-xl font-medium mb-4">Activity Log</h2>
-						<p className="text-muted-foreground">Activity logging coming soon...</p>
+						<h2 className="text-xl font-medium mb-4">User Activities</h2>
+						<p className="text-muted-foreground mb-6">
+							View users and monitor their activities across the platform
+						</p>
+						<UsersList />
 					</div>
 				</TabsContent>
 			</Tabs>

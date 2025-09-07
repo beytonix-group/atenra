@@ -9,7 +9,8 @@ import bcrypt from "bcryptjs";
 import { getEnv } from "@/lib/env-edge";
 import { ROLES } from "@/lib/auth/roles";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
 
 const auth = NextAuth({
     secret: getEnv("AUTH_SECRET"),

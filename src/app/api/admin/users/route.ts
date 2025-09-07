@@ -6,7 +6,8 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { ROLES } from "@/lib/auth/roles";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
 
 // GET - List all users with their roles
 export async function GET() {
@@ -29,10 +30,10 @@ export async function GET() {
 			.all();
 
 		// Combine users with their roles
-		const usersWithRoles = allUsers.map(user => {
+		const usersWithRoles = allUsers.map((user: any) => {
 			const userRoleData = allUserRoles
-				.filter(ur => ur.userId === user.id)
-				.map(ur => ({
+				.filter((ur: any) => ur.userId === user.id)
+				.map((ur: any) => ({
 					id: ur.roleId,
 					name: ur.roleName,
 				}));

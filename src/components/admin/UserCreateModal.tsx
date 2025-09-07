@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { formatPhoneNumber, unformatPhoneNumber } from "@/lib/utils/phone";
+import { formatStatusName, formatRoleName } from "@/lib/utils/format";
 import { X, Plus, Loader2 } from "lucide-react";
 
 interface Role {
@@ -36,7 +38,7 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 	});
 	
 	const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
-	const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
+	const [selectedRole, setSelectedRole] = useState<number | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [creating, setCreating] = useState(false);
 
@@ -56,7 +58,7 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 				status: "active",
 				emailVerified: false,
 			});
-			setSelectedRoles([]);
+			setSelectedRole(null);
 		}
 	}, [isOpen]);
 
@@ -73,7 +75,7 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 				// Auto-select 'user' role if available
 				const userRole = roles.find((role) => role.name === "user");
 				if (userRole) {
-					setSelectedRoles([userRole.id]);
+					setSelectedRole(userRole.id);
 				}
 			} catch (error) {
 				console.error("Error fetching roles:", error);
@@ -94,16 +96,6 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 		}));
 	};
 
-	const handleRoleToggle = (roleId: number, checked: boolean) => {
-		setSelectedRoles(prev => {
-			if (checked) {
-				return [...prev, roleId];
-			} else {
-				return prev.filter(id => id !== roleId);
-			}
-		});
-	};
-
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		
@@ -113,7 +105,7 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 			const payload = {
 				...formData,
 				emailVerified: formData.emailVerified ? 1 : 0,
-				roleIds: selectedRoles,
+				roleIds: selectedRole ? [selectedRole] : [],
 			};
 
 			const response = await fetch("/api/admin/users", {
@@ -158,7 +150,6 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 				<form onSubmit={handleSubmit} className="p-6 space-y-6">
 					{/* Basic Information */}
 					<div className="space-y-4">
-						<h3 className="font-medium">Basic Information</h3>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
 								<Label htmlFor="firstName">First Name</Label>
@@ -167,6 +158,7 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 									value={formData.firstName}
 									onChange={(e) => handleInputChange("firstName", e.target.value)}
 									placeholder="Enter first name"
+									maxLength={25}
 								/>
 							</div>
 							<div>
@@ -176,6 +168,7 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 									value={formData.lastName}
 									onChange={(e) => handleInputChange("lastName", e.target.value)}
 									placeholder="Enter last name"
+									maxLength={25}
 								/>
 							</div>
 						</div>
@@ -187,6 +180,7 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 								value={formData.displayName}
 								onChange={(e) => handleInputChange("displayName", e.target.value)}
 								placeholder="Enter display name"
+								maxLength={60}
 							/>
 						</div>
 
@@ -219,16 +213,21 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 							<Label htmlFor="phone">Phone</Label>
 							<Input
 								id="phone"
-								value={formData.phone}
-								onChange={(e) => handleInputChange("phone", e.target.value)}
-								placeholder="Enter phone number"
+								value={formatPhoneNumber(formData.phone)}
+								onChange={(e) => {
+									const formatted = formatPhoneNumber(e.target.value);
+									const unformatted = unformatPhoneNumber(formatted);
+									handleInputChange("phone", unformatted);
+								}}
+								placeholder="(555) 123-4567"
+								maxLength={14}
+								type="tel"
 							/>
 						</div>
 					</div>
 
 					{/* Location */}
 					<div className="space-y-4">
-						<h3 className="font-medium">Location</h3>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 							<div>
 								<Label htmlFor="city">City</Label>
@@ -263,7 +262,6 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 
 					{/* Account Status */}
 					<div className="space-y-4">
-						<h3 className="font-medium">Account Status</h3>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
 								<Label htmlFor="status">Status</Label>
@@ -272,9 +270,9 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 										<SelectValue placeholder="Select status" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="active">Active</SelectItem>
-										<SelectItem value="suspended">Suspended</SelectItem>
-										<SelectItem value="deleted">Deleted</SelectItem>
+										<SelectItem value="active">{formatStatusName('active')}</SelectItem>
+										<SelectItem value="suspended">{formatStatusName('suspended')}</SelectItem>
+										<SelectItem value="deleted">{formatStatusName('deleted')}</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
@@ -289,31 +287,33 @@ export function UserCreateModal({ isOpen, onClose, onSuccess }: UserCreateModalP
 						</div>
 					</div>
 
-					{/* Roles */}
+					{/* Role */}
 					<div className="space-y-4">
-						<h3 className="font-medium">Roles</h3>
-						{loading ? (
-							<div className="flex items-center gap-2 text-muted-foreground">
-								<Loader2 className="h-4 w-4 animate-spin" />
-								Loading roles...
-							</div>
-						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-								{availableRoles.map((role) => (
-									<div key={role.id} className="flex items-center space-x-2">
-										<Checkbox
-											id={`role-${role.id}`}
-											checked={selectedRoles.includes(role.id)}
-											onCheckedChange={(checked) => handleRoleToggle(role.id, checked as boolean)}
-										/>
-										<Label htmlFor={`role-${role.id}`} className="flex-1">
-											<span className="font-medium">{role.name}</span>
-											<p className="text-xs text-muted-foreground">{role.description}</p>
-										</Label>
-									</div>
-								))}
-							</div>
-						)}
+						<div>
+							<Label htmlFor="role">User Role</Label>
+							{loading ? (
+								<div className="flex items-center gap-2 text-muted-foreground p-2">
+									<Loader2 className="h-4 w-4 animate-spin" />
+									Loading roles...
+								</div>
+							) : (
+								<Select 
+									value={selectedRole?.toString() || ""} 
+									onValueChange={(value) => setSelectedRole(parseInt(value))}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder="Select a role" />
+									</SelectTrigger>
+									<SelectContent>
+										{availableRoles.map((role) => (
+											<SelectItem key={role.id} value={role.id.toString()}>
+												{formatRoleName(role.name)}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							)}
+						</div>
 					</div>
 
 					{/* Actions */}

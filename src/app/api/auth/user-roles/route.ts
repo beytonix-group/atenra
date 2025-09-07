@@ -4,7 +4,9 @@ import { db } from "@/server/db";
 import { users, userRoles, roles } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
 	try {

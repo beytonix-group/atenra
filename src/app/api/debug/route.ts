@@ -1,6 +1,7 @@
 import { getEnv } from "@/lib/env-edge";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
 
 export async function GET(request: Request) {
   // Test the dual-access helper

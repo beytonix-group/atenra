@@ -1,14 +1,9 @@
+"use client";
+
 import { Navigation } from "@/components/landing/Navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ShieldOff, Home, ArrowLeft, Lock } from "lucide-react";
-
-export const runtime = "edge";
-
-export const metadata = {
-	title: "403 - Unauthorized | Atenra",
-	description: "You don't have permission to access this resource.",
-};
 
 export default function UnauthorizedPage() {
 	return (

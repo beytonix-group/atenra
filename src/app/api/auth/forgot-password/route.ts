@@ -4,7 +4,8 @@ import { users, verificationTokens } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
 
 const forgotPasswordSchema = z.object({
 	email: z.string().email("Invalid email address"),

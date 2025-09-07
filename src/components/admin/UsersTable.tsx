@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, RefreshCw, Mail, Phone } from "lucide-react";
 import type { User } from "./AdminDashboard";
 import { ROLES } from "@/lib/auth/roles";
+import { formatPhoneNumber } from "@/lib/utils/phone";
+import { formatStatusName, formatRoleName } from "@/lib/utils/format";
 
 interface UsersTableProps {
 	users: User[];
@@ -82,7 +84,6 @@ export function UsersTable({ users, loading, onEditUser, onRefresh, searchQuery 
 				<thead className="bg-muted/50">
 					<tr>
 						<th className="text-left p-4 font-medium text-sm">User</th>
-						<th className="text-left p-4 font-medium text-sm">Contact</th>
 						<th className="text-left p-4 font-medium text-sm">Location</th>
 						<th className="text-left p-4 font-medium text-sm">Status</th>
 						<th className="text-left p-4 font-medium text-sm">Roles</th>
@@ -94,20 +95,12 @@ export function UsersTable({ users, loading, onEditUser, onRefresh, searchQuery 
 					{users.map((user) => (
 						<tr key={user.id} className="hover:bg-muted/30 transition-colors">
 							<td className="p-4">
-								<div className="flex flex-col">
-									<span className="font-medium text-sm">
-										{user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "No Name"}
-									</span>
-									<span className="text-xs text-muted-foreground">{user.email}</span>
-									{user.emailVerified ? (
-										<span className="text-xs text-green-600">✓ Verified</span>
-									) : (
-										<span className="text-xs text-yellow-600">⚠ Unverified</span>
-									)}
-								</div>
-							</td>
-							<td className="p-4">
 								<div className="flex flex-col gap-1">
+									<div>
+										<span className="font-medium text-sm">
+											{user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "No Name"}
+										</span>
+									</div>
 									<div className="flex items-center gap-1 text-xs text-muted-foreground">
 										<Mail className="h-3 w-3" />
 										<span>{user.email}</span>
@@ -115,8 +108,13 @@ export function UsersTable({ users, loading, onEditUser, onRefresh, searchQuery 
 									{user.phone && (
 										<div className="flex items-center gap-1 text-xs text-muted-foreground">
 											<Phone className="h-3 w-3" />
-											<span>{user.phone}</span>
+											<span>{formatPhoneNumber(user.phone)}</span>
 										</div>
+									)}
+									{user.emailVerified ? (
+										<span className="text-xs text-green-600">✓ Verified</span>
+									) : (
+										<span className="text-xs text-yellow-600">⚠ Unverified</span>
 									)}
 								</div>
 							</td>
@@ -137,7 +135,7 @@ export function UsersTable({ users, loading, onEditUser, onRefresh, searchQuery 
 							</td>
 							<td className="p-4">
 								<Badge className={getStatusColor(user.status)} variant="secondary">
-									{user.status}
+									{formatStatusName(user.status)}
 								</Badge>
 							</td>
 							<td className="p-4">
@@ -149,7 +147,7 @@ export function UsersTable({ users, loading, onEditUser, onRefresh, searchQuery 
 												variant="secondary"
 												className={`${getRoleColor(role.name)} text-xs`}
 											>
-												{role.name}
+												{formatRoleName(role.name)}
 											</Badge>
 										))
 									) : (

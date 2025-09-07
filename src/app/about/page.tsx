@@ -5,7 +5,8 @@ import { OurValues } from "@/components/about/OurValues";
 import { SupportedServices } from "@/components/about/SupportedServices";
 import { FooterSection } from "@/components/landing/FooterSection";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
 
 export const metadata = {
 	title: "About - Atenra",

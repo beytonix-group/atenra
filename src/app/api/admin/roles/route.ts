@@ -4,7 +4,9 @@ import { db } from "@/server/db";
 import { roles } from "@/server/db/schema";
 import { ROLES } from "@/lib/auth/roles";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 // GET - List all available roles
 export async function GET() {

@@ -6,7 +6,8 @@ import { auth } from "@/server/auth";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
 
 export const metadata = {
 	title: "Profile - Atenra",

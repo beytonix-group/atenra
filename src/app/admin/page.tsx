@@ -3,7 +3,8 @@ import { Navigation } from "@/components/landing/Navigation";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { ROLES } from "@/lib/auth/roles";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
 
 export const metadata = {
 	title: "Admin Dashboard - Atenra",

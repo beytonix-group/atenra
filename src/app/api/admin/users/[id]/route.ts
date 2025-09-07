@@ -5,7 +5,8 @@ import { users, userRoles } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { ROLES } from "@/lib/auth/roles";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = 'edge';
 
 // PUT - Update user
 export async function PUT(
