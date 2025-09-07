@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { sanitizeAvatarUrl } from "@/lib/utils/avatar";
+import { formatPhoneNumber, unformatPhoneNumber } from "@/lib/utils/phone";
+import { formatStatusName, formatRoleName } from "@/lib/utils/format";
+import { useActivityTracker } from "@/hooks/use-activity-tracker";
 import { User, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,22 +29,13 @@ interface UserProfile {
 	roles?: string[];
 }
 
-const formatRoleName = (role: string): string => {
-	const roleFormatMap: Record<string, string> = {
-		'super_admin': 'Super Admin',
-		'manager': 'Manager',
-		'admin': 'Admin',
-		'user': 'User',
-	};
-	return roleFormatMap[role.toLowerCase()] || role;
-};
-
 export function ProfileForm() {
 	const { data: session } = useSession();
 	const [profile, setProfile] = useState<UserProfile | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [message, setMessage] = useState("");
+	const { trackAction, trackForm } = useActivityTracker();
 	
 	useEffect(() => {
 		if (session?.user) {
@@ -90,10 +84,13 @@ export function ProfileForm() {
 			
 			if (response.ok) {
 				setMessage("Profile updated successfully!");
+				trackForm("Profile Update", true);
+				trackAction("Profile Updated", `Updated profile for ${profile.email}`);
 				setTimeout(() => setMessage(""), 3000);
 			} else {
 				const error = await response.json() as { error?: string };
 				setMessage(error.error || "Failed to update profile");
+				trackForm("Profile Update", false);
 			}
 		} catch (error) {
 			console.error("Update profile error:", error);
@@ -153,7 +150,7 @@ export function ProfileForm() {
 							</span>
 						)}
 						<span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-							{profile.status}
+							{formatStatusName(profile.status)}
 						</span>
 						{profile.emailVerified ? (
 							<span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -183,6 +180,7 @@ export function ProfileForm() {
 							value={profile.firstName || ""}
 							onChange={(e) => setProfile({...profile, firstName: e.target.value})}
 							placeholder="Enter first name"
+							maxLength={25}
 						/>
 					</div>
 					<div className="space-y-2">
@@ -192,6 +190,7 @@ export function ProfileForm() {
 							value={profile.lastName || ""}
 							onChange={(e) => setProfile({...profile, lastName: e.target.value})}
 							placeholder="Enter last name"
+							maxLength={25}
 						/>
 					</div>
 				</div>
@@ -203,6 +202,7 @@ export function ProfileForm() {
 						value={profile.displayName || ""}
 						onChange={(e) => setProfile({...profile, displayName: e.target.value})}
 						placeholder="Enter display name"
+						maxLength={60}
 					/>
 				</div>
 				
@@ -220,9 +220,15 @@ export function ProfileForm() {
 					<Label htmlFor="phone">Phone</Label>
 					<Input
 						id="phone"
-						value={profile.phone || ""}
-						onChange={(e) => setProfile({...profile, phone: e.target.value})}
-						placeholder="Enter phone number"
+						value={formatPhoneNumber(profile.phone || "")}
+						onChange={(e) => {
+							const formatted = formatPhoneNumber(e.target.value);
+							const unformatted = unformatPhoneNumber(formatted);
+							setProfile({...profile, phone: unformatted});
+						}}
+						placeholder="(555) 123-4567"
+						maxLength={14}
+						type="tel"
 					/>
 				</div>
 				
@@ -236,6 +242,7 @@ export function ProfileForm() {
 							value={profile.addressLine1 || ""}
 							onChange={(e) => setProfile({...profile, addressLine1: e.target.value})}
 							placeholder="Enter street address"
+							maxLength={50}
 						/>
 					</div>
 					
@@ -246,6 +253,7 @@ export function ProfileForm() {
 							value={profile.addressLine2 || ""}
 							onChange={(e) => setProfile({...profile, addressLine2: e.target.value})}
 							placeholder="Apartment, suite, etc."
+							maxLength={50}
 						/>
 					</div>
 					
@@ -273,8 +281,13 @@ export function ProfileForm() {
 							<Input
 								id="zipCode"
 								value={profile.zipCode || ""}
-								onChange={(e) => setProfile({...profile, zipCode: e.target.value})}
+								onChange={(e) => {
+									const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+									setProfile({...profile, zipCode: value});
+								}}
 								placeholder="Enter ZIP code"
+								maxLength={5}
+								pattern="[0-9]{5}"
 							/>
 						</div>
 					</div>

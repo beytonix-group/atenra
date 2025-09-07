@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeScript } from "@/lib/theme/theme-script";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { SessionProvider } from "next-auth/react";
+import { ActivityTracker } from "@/components/providers/ActivityTracker";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,7 +26,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <SessionProvider>
           <LanguageProvider>
-            {children}
+            <ActivityTracker>
+              {children}
+            </ActivityTracker>
           </LanguageProvider>
         </SessionProvider>
       </body>
