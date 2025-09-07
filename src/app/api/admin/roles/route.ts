@@ -5,7 +5,7 @@ import { roles } from "@/server/db/schema";
 import { ROLES } from "@/lib/auth/roles";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 // GET - List all available roles

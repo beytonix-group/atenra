@@ -10,7 +10,7 @@ import { getEnv } from "@/lib/env-edge";
 import { ROLES } from "@/lib/auth/roles";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 
 const auth = NextAuth({
     secret: getEnv("AUTH_SECRET"),

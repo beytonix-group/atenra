@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { ROLES } from "@/lib/auth/roles";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 
 // PUT - Update user
 export async function PUT(

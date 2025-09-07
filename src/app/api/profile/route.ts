@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 
 const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(50).optional().nullable(),

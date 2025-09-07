@@ -2,7 +2,7 @@ import { Navigation } from "@/components/landing/Navigation";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 
 export const metadata = {
 	title: "Reset Password - Atenra",

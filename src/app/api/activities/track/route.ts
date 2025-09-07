@@ -4,7 +4,7 @@ import { db } from '@/server/db';
 import { userActivities, users } from '@/server/db/schema';
 import { eq } from 'drizzle-orm';
 
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {

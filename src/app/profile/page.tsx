@@ -7,7 +7,7 @@ import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 
 export const metadata = {
 	title: "Profile - Atenra",

@@ -1,7 +1,7 @@
 import { handlers } from "@/server/auth";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 
 export async function GET(request: Request) {
   // Check if auth handlers are properly initialized

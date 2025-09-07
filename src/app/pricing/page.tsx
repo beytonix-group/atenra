@@ -2,7 +2,7 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { Navigation } from "@/components/landing/Navigation";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 
 export const metadata = {
 	title: "Pricing - Atenra",

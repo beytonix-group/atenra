@@ -5,7 +5,7 @@ import { eq, and, gt } from "drizzle-orm";
 import { z } from "zod";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 
 const verifyTokenSchema = z.object({
 	token: z.string().min(1, "Token is required"),

@@ -4,7 +4,7 @@ import { SocialContent } from "@/components/social/SocialContent";
 import { FooterSection } from "@/components/landing/FooterSection";
 
 // Only use edge runtime in production
-export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const runtime = 'edge';
 
 export const metadata = {
 	title: "Social - Atenra",
