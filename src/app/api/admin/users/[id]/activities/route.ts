@@ -10,13 +10,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Ensure user is super_admin
     await requireRole(ROLES.SUPER_ADMIN);
     
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
     
     if (isNaN(userId)) {
       return NextResponse.json(

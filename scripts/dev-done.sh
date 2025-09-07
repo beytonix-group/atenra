@@ -3,8 +3,8 @@
 # Script to restore all runtime exports back to 'edge' after local development
 echo "Restoring runtime exports to 'edge'..."
 
-# Find only route.ts files (API routes) that contain nodejs runtime
-files_to_restore=$(find src/app -type f -name "route.ts" -exec grep -l "export const runtime = 'nodejs'" {} \;)
+# Find both route.ts and page.tsx files that contain nodejs runtime
+files_to_restore=$(find src/app -type f \( -name "route.ts" -o -name "page.tsx" \) -exec grep -l "export const runtime = 'nodejs'" {} \;)
 
 if [ -z "$files_to_restore" ]; then
   echo "No files need to be restored (all files already use 'edge' runtime)"
