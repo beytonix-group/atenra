@@ -4,7 +4,8 @@ import { FAQ } from "@/components/more/FAQ";
 import { LegalSection } from "@/components/more/LegalSection";
 import { FooterSection } from "@/components/landing/FooterSection";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
 
 export const metadata = {
 	title: "More Info - Atenra",

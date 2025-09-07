@@ -46,4 +46,28 @@ next-env.d.ts
 # drizzle studio
 .studio.pid
 
+# local SQLite database files
+local.db
+local.db-shm
+local.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# local migrations (D1 migrations are in /drizzle)
+drizzle-local/
+drizzle.config.local.ts
+
+# Claude AI files
 .claude
+
+# Backup files from build script
+*.backup
+*.tmp
+
+# Build output files
+.vercel/output/
+
+# Temporary files
+/tmp/
+*.log

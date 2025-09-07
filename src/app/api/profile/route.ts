@@ -5,7 +5,8 @@ import { users, userRoles, roles } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
 
 const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(50).optional().nullable(),
@@ -63,7 +64,7 @@ export async function GET() {
       status: user.status,
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,
-      roles: userRolesList.map(r => r.roleName),
+      roles: userRolesList.map((r: any) => r.roleName),
     });
   } catch (error) {
     console.error("Get profile error:", error);

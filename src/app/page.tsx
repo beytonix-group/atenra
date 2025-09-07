@@ -2,7 +2,8 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FooterSection } from "@/components/landing/FooterSection";
 import { Navigation } from "@/components/landing/Navigation";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
 
 export const metadata = {
 	title: "Atenra - Begin Your Referral Journey",

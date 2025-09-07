@@ -5,7 +5,8 @@ import { eq, and, gt } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
 
 const resetPasswordSchema = z.object({
 	token: z.string().min(1, "Token is required"),

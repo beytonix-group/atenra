@@ -4,6 +4,9 @@ import { getUserRole } from "@/lib/auth/get-user-role";
 import { ActivitiesView } from "@/components/admin/ActivitiesView";
 import { ROLES } from "@/lib/auth/roles";
 
+export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export default async function AdminActivitiesPage() {
   const session = await auth();
   

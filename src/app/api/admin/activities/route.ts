@@ -5,6 +5,9 @@ import { userActivities, users, userRoles, roles } from '@/server/db/schema';
 import { eq, desc, sql } from 'drizzle-orm';
 import { ROLES } from '@/lib/auth/roles';
 
+export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Check if user is authenticated and is super admin

@@ -5,6 +5,28 @@ import { db } from "./index";
 import { authUsers, accounts, sessions, verificationTokens } from "./schema";
 
 function createD1Adapter(): Adapter {
+  // Check if db is valid before creating adapter
+  if (!db || typeof db === 'object' && Object.keys(db).length === 0) {
+    console.warn('Database not available, using in-memory adapter');
+    // Return a minimal adapter that won't crash but won't persist data
+    return {
+      createUser: async (user) => user as any,
+      getUser: async (id) => null,
+      getUserByEmail: async (email) => null,
+      getUserByAccount: async (account) => null,
+      updateUser: async (user) => user as any,
+      deleteUser: async (userId) => null,
+      linkAccount: async (account) => account as any,
+      unlinkAccount: async (account) => undefined,
+      createSession: async (session) => session as any,
+      getSessionAndUser: async (sessionToken) => null,
+      updateSession: async (session) => session as any,
+      deleteSession: async (sessionToken) => null,
+      createVerificationToken: async (token) => token as any,
+      useVerificationToken: async (token) => null,
+    };
+  }
+
   const baseAdapter = DrizzleAdapter(db, {
     usersTable: authUsers,
     accountsTable: accounts,

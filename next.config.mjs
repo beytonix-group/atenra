@@ -15,6 +15,27 @@ const nextConfig = {
       '*': ['./archive/**/*'],
     },
   },
+  webpack: (config, { isServer, nextRuntime }) => {
+    if (nextRuntime === 'edge') {
+      // For edge runtime, exclude SQLite-related modules
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'better-sqlite3': false,
+        './sqlite': false,
+        './sqlite.js': false,
+      };
+    } else if (!isServer) {
+      // For client-side, add fallbacks
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+    
+    return config;
+  },
 };
 
 export default nextConfig;

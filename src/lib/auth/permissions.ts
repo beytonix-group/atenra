@@ -52,7 +52,7 @@ export async function getCurrentUserWithRoles(): Promise<UserWithRoles | null> {
 		return {
 			id: user.id,
 			email: user.email,
-			roles: userRolesData.map(r => ({
+			roles: userRolesData.map((r: any) => ({
 				id: r.roleId,
 				name: r.roleName,
 			})),

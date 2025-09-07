@@ -4,7 +4,9 @@ import { users } from "@/server/db/schema";
 import { emailVerificationTokens } from "@/server/db/verification-tokens";
 import { eq, and, gt } from "drizzle-orm";
 
-export const runtime = "edge";
+// Only use edge runtime in production
+export const runtime = process.env.NODE_ENV === 'production' ? 'edge' : 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
 	try {
