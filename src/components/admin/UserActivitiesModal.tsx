@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -39,13 +39,7 @@ export function UserActivitiesModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen && userId) {
-      fetchUserActivities();
-    }
-  }, [isOpen, userId]);
-
-  const fetchUserActivities = async () => {
+  const fetchUserActivities = useCallback(async () => {
     if (!userId) return;
     
     setLoading(true);
@@ -61,7 +55,7 @@ export function UserActivitiesModal({
         throw new Error("Failed to fetch activities");
       }
       
-      const data = await response.json();
+      const data = await response.json() as { activities: Activity[] };
       // Show all activities
       setActivities(data.activities || []);
     } catch (err) {
@@ -69,7 +63,13 @@ export function UserActivitiesModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchUserActivities();
+    }
+  }, [isOpen, userId, fetchUserActivities]);
 
   const getActionColor = (action: string) => {
     if (action.includes("login")) return "bg-green-500";

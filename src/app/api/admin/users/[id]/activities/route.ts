@@ -56,7 +56,7 @@ export async function GET(
         email: user.email,
         name: user.name
       },
-      activities: activities.map(activity => ({
+      activities: activities.map((activity: any) => ({
         id: activity.id,
         action: activity.action,
         info: activity.info,
