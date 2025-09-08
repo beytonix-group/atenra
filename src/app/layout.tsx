@@ -5,6 +5,8 @@ import { ThemeScript } from "@/lib/theme/theme-script";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { SessionProvider } from "next-auth/react";
 
+export const runtime = 'edge';
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
