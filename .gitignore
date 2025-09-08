@@ -63,6 +63,7 @@ drizzle.config.local.ts
 
 # Claude AI files
 .claude
+.claude/*
 
 # Backup files from build script
 *.backup
