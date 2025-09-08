@@ -4,6 +4,7 @@ import { Navigation } from "@/components/landing/Navigation";
 
 // Only use edge runtime in production
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
 	title: "Atenra - Begin Your Referral Journey",
