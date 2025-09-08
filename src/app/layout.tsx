@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeScript } from "@/lib/theme/theme-script";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
 
 export const runtime = 'edge';
 
@@ -28,6 +29,7 @@ export default function RootLayout({
         <SessionProvider>
           <LanguageProvider>
             {children}
+            <Toaster richColors position="top-right" />
           </LanguageProvider>
         </SessionProvider>
       </body>

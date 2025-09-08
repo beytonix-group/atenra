@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Menu, X, Sun, Moon, User, LogOut, Settings } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, Sun, Moon, User, LogOut, Settings, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useTheme } from "@/hooks/use-theme";
 import { LanguageSelector } from "@/components/ui/LanguageSelector";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -16,9 +16,27 @@ export function Navigation() {
 	const pathname = usePathname();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
+	const [isAdmin, setIsAdmin] = useState(false);
 	const { theme, toggleTheme } = useTheme();
 	const { t } = useLanguage();
 	const { data: session, status } = useSession();
+
+	useEffect(() => {
+		const checkAdminStatus = async () => {
+			if (session?.user?.email) {
+				try {
+					const response = await fetch('/api/admin/check');
+					if (response.ok) {
+						const data = await response.json() as { isAdmin: boolean };
+						setIsAdmin(data.isAdmin);
+					}
+				} catch (error) {
+					console.error('Failed to check admin status:', error);
+				}
+			}
+		};
+		checkAdminStatus();
+	}, [session]);
 
 	const navItems = [
 		{ name: t.navigation.home, href: "/" },
@@ -114,6 +132,14 @@ export function Navigation() {
 												<span>Profile</span>
 											</button>
 										</Link>
+										{isAdmin && (
+											<Link href="/admin" onClick={() => setUserMenuOpen(false)}>
+												<button className="w-full flex items-center space-x-2 px-4 py-2 text-sm hover:bg-muted transition-colors text-left">
+													<Shield className="h-4 w-4" />
+													<span>Admin Dashboard</span>
+												</button>
+											</Link>
+										)}
 										<button 
 											onClick={() => {
 												signOut({ redirect: true });
@@ -196,6 +222,14 @@ export function Navigation() {
 											Profile
 										</Button>
 									</Link>
+									{isAdmin && (
+										<Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+											<Button variant="ghost" size="sm" className="w-full justify-start">
+												<Shield className="mr-2 h-4 w-4" />
+												Admin Dashboard
+											</Button>
+										</Link>
+									)}
 									<Button 
 										variant="ghost" 
 										size="sm" 
