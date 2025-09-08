@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "NODE_ENV=production bunx @cloudflare/next-on-pages@1.13.16",
+    "pages:build": "NODE_ENV=production bunx @cloudflare/next-on-pages@1.13.15",
     "preview": "bun run pages:build && wrangler pages dev",
     "deploy": "bun run pages:build && wrangler pages deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv env.d.ts",
@@ -56,7 +56,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "1.13.16",
+    "@cloudflare/next-on-pages": "1.13.15",
     "@cloudflare/workers-types": "^4.20240903.0",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -64,7 +64,7 @@
     "braces": "^3.0.3",
     "eslint": "^8",
     "eslint-config-next": "15.5.2",
-    "eslint-plugin-next-on-pages": "1.13.16",
+    "eslint-plugin-next-on-pages": "1.13.15",
     "fill-range": "^7.1.1",
     "micromatch": "^4.0.8",
     "postcss": "^8",
