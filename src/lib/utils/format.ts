@@ -45,9 +45,9 @@ export function getRoleBadgeVariant(role: string): "default" | "destructive" | "
 /**
  * Get status badge color based on status
  */
-export function getStatusBadgeVariant(status: string): "default" | "destructive" | "secondary" | "outline" {
-  const statusColors: Record<string, "default" | "destructive" | "secondary" | "outline"> = {
-    active: "default",
+export function getStatusBadgeVariant(status: string): "default" | "destructive" | "secondary" | "outline" | "success" {
+  const statusColors: Record<string, "default" | "destructive" | "secondary" | "outline" | "success"> = {
+    active: "success",
     suspended: "destructive",
     deleted: "secondary",
     inactive: "outline"

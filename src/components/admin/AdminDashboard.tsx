@@ -24,10 +24,27 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { 
+	Users, 
+	Activity, 
+	Shield, 
+	Plus, 
+	Search, 
+	Edit, 
+	Loader2,
+	TrendingUp,
+	TrendingDown
+} from "lucide-react";
 import { toast } from "sonner";
 import { 
 	formatRoleName, 
@@ -44,6 +61,12 @@ interface User {
 	lastName: string | null;
 	displayName: string | null;
 	phone: string | null;
+	addressLine1: string | null;
+	addressLine2: string | null;
+	city: string | null;
+	state: string | null;
+	zipCode: string | null;
+	country: string | null;
 	status: "active" | "suspended" | "deleted";
 	emailVerified: number;
 	createdAt: string;
@@ -56,22 +79,83 @@ interface Role {
 	description: string | null;
 }
 
+interface DashboardStats {
+	totalUsers: number;
+	activeUsers: number;
+	superAdmins: number;
+	userGrowth: number;
+	activeGrowth: number;
+	adminGrowth: number;
+}
+
+const US_STATES = [
+	"Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
+	"Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
+	"Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
+	"Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+	"New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
+	"Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+	"Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
+	"Wisconsin", "Wyoming"
+];
+
 export function AdminDashboard() {
 	const [users, setUsers] = useState<User[]>([]);
 	const [roles, setRoles] = useState<Role[]>([]);
+	const [stats, setStats] = useState<DashboardStats>({
+		totalUsers: 0,
+		activeUsers: 0,
+		superAdmins: 0,
+		userGrowth: 0,
+		activeGrowth: 0,
+		adminGrowth: 0
+	});
 	const [loading, setLoading] = useState(true);
 	const [selectedUser, setSelectedUser] = useState<User | null>(null);
 	const [editModalOpen, setEditModalOpen] = useState(false);
+	const [createModalOpen, setCreateModalOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [currentPage, setCurrentPage] = useState(1);
 	const [saving, setSaving] = useState(false);
+	const [activeTab, setActiveTab] = useState("users");
 	
-	const itemsPerPage = 10;
+	// New user form state
+	const [newUser, setNewUser] = useState<{
+		firstName: string;
+		lastName: string;
+		displayName: string;
+		email: string;
+		phone: string;
+		addressLine1: string;
+		addressLine2: string;
+		city: string;
+		state: string;
+		zipCode: string;
+		country: string;
+		status: "active" | "suspended" | "deleted";
+		emailVerified: boolean;
+		roleId: number;
+	}>({
+		firstName: "",
+		lastName: "",
+		displayName: "",
+		email: "",
+		phone: "",
+		addressLine1: "",
+		addressLine2: "",
+		city: "",
+		state: "",
+		zipCode: "",
+		country: "US",
+		status: "active",
+		emailVerified: true,
+		roleId: 0
+	});
 
 	useEffect(() => {
 		fetchUsers();
 		fetchRoles();
 	}, []);
+
 
 	const fetchUsers = async () => {
 		try {
@@ -79,6 +163,20 @@ export function AdminDashboard() {
 			if (!response.ok) throw new Error("Failed to fetch users");
 			const data = await response.json() as User[];
 			setUsers(data);
+			
+			// Update stats
+			const total = data.length;
+			const active = data.filter(u => u.status === "active").length;
+			const admins = data.filter(u => u.roles.some(r => r.roleName === "super_admin")).length;
+			
+			setStats({
+				totalUsers: total,
+				activeUsers: active,
+				superAdmins: admins,
+				userGrowth: 12,
+				activeGrowth: 8,
+				adminGrowth: 0
+			});
 		} catch (error) {
 			toast.error("Failed to load users");
 			console.error(error);
@@ -128,6 +226,45 @@ export function AdminDashboard() {
 		}
 	};
 
+	const handleCreateUser = async () => {
+		setSaving(true);
+		try {
+			const response = await fetch("/api/admin/users", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(newUser),
+			});
+			
+			if (!response.ok) throw new Error("Failed to create user");
+			
+			toast.success("User created successfully");
+			setCreateModalOpen(false);
+			fetchUsers();
+			// Reset form
+			setNewUser({
+				firstName: "",
+				lastName: "",
+				displayName: "",
+				email: "",
+				phone: "",
+				addressLine1: "",
+				addressLine2: "",
+				city: "",
+				state: "",
+				zipCode: "",
+				country: "US",
+				status: "active",
+				emailVerified: true,
+				roleId: 0
+			});
+		} catch (error) {
+			toast.error("Failed to create user");
+			console.error(error);
+		} finally {
+			setSaving(false);
+		}
+	};
+
 	const updateUserField = (field: keyof User, value: any) => {
 		if (!selectedUser) return;
 		setSelectedUser({ ...selectedUser, [field]: value });
@@ -151,21 +288,44 @@ export function AdminDashboard() {
 		user.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
-	const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-	const paginatedUsers = filteredUsers.slice(
-		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage
+	const StatCard = ({ 
+		icon: Icon, 
+		label, 
+		value, 
+		growth 
+	}: { 
+		icon: any; 
+		label: string; 
+		value: number; 
+		growth: number;
+	}) => (
+		<div className="bg-card rounded-lg border p-6">
+			<div className="flex items-center justify-between">
+				<div>
+					<div className="flex items-center gap-2 text-muted-foreground mb-2">
+						<Icon className="h-5 w-5" />
+						<span className="text-sm font-medium">{label}</span>
+					</div>
+					<div className="text-3xl font-bold">{value}</div>
+				</div>
+				<div className={`flex items-center gap-1 text-sm ${growth > 0 ? 'text-green-600' : growth < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+					{growth > 0 ? (
+						<>
+							<TrendingUp className="h-4 w-4" />
+							<span>+{growth}%</span>
+						</>
+					) : growth < 0 ? (
+						<>
+							<TrendingDown className="h-4 w-4" />
+							<span>{growth}%</span>
+						</>
+					) : (
+						<span>0%</span>
+					)}
+				</div>
+			</div>
+		</div>
 	);
-
-	const getStatusBadge = (status: string) => {
-		return <Badge variant={getStatusBadgeVariant(status)}>{formatStatus(status)}</Badge>;
-	};
-
-	const getRoleBadge = (roles: { roleId: number; roleName: string }[]) => {
-		if (roles.length === 0) return <Badge variant="outline">No Role</Badge>;
-		const role = roles[0];
-		return <Badge variant={getRoleBadgeVariant(role.roleName)}>{formatRoleName(role.roleName)}</Badge>;
-	};
 
 	if (loading) {
 		return (
@@ -177,153 +337,179 @@ export function AdminDashboard() {
 
 	return (
 		<div className="space-y-6">
-			<div className="bg-card rounded-lg border p-6">
-				<div className="flex items-center justify-between mb-6">
-					<h2 className="text-xl font-semibold">User Management</h2>
-					<div className="flex items-center space-x-2">
-						<div className="relative">
-							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-							<Input
-								placeholder="Search users..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-								className="pl-9 w-64"
-							/>
-						</div>
-					</div>
-				</div>
-
-				<div className="rounded-md border">
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Email</TableHead>
-								<TableHead>Name</TableHead>
-								<TableHead>Phone</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Role</TableHead>
-								<TableHead>Verified</TableHead>
-								<TableHead>Created</TableHead>
-								<TableHead className="text-right">Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{paginatedUsers.map((user) => (
-								<TableRow key={user.id}>
-									<TableCell className="font-medium">{user.email}</TableCell>
-									<TableCell>
-										{user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "-"}
-									</TableCell>
-									<TableCell>{user.phone || "-"}</TableCell>
-									<TableCell>{getStatusBadge(user.status)}</TableCell>
-									<TableCell>{getRoleBadge(user.roles)}</TableCell>
-									<TableCell>
-										{user.emailVerified ? (
-											<Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-												Verified
-											</Badge>
-										) : (
-											<Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-												Unverified
-											</Badge>
-										)}
-									</TableCell>
-									<TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-									<TableCell className="text-right">
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={() => handleEditUser(user)}
-										>
-											<Pencil className="h-4 w-4" />
-										</Button>
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</div>
-
-				{totalPages > 1 && (
-					<div className="flex items-center justify-between mt-4">
-						<p className="text-sm text-muted-foreground">
-							Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length} users
-						</p>
-						<div className="flex items-center space-x-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-								disabled={currentPage === 1}
-							>
-								<ChevronLeft className="h-4 w-4" />
-							</Button>
-							<span className="text-sm">
-								Page {currentPage} of {totalPages}
-							</span>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-								disabled={currentPage === totalPages}
-							>
-								<ChevronRight className="h-4 w-4" />
-							</Button>
-						</div>
-					</div>
-				)}
+			{/* Stats Cards */}
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<StatCard 
+					icon={Users} 
+					label="Total Users" 
+					value={stats.totalUsers} 
+					growth={stats.userGrowth} 
+				/>
+				<StatCard 
+					icon={Activity} 
+					label="Active Users" 
+					value={stats.activeUsers} 
+					growth={stats.activeGrowth} 
+				/>
+				<StatCard 
+					icon={Shield} 
+					label="Super Admins" 
+					value={stats.superAdmins} 
+					growth={stats.adminGrowth} 
+				/>
 			</div>
 
+			{/* Tabs */}
+			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+				<TabsList className="grid w-full grid-cols-2 mb-4">
+					<TabsTrigger value="users">User Management</TabsTrigger>
+					<TabsTrigger value="activity">Activity</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="users" className="space-y-4">
+					<div className="bg-card rounded-lg border">
+						<div className="p-4 border-b">
+							<div className="flex items-center justify-between">
+								<div className="relative">
+									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+									<Input
+										placeholder="Search..."
+										value={searchTerm}
+										onChange={(e) => setSearchTerm(e.target.value)}
+										className="pl-9 max-w-sm"
+									/>
+								</div>
+								<Button onClick={() => setCreateModalOpen(true)}>
+									<Plus className="mr-2 h-4 w-4" />
+									Create User
+								</Button>
+							</div>
+						</div>
+
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>User</TableHead>
+									<TableHead>Contact</TableHead>
+									<TableHead>Location</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead>Roles</TableHead>
+									<TableHead>Joined</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{filteredUsers.map((user) => (
+									<TableRow key={user.id}>
+										<TableCell>
+											<div>
+												<div className="font-medium">
+													{user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"}
+												</div>
+												<div className="text-sm text-muted-foreground">
+													{user.email}
+												</div>
+												{user.emailVerified && (
+													<span className="text-xs text-green-600">✓ Verified</span>
+												)}
+											</div>
+										</TableCell>
+										<TableCell>
+											<div className="space-y-1">
+												<div className="text-sm">{user.email}</div>
+												{user.phone && (
+													<div className="text-sm text-muted-foreground">{user.phone}</div>
+												)}
+											</div>
+										</TableCell>
+										<TableCell>
+											<div className="text-sm">
+												{user.city && user.state ? (
+													<>
+														{user.city}, {user.state}
+														<br />
+														<span className="text-muted-foreground">{user.country || "US"}</span>
+													</>
+												) : (
+													<span className="text-muted-foreground">Not provided</span>
+												)}
+											</div>
+										</TableCell>
+										<TableCell>
+											<Badge variant={getStatusBadgeVariant(user.status) as any}>
+												{formatStatus(user.status)}
+											</Badge>
+										</TableCell>
+										<TableCell>
+											{user.roles.length > 0 ? (
+												<Badge variant={getRoleBadgeVariant(user.roles[0].roleName)}>
+													{formatRoleName(user.roles[0].roleName)}
+												</Badge>
+											) : (
+												<Badge variant="outline">No Role</Badge>
+											)}
+										</TableCell>
+										<TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+										<TableCell className="text-right">
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => handleEditUser(user)}
+											>
+												<Edit className="h-4 w-4" />
+												<span className="ml-2">Edit</span>
+											</Button>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
+				</TabsContent>
+
+				<TabsContent value="activity" className="space-y-4">
+					<div className="bg-card rounded-lg border p-8">
+						<div className="text-center text-muted-foreground">
+							<Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+							<p className="text-lg font-medium">Activity tracking coming soon</p>
+							<p className="text-sm mt-2">This feature is currently under development</p>
+						</div>
+					</div>
+				</TabsContent>
+			</Tabs>
+
+			{/* Edit User Dialog */}
 			<Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-				<DialogContent className="sm:max-w-[600px]">
+				<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
 					<DialogHeader>
 						<DialogTitle>Edit User</DialogTitle>
+						<p className="text-sm text-muted-foreground">Update user information and permissions</p>
 					</DialogHeader>
 					{selectedUser && (
 						<div className="space-y-4 py-4">
 							<div className="grid grid-cols-2 gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="email">Email</Label>
+									<Label htmlFor="edit-firstName">First Name</Label>
 									<Input
-										id="email"
-										value={selectedUser.email}
-										onChange={(e) => updateUserField("email", e.target.value)}
-									/>
-								</div>
-								<div className="space-y-2">
-									<Label htmlFor="phone">Phone</Label>
-									<Input
-										id="phone"
-										value={selectedUser.phone || ""}
-										onChange={(e) => updateUserField("phone", e.target.value)}
-										placeholder="Phone number"
-									/>
-								</div>
-							</div>
-							
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="firstName">First Name</Label>
-									<Input
-										id="firstName"
+										id="edit-firstName"
 										value={selectedUser.firstName || ""}
 										onChange={(e) => updateUserField("firstName", e.target.value)}
 									/>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="lastName">Last Name</Label>
+									<Label htmlFor="edit-lastName">Last Name</Label>
 									<Input
-										id="lastName"
+										id="edit-lastName"
 										value={selectedUser.lastName || ""}
 										onChange={(e) => updateUserField("lastName", e.target.value)}
 									/>
 								</div>
 							</div>
-
+							
 							<div className="space-y-2">
-								<Label htmlFor="displayName">Display Name</Label>
+								<Label htmlFor="edit-displayName">Display Name</Label>
 								<Input
-									id="displayName"
+									id="edit-displayName"
 									value={selectedUser.displayName || ""}
 									onChange={(e) => updateUserField("displayName", e.target.value)}
 								/>
@@ -331,12 +517,100 @@ export function AdminDashboard() {
 
 							<div className="grid grid-cols-2 gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="status">Status</Label>
+									<Label htmlFor="edit-email">Email</Label>
+									<Input
+										id="edit-email"
+										value={selectedUser.email}
+										onChange={(e) => updateUserField("email", e.target.value)}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="edit-phone">Phone</Label>
+									<Input
+										id="edit-phone"
+										value={selectedUser.phone || ""}
+										onChange={(e) => updateUserField("phone", e.target.value)}
+									/>
+								</div>
+							</div>
+
+							<div className="grid grid-cols-2 gap-4">
+								<div className="space-y-2">
+									<Label htmlFor="edit-addressLine1">Address Line 1</Label>
+									<Input
+										id="edit-addressLine1"
+										value={selectedUser.addressLine1 || ""}
+										onChange={(e) => updateUserField("addressLine1", e.target.value)}
+										placeholder="Street address"
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="edit-addressLine2">Address Line 2</Label>
+									<Input
+										id="edit-addressLine2"
+										value={selectedUser.addressLine2 || ""}
+										onChange={(e) => updateUserField("addressLine2", e.target.value)}
+										placeholder="Apartment, suite, etc. (optional)"
+									/>
+								</div>
+							</div>
+
+							<div className="grid grid-cols-2 gap-4">
+								<div className="space-y-2">
+									<Label htmlFor="edit-city">City</Label>
+									<Input
+										id="edit-city"
+										value={selectedUser.city || ""}
+										onChange={(e) => updateUserField("city", e.target.value)}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="edit-state">State</Label>
+									<Select
+										value={selectedUser.state || ""}
+										onValueChange={(value) => updateUserField("state", value)}
+									>
+										<SelectTrigger id="edit-state">
+											<SelectValue placeholder="Select state" />
+										</SelectTrigger>
+										<SelectContent>
+											{US_STATES.map((state) => (
+												<SelectItem key={state} value={state}>
+													{state}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+
+							<div className="grid grid-cols-2 gap-4">
+								<div className="space-y-2">
+									<Label htmlFor="edit-zipCode">ZIP Code</Label>
+									<Input
+										id="edit-zipCode"
+										value={selectedUser.zipCode || ""}
+										onChange={(e) => updateUserField("zipCode", e.target.value)}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="edit-country">Country</Label>
+									<Input
+										id="edit-country"
+										value={selectedUser.country || "US"}
+										onChange={(e) => updateUserField("country", e.target.value)}
+									/>
+								</div>
+							</div>
+
+							<div className="grid grid-cols-2 gap-4">
+								<div className="space-y-2">
+									<Label htmlFor="edit-status">Status</Label>
 									<Select
 										value={selectedUser.status}
 										onValueChange={(value) => updateUserField("status", value)}
 									>
-										<SelectTrigger id="status">
+										<SelectTrigger id="edit-status">
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
@@ -347,12 +621,12 @@ export function AdminDashboard() {
 									</Select>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="role">Role</Label>
+									<Label htmlFor="edit-role">Role</Label>
 									<Select
 										value={selectedUser.roles[0]?.roleId?.toString() || ""}
 										onValueChange={(value) => updateUserRole(parseInt(value))}
 									>
-										<SelectTrigger id="role">
+										<SelectTrigger id="edit-role">
 											<SelectValue placeholder="Select a role" />
 										</SelectTrigger>
 										<SelectContent>
@@ -366,20 +640,15 @@ export function AdminDashboard() {
 								</div>
 							</div>
 
-							<div className="space-y-2">
-								<Label htmlFor="emailVerified">Email Verification</Label>
-								<Select
-									value={selectedUser.emailVerified.toString()}
-									onValueChange={(value) => updateUserField("emailVerified", parseInt(value))}
-								>
-									<SelectTrigger id="emailVerified">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="1">Verified</SelectItem>
-										<SelectItem value="0">Unverified</SelectItem>
-									</SelectContent>
-								</Select>
+							<div className="flex items-center space-x-2">
+								<Checkbox
+									id="edit-emailVerified"
+									checked={selectedUser.emailVerified === 1}
+									onCheckedChange={(checked) => 
+										updateUserField("emailVerified", checked ? 1 : 0)
+									}
+								/>
+								<Label htmlFor="edit-emailVerified">Email Verified</Label>
 							</div>
 						</div>
 					)}
@@ -390,6 +659,208 @@ export function AdminDashboard() {
 						<Button onClick={handleSaveUser} disabled={saving}>
 							{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 							Save Changes
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Create User Dialog */}
+			<Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+				<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+					<DialogHeader>
+						<DialogTitle>Create User</DialogTitle>
+						<p className="text-sm text-muted-foreground">Add a new user to the system</p>
+					</DialogHeader>
+					<div className="space-y-4 py-4">
+						<div className="grid grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="new-firstName">First Name</Label>
+								<Input
+									id="new-firstName"
+									value={newUser.firstName}
+									onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
+									placeholder="First name"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="new-lastName">Last Name</Label>
+								<Input
+									id="new-lastName"
+									value={newUser.lastName}
+									onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
+									placeholder="Last name"
+								/>
+							</div>
+						</div>
+						
+						<div className="space-y-2">
+							<Label htmlFor="new-displayName">Display Name</Label>
+							<Input
+								id="new-displayName"
+								value={newUser.displayName}
+								onChange={(e) => setNewUser({...newUser, displayName: e.target.value})}
+								placeholder="Display name"
+							/>
+						</div>
+
+						<div className="grid grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="new-email">Email *</Label>
+								<Input
+									id="new-email"
+									type="email"
+									value={newUser.email}
+									onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+									placeholder="user@example.com"
+									required
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="new-phone">Phone</Label>
+								<Input
+									id="new-phone"
+									value={newUser.phone}
+									onChange={(e) => setNewUser({...newUser, phone: e.target.value})}
+									placeholder="Phone number"
+								/>
+							</div>
+						</div>
+
+						<div className="grid grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="new-addressLine1">Address Line 1</Label>
+								<Input
+									id="new-addressLine1"
+									value={newUser.addressLine1}
+									onChange={(e) => setNewUser({...newUser, addressLine1: e.target.value})}
+									placeholder="Street address"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="new-addressLine2">Address Line 2</Label>
+								<Input
+									id="new-addressLine2"
+									value={newUser.addressLine2}
+									onChange={(e) => setNewUser({...newUser, addressLine2: e.target.value})}
+									placeholder="Apartment, suite, etc. (optional)"
+								/>
+							</div>
+						</div>
+
+						<div className="grid grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="new-city">City</Label>
+								<Input
+									id="new-city"
+									value={newUser.city}
+									onChange={(e) => setNewUser({...newUser, city: e.target.value})}
+									placeholder="City"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="new-state">State</Label>
+								<Select
+									value={newUser.state}
+									onValueChange={(value) => setNewUser({...newUser, state: value})}
+								>
+									<SelectTrigger id="new-state">
+										<SelectValue placeholder="Select state" />
+									</SelectTrigger>
+									<SelectContent>
+										<Input 
+											placeholder="Search states..." 
+											className="mx-2 my-2 w-[calc(100%-16px)]"
+										/>
+										{US_STATES.map((state) => (
+											<SelectItem key={state} value={state}>
+												{state}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+
+						<div className="grid grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="new-zipCode">ZIP Code</Label>
+								<Input
+									id="new-zipCode"
+									value={newUser.zipCode}
+									onChange={(e) => setNewUser({...newUser, zipCode: e.target.value})}
+									placeholder="Enter ZIP code"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="new-country">Country</Label>
+								<Input
+									id="new-country"
+									value={newUser.country}
+									onChange={(e) => setNewUser({...newUser, country: e.target.value})}
+									placeholder="Country"
+								/>
+							</div>
+						</div>
+
+						<div className="grid grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="new-status">Status</Label>
+								<Select
+									value={newUser.status}
+									onValueChange={(value: "active" | "suspended" | "deleted") => 
+										setNewUser({...newUser, status: value})
+									}
+								>
+									<SelectTrigger id="new-status">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="active">{formatStatus("active")}</SelectItem>
+										<SelectItem value="suspended">{formatStatus("suspended")}</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="new-role">Role *</Label>
+								<Select
+									value={newUser.roleId.toString()}
+									onValueChange={(value) => setNewUser({...newUser, roleId: parseInt(value)})}
+								>
+									<SelectTrigger id="new-role">
+										<SelectValue placeholder="Select a role" />
+									</SelectTrigger>
+									<SelectContent>
+										{roles.map((role) => (
+											<SelectItem key={role.id} value={role.id.toString()}>
+												{formatRoleName(role.name)}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+
+						<div className="flex items-center space-x-2">
+							<Checkbox
+								id="new-emailVerified"
+								checked={newUser.emailVerified}
+								onCheckedChange={(checked) => 
+									setNewUser({...newUser, emailVerified: checked as boolean})
+								}
+							/>
+							<Label htmlFor="new-emailVerified">Email Verified</Label>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setCreateModalOpen(false)}>
+							Cancel
+						</Button>
+						<Button 
+							onClick={handleCreateUser} 
+							disabled={saving || !newUser.email || newUser.roleId === 0}
+						>
+							{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+							Create User
 						</Button>
 					</DialogFooter>
 				</DialogContent>
