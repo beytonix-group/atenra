@@ -10,7 +10,7 @@ export const metadata = {
 	description: "Exceptional service matching powered by intelligent technology and genuine human expertise.",
 };
 
-export default async function Page() {
+export default function Page() {
 	return (
 		<main className="min-h-screen bg-background">
 			<Navigation />

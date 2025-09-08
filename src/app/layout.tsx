@@ -6,6 +6,10 @@ import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { SessionProvider } from "next-auth/react";
 import { ActivityTracker } from "@/components/providers/ActivityTracker";
 
+// Edge runtime for Cloudflare Pages deployment
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
