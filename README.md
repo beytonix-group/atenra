@@ -4,51 +4,53 @@ A comprehensive SaaS platform for service matching and asset management, built o
 
 ## Tech Stack
 
-- **Next.js 14** with App Router and Edge Runtime
+- **Next.js 14.2.5** with App Router and Edge Runtime
 - **Cloudflare Pages** for hosting and global deployment
 - **Cloudflare D1** serverless SQLite database
-- **Drizzle ORM** for type-safe database operations
-- **NextAuth v5** for authentication (Google OAuth + Credentials)
-- **Shadcn UI + Tailwind CSS** for modern component library
-- **TypeScript** for type safety
-- **npm** for package management
+- **Drizzle ORM 0.44.5** for type-safe database operations
+- **NextAuth v5 ** for authentication (Google OAuth + Credentials)
+- **Shadcn UI + Radix UI + Tailwind CSS** for modern component library
+- **TypeScript 5** for type safety
+- **Bun 1.1.0+** for package management and runtime
 
 ## Features
 
 - 🌍 **Multi-language support** (English, Spanish, French, German, Chinese)
-- 🔐 **Authentication system** with Google OAuth and email/password
+- 🔐 **Authentication system** with NextAuth v5 (Google OAuth + Credentials)
 - 👤 **User profile management** with comprehensive form validation
 - 🎨 **Dark/light theme support** with system preference detection
 - 📱 **Responsive design** with mobile-first approach
-- 🚀 **Edge runtime** for global performance
+- 🚀 **Edge runtime** optimized for Cloudflare Workers/Pages
 - 🔒 **RBAC system** for role-based access control
 - 💾 **Asset management** with user relationships
+- 📊 **Activity tracking** with user analytics dashboard
+- 🛠️ **Custom D1 adapter** for NextAuth compatibility
 
 ## Quick Start (Brand New Setup)
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) and npm installed
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed
+- [Bun 1.1.0+](https://bun.sh/) for package management and runtime
+- [Node.js](https://nodejs.org/) (optional, for compatibility)
+- [Wrangler CLI 4.33.1+](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed
 - Cloudflare account with `wrangler login`
 
 ### Local Development
 
 ```bash
 # 1. Install dependencies
-npm install
+bun install
 
 # 2. Run interactive setup (creates .dev.vars, configures database)
-npm run setup
+bun run setup
 
 # 3. Setup database
-npm run db:migrate:dev
+bun run db:migrate:dev
 
-# 4. Apply NextAuth schema fixes (if needed)
-npm run db:migrate:dev
-
-# 5. Start development server
-npm run dev
+# 4. Start development server with D1 bindings
+bun run dev:d1  # Recommended: runs both Next.js and wrangler proxy
+# OR
+bun run dev     # Just Next.js (limited D1 access)
 ```
 
 ### ⚠️ NextAuth Database Schema Fix
@@ -64,15 +66,16 @@ bunx wrangler d1 execute atenra-dev-db --remote --file=drizzle/0001_nextauth_sch
 ```
 
 This migration fixes:
+
 - ✅ `sessions.expires` field from TEXT to INTEGER
-- ✅ `verificationTokens.expires` field from TEXT to INTEGER  
+- ✅ `verificationTokens.expires` field from TEXT to INTEGER
 - ✅ `auth_users.emailVerified` field from TEXT to INTEGER
 - ✅ Creates missing `accounts` table for OAuth providers
 
 **One-liner for fresh start:**
 
 ```bash
-npm install && npm run setup && npm run db:migrate:dev && npm run dev
+bun install && bun run setup && bun run db:migrate:dev && bun run dev:d1
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
@@ -82,43 +85,50 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 ### Core Development
 
 ```bash
-npm run dev              # Start local development server
-npm run lint             # Run ESLint for code quality
-npm run build            # Build Next.js application
+bun run dev              # Start Next.js development server (port 3000)
+bun run dev:wrangler     # Start wrangler proxy with D1 bindings (port 8788)
+bun run dev:d1           # Start both concurrently (recommended)
+bun run lint             # Run ESLint for code quality
+bun run build            # Build Next.js application
 ```
 
 ### Database Management
 
 ```bash
-npm run db:generate      # Generate migration files from schema changes
-npm run db:migrate:dev   # Apply migrations to local database
-npm run db:migrate:prod  # Apply migrations to production database
-npm run db:studio:dev    # Open Drizzle Studio for local database
-npm run db:studio:prod   # Open Drizzle Studio for production database
+bun run db:generate      # Generate migration files from schema changes
+bun run db:migrate:dev   # Apply migrations to local D1 database
+bun run db:migrate:prod  # Apply migrations to remote D1 database
+bun run db:studio:dev    # Open Drizzle Studio for local database
+bun run db:studio:prod   # Open Drizzle Studio for remote database
+bun run db:query         # Execute SQL on local D1 database
+bun run db:query:prod    # Execute SQL on remote D1 database
 ```
 
 ### Cloudflare Deployment
 
 ```bash
-npm run pages:build      # Build for Cloudflare Pages
-npm run preview          # Preview built app locally with Wrangler
-npm run deploy           # Quick deploy to Cloudflare Pages
-npm run deploy:full      # Full deploy with linting and migrations
-npm run deploy:staging   # Deploy to staging environment
+bun run pages:build      # Build for Cloudflare Pages (@cloudflare/next-on-pages)
+bun run preview          # Preview built app locally with Wrangler
+bun run deploy           # Quick deploy to Cloudflare Pages
+bun run deploy:full      # Full deploy with linting and migrations
+bun run deploy:staging   # Deploy to staging environment
 ```
 
 ### CI/CD Scripts
 
 ```bash
-npm run ci:build         # CI build step (lint + pages:build)
-npm run ci:deploy        # CI deploy step (migrate + deploy)
+bun run ci:build         # CI build step (lint + pages:build)
+bun run ci:deploy        # CI deploy step (migrate + deploy)
 ```
 
 ### Utilities
 
 ```bash
-npm run cf-typegen       # Generate TypeScript types for Cloudflare environment
-npm run setup            # Interactive project setup
+bun run cf-typegen       # Generate TypeScript types for Cloudflare environment
+bun run setup            # Interactive project setup
+bun run studio:start     # Start Drizzle Studio in background
+bun run studio:stop      # Stop background Drizzle Studio
+bun run studio:restart   # Restart Drizzle Studio
 ```
 
 ## Environment Configuration
@@ -132,31 +142,36 @@ AUTH_GOOGLE_SECRET=your-google-secret
 SUPER_USER_EMAIL=admin@example.com    # Optional: Super admin email
 ```
 
-### Production Database Operations (`.env.local`)
+### Production Database Operations (`.env`)
 
 Required for production database migrations and studio access:
 
 ```bash
-CLOUDFLARE_ACCOUNT_ID=your-cloudflare-account-id     # Your Cloudflare account ID
-CLOUDFLARE_DATABASE_ID=your-d1-database-id           # D1 database ID from wrangler.toml
-CLOUDFLARE_D1_TOKEN=your-api-token                   # Cloudflare API token with D1 permissions
-AUTH_SECRET=your-auth-secret                         # Same as .dev.vars
-AUTH_GOOGLE_ID=your-google-client-id                 # Same as .dev.vars
-AUTH_GOOGLE_SECRET=your-google-secret                # Same as .dev.vars
-SUPER_USER_EMAIL=admin@example.com                   # Same as .dev.vars
+CLOUDFLARE_D1_ACCOUNT_ID=your-cloudflare-account-id  # Your Cloudflare account ID
+DATABASE=7ed327c0-e838-4fd5-8369-a6b5e90dd04d        # D1 database ID from wrangler.toml
+CLOUDFLARE_D1_API_TOKEN=your-api-token               # Cloudflare API token with D1 permissions
+```
+
+### Application Secrets (`.dev.vars` for local, Cloudflare Dashboard for production)
+
+```bash
+AUTH_SECRET=your-auth-secret                         # Generate with: openssl rand -base64 32
+AUTH_GOOGLE_ID=your-google-client-id                 # From Google Cloud Console
+AUTH_GOOGLE_SECRET=your-google-secret                # From Google Cloud Console
+SUPER_USER_EMAIL=admin@example.com                   # Optional: Super admin email
 ```
 
 ### Environment Variable Details
 
-| Variable                 | Purpose                            | How to Get                                 |
-| ------------------------ | ---------------------------------- | ------------------------------------------ |
-| `AUTH_SECRET`            | Encrypts NextAuth sessions/tokens  | Generate: `openssl rand -base64 32`        |
-| `AUTH_GOOGLE_ID`         | Google OAuth client ID             | Google Cloud Console → Credentials         |
-| `AUTH_GOOGLE_SECRET`     | Google OAuth client secret         | Google Cloud Console → Credentials         |
-| `SUPER_USER_EMAIL`       | Auto-assigns super admin role      | Your admin email address                   |
-| `CLOUDFLARE_ACCOUNT_ID`  | Your Cloudflare account identifier | Cloudflare Dashboard → Right sidebar       |
-| `CLOUDFLARE_DATABASE_ID` | D1 database identifier             | From `wrangler.toml` or `wrangler d1 list` |
-| `CLOUDFLARE_D1_TOKEN`    | API token for D1 operations        | Cloudflare → My Profile → API Tokens       |
+| Variable                   | Purpose                              | How to Get                                 |
+| -------------------------- | ------------------------------------ | ------------------------------------------ |
+| `AUTH_SECRET`              | Encrypts NextAuth sessions/tokens    | Generate: `openssl rand -base64 32`        |
+| `AUTH_GOOGLE_ID`           | Google OAuth client ID               | Google Cloud Console → Credentials         |
+| `AUTH_GOOGLE_SECRET`       | Google OAuth client secret           | Google Cloud Console → Credentials         |
+| `SUPER_USER_EMAIL`         | Auto-assigns super admin role        | Your admin email address                   |
+| `CLOUDFLARE_D1_ACCOUNT_ID` | Your Cloudflare account identifier   | Cloudflare Dashboard → Right sidebar       |
+| `DATABASE`                 | D1 database identifier (7ed327c0...) | From `wrangler.toml` or `wrangler d1 list` |
+| `CLOUDFLARE_D1_API_TOKEN`  | API token for D1 operations          | Cloudflare → My Profile → API Tokens       |
 
 ## Project Structure
 
@@ -207,18 +222,34 @@ bun run deploy:full
 
 # Quick deployment
 bun run deploy
+
+# Deploy to staging
+bun run deploy:staging
 ```
+
+### Build Output
+
+The application builds to `.vercel/output/static` for Cloudflare Pages deployment using `@cloudflare/next-on-pages`.
 
 ### CI/CD Pipeline Example
 
 ```yaml
+- name: Setup Bun
+  uses: oven-sh/setup-bun@v1
+  with:
+    bun-version: latest
+
+- name: Install Dependencies
+  run: bun install
+
 - name: Build
-  run: npm run ci:build
+  run: bun run ci:build
 
 - name: Deploy
-  run: npm run ci:deploy
+  run: bun run ci:deploy
   env:
     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 ```
 
 ## Database Schema
