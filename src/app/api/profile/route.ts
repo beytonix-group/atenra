@@ -8,15 +8,15 @@ import { z } from "zod";
 export const runtime = "edge";
 
 const updateProfileSchema = z.object({
-  firstName: z.string().min(1).max(50).optional(),
-  lastName: z.string().min(1).max(50).optional(),
-  displayName: z.string().min(1).max(100).optional(),
-  phone: z.string().max(20).optional(),
-  addressLine1: z.string().max(100).optional(),
-  addressLine2: z.string().max(100).optional(),
+  firstName: z.string().min(1).max(30).optional(),
+  lastName: z.string().min(1).max(30).optional(),
+  displayName: z.string().min(1).max(65).optional(),
+  phone: z.string().max(14).optional(), // (XXX) XXX-XXXX format
+  addressLine1: z.string().max(50).optional(),
+  addressLine2: z.string().max(50).optional(),
   city: z.string().max(50).optional(),
   state: z.string().max(50).optional(),
-  zipCode: z.string().max(20).optional(),
+  zipCode: z.string().regex(/^\d{5}$/, "ZIP code must be exactly 5 digits").optional(),
   country: z.string().max(50).optional(),
 });
 

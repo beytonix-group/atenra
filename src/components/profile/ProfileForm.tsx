@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { sanitizeAvatarUrl } from "@/lib/utils/avatar";
 import { formatStatus, formatRoleName } from "@/lib/utils/format";
+import { formatPhoneNumber, formatZipCode } from "@/lib/utils/input-format";
 import { User, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,7 +162,7 @@ export function ProfileForm() {
 			</div>
 			
 			{message && (
-				<div className={`mb-6 p-4 rounded-lg ${message.includes('successfully') ? 'bg-green-50 text-green-800 border border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800' : 'bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800'}`}>
+				<div className={`mb-6 p-6 rounded-lg text-lg ${message.includes('successfully') ? 'bg-green-50 text-green-800 border border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800' : 'bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800'}`}>
 					{message}
 				</div>
 			)}
@@ -173,8 +174,9 @@ export function ProfileForm() {
 						<Input
 							id="firstName"
 							value={profile.firstName || ""}
-							onChange={(e) => setProfile({...profile, firstName: e.target.value})}
+							onChange={(e) => setProfile({...profile, firstName: e.target.value.slice(0, 30)})}
 							placeholder="Enter first name"
+							maxLength={30}
 						/>
 					</div>
 					<div className="space-y-2">
@@ -182,8 +184,9 @@ export function ProfileForm() {
 						<Input
 							id="lastName"
 							value={profile.lastName || ""}
-							onChange={(e) => setProfile({...profile, lastName: e.target.value})}
+							onChange={(e) => setProfile({...profile, lastName: e.target.value.slice(0, 30)})}
 							placeholder="Enter last name"
+							maxLength={30}
 						/>
 					</div>
 				</div>
@@ -193,8 +196,9 @@ export function ProfileForm() {
 					<Input
 						id="displayName"
 						value={profile.displayName || ""}
-						onChange={(e) => setProfile({...profile, displayName: e.target.value})}
+						onChange={(e) => setProfile({...profile, displayName: e.target.value.slice(0, 65)})}
 						placeholder="Enter display name"
+						maxLength={65}
 					/>
 				</div>
 				
@@ -213,8 +217,12 @@ export function ProfileForm() {
 					<Input
 						id="phone"
 						value={profile.phone || ""}
-						onChange={(e) => setProfile({...profile, phone: e.target.value})}
-						placeholder="Enter phone number"
+						onChange={(e) => {
+							const formatted = formatPhoneNumber(e.target.value);
+							setProfile({...profile, phone: formatted});
+						}}
+						placeholder="(555) 555-5555"
+						type="tel"
 					/>
 				</div>
 				
@@ -226,8 +234,9 @@ export function ProfileForm() {
 						<Input
 							id="addressLine1"
 							value={profile.addressLine1 || ""}
-							onChange={(e) => setProfile({...profile, addressLine1: e.target.value})}
+							onChange={(e) => setProfile({...profile, addressLine1: e.target.value.slice(0, 50)})}
 							placeholder="Enter street address"
+							maxLength={50}
 						/>
 					</div>
 					
@@ -236,8 +245,9 @@ export function ProfileForm() {
 						<Input
 							id="addressLine2"
 							value={profile.addressLine2 || ""}
-							onChange={(e) => setProfile({...profile, addressLine2: e.target.value})}
+							onChange={(e) => setProfile({...profile, addressLine2: e.target.value.slice(0, 50)})}
 							placeholder="Apartment, suite, etc."
+							maxLength={50}
 						/>
 					</div>
 					
@@ -265,8 +275,13 @@ export function ProfileForm() {
 							<Input
 								id="zipCode"
 								value={profile.zipCode || ""}
-								onChange={(e) => setProfile({...profile, zipCode: e.target.value})}
-								placeholder="Enter ZIP code"
+								onChange={(e) => {
+									const formatted = formatZipCode(e.target.value);
+									setProfile({...profile, zipCode: formatted});
+								}}
+								placeholder="12345"
+								maxLength={5}
+								pattern="[0-9]{5}"
 							/>
 						</div>
 					</div>

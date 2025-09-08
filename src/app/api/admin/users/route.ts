@@ -4,8 +4,26 @@ import { users, userRoles, roles } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 
 export const runtime = "edge";
+
+const createUserSchema = z.object({
+	email: z.string().email("Invalid email address"),
+	firstName: z.string().max(30).optional(),
+	lastName: z.string().max(30).optional(),
+	displayName: z.string().max(65).optional(),
+	phone: z.string().max(14).optional(), // (XXX) XXX-XXXX format
+	addressLine1: z.string().max(50).optional(),
+	addressLine2: z.string().max(50).optional(),
+	city: z.string().max(50).optional(),
+	state: z.string().max(50).optional(),
+	zipCode: z.string().regex(/^\d{5}$/, "ZIP code must be exactly 5 digits").optional().or(z.literal("")),
+	country: z.string().max(50).optional(),
+	status: z.enum(["active", "suspended", "deleted"]).optional(),
+	emailVerified: z.boolean().optional(),
+	roleId: z.number().int().positive().optional(),
+});
 
 export async function GET() {
 	try {
@@ -66,7 +84,10 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 		}
 
-		const body = await request.json() as CreateUserBody;
+		const body = await request.json();
+		
+		// Validate the request body
+		const validatedData = createUserSchema.parse(body);
 		const {
 			email,
 			firstName,
@@ -82,7 +103,7 @@ export async function POST(request: NextRequest) {
 			status,
 			emailVerified,
 			roleId
-		} = body;
+		} = validatedData;
 
 		// Check if user with email already exists
 		const existingUser = await db
@@ -136,6 +157,14 @@ export async function POST(request: NextRequest) {
 		});
 	} catch (error) {
 		console.error("Error creating user:", error);
+		
+		if (error instanceof z.ZodError) {
+			return NextResponse.json({ 
+				error: "Invalid data", 
+				details: error.errors 
+			}, { status: 400 });
+		}
+		
 		return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
 	}
 }

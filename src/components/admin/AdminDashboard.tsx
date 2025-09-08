@@ -52,6 +52,7 @@ import {
 	getRoleBadgeVariant, 
 	getStatusBadgeVariant 
 } from "@/lib/utils/format";
+import { formatPhoneNumber, formatZipCode } from "@/lib/utils/input-format";
 
 interface User {
 	id: number;
@@ -493,7 +494,8 @@ export function AdminDashboard() {
 									<Input
 										id="edit-firstName"
 										value={selectedUser.firstName || ""}
-										onChange={(e) => updateUserField("firstName", e.target.value)}
+										onChange={(e) => updateUserField("firstName", e.target.value.slice(0, 30))}
+										maxLength={30}
 									/>
 								</div>
 								<div className="space-y-2">
@@ -501,7 +503,8 @@ export function AdminDashboard() {
 									<Input
 										id="edit-lastName"
 										value={selectedUser.lastName || ""}
-										onChange={(e) => updateUserField("lastName", e.target.value)}
+										onChange={(e) => updateUserField("lastName", e.target.value.slice(0, 30))}
+										maxLength={30}
 									/>
 								</div>
 							</div>
@@ -511,7 +514,8 @@ export function AdminDashboard() {
 								<Input
 									id="edit-displayName"
 									value={selectedUser.displayName || ""}
-									onChange={(e) => updateUserField("displayName", e.target.value)}
+									onChange={(e) => updateUserField("displayName", e.target.value.slice(0, 65))}
+									maxLength={65}
 								/>
 							</div>
 
@@ -529,7 +533,12 @@ export function AdminDashboard() {
 									<Input
 										id="edit-phone"
 										value={selectedUser.phone || ""}
-										onChange={(e) => updateUserField("phone", e.target.value)}
+										onChange={(e) => {
+											const formatted = formatPhoneNumber(e.target.value);
+											updateUserField("phone", formatted);
+										}}
+										placeholder="(555) 555-5555"
+										type="tel"
 									/>
 								</div>
 							</div>
@@ -540,8 +549,9 @@ export function AdminDashboard() {
 									<Input
 										id="edit-addressLine1"
 										value={selectedUser.addressLine1 || ""}
-										onChange={(e) => updateUserField("addressLine1", e.target.value)}
+										onChange={(e) => updateUserField("addressLine1", e.target.value.slice(0, 50))}
 										placeholder="Street address"
+										maxLength={50}
 									/>
 								</div>
 								<div className="space-y-2">
@@ -549,8 +559,9 @@ export function AdminDashboard() {
 									<Input
 										id="edit-addressLine2"
 										value={selectedUser.addressLine2 || ""}
-										onChange={(e) => updateUserField("addressLine2", e.target.value)}
+										onChange={(e) => updateUserField("addressLine2", e.target.value.slice(0, 50))}
 										placeholder="Apartment, suite, etc. (optional)"
+										maxLength={50}
 									/>
 								</div>
 							</div>
@@ -590,7 +601,13 @@ export function AdminDashboard() {
 									<Input
 										id="edit-zipCode"
 										value={selectedUser.zipCode || ""}
-										onChange={(e) => updateUserField("zipCode", e.target.value)}
+										onChange={(e) => {
+											const formatted = formatZipCode(e.target.value);
+											updateUserField("zipCode", formatted);
+										}}
+										placeholder="12345"
+										maxLength={5}
+										pattern="[0-9]{5}"
 									/>
 								</div>
 								<div className="space-y-2">
@@ -678,8 +695,9 @@ export function AdminDashboard() {
 								<Input
 									id="new-firstName"
 									value={newUser.firstName}
-									onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
+									onChange={(e) => setNewUser({...newUser, firstName: e.target.value.slice(0, 30)})}
 									placeholder="First name"
+									maxLength={30}
 								/>
 							</div>
 							<div className="space-y-2">
@@ -687,8 +705,9 @@ export function AdminDashboard() {
 								<Input
 									id="new-lastName"
 									value={newUser.lastName}
-									onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
+									onChange={(e) => setNewUser({...newUser, lastName: e.target.value.slice(0, 30)})}
 									placeholder="Last name"
+									maxLength={30}
 								/>
 							</div>
 						</div>
@@ -698,8 +717,9 @@ export function AdminDashboard() {
 							<Input
 								id="new-displayName"
 								value={newUser.displayName}
-								onChange={(e) => setNewUser({...newUser, displayName: e.target.value})}
+								onChange={(e) => setNewUser({...newUser, displayName: e.target.value.slice(0, 65)})}
 								placeholder="Display name"
+								maxLength={65}
 							/>
 						</div>
 
@@ -720,8 +740,12 @@ export function AdminDashboard() {
 								<Input
 									id="new-phone"
 									value={newUser.phone}
-									onChange={(e) => setNewUser({...newUser, phone: e.target.value})}
-									placeholder="Phone number"
+									onChange={(e) => {
+										const formatted = formatPhoneNumber(e.target.value);
+										setNewUser({...newUser, phone: formatted});
+									}}
+									placeholder="(555) 555-5555"
+									type="tel"
 								/>
 							</div>
 						</div>
@@ -732,8 +756,9 @@ export function AdminDashboard() {
 								<Input
 									id="new-addressLine1"
 									value={newUser.addressLine1}
-									onChange={(e) => setNewUser({...newUser, addressLine1: e.target.value})}
+									onChange={(e) => setNewUser({...newUser, addressLine1: e.target.value.slice(0, 50)})}
 									placeholder="Street address"
+									maxLength={50}
 								/>
 							</div>
 							<div className="space-y-2">
@@ -741,8 +766,9 @@ export function AdminDashboard() {
 								<Input
 									id="new-addressLine2"
 									value={newUser.addressLine2}
-									onChange={(e) => setNewUser({...newUser, addressLine2: e.target.value})}
+									onChange={(e) => setNewUser({...newUser, addressLine2: e.target.value.slice(0, 50)})}
 									placeholder="Apartment, suite, etc. (optional)"
+									maxLength={50}
 								/>
 							</div>
 						</div>
@@ -787,8 +813,13 @@ export function AdminDashboard() {
 								<Input
 									id="new-zipCode"
 									value={newUser.zipCode}
-									onChange={(e) => setNewUser({...newUser, zipCode: e.target.value})}
-									placeholder="Enter ZIP code"
+									onChange={(e) => {
+										const formatted = formatZipCode(e.target.value);
+										setNewUser({...newUser, zipCode: formatted});
+									}}
+									placeholder="12345"
+									maxLength={5}
+									pattern="[0-9]{5}"
 								/>
 							</div>
 							<div className="space-y-2">

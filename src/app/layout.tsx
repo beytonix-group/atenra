@@ -29,7 +29,17 @@ export default function RootLayout({
         <SessionProvider>
           <LanguageProvider>
             {children}
-            <Toaster richColors position="top-right" />
+            <Toaster 
+              richColors 
+              position="top-right"
+              toastOptions={{
+                style: {
+                  fontSize: '1.125rem',  // 18px instead of default 14px (roughly 50% bigger)
+                  padding: '1rem 1.25rem',  // Larger padding
+                  minHeight: '4rem',  // Minimum height for consistency
+                },
+              }}
+            />
           </LanguageProvider>
         </SessionProvider>
       </body>
