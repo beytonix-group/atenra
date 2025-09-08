@@ -366,9 +366,10 @@ FOR EACH ROW BEGIN
 END;
 
 -- Optional: ensure one active-ish sub per owner/provider (tune statuses as needed)
-CREATE UNIQUE INDEX IF NOT EXISTS ux_sub_unique_active
-ON subscriptions(COALESCE(user_id, -1), COALESCE(company_id, -1), provider)
-WHERE status IN ('active','trialing','incomplete','past_due');
+-- Commented out due to Drizzle compatibility issues
+-- CREATE UNIQUE INDEX IF NOT EXISTS ux_sub_unique_active
+-- ON subscriptions(COALESCE(user_id, -1), COALESCE(company_id, -1), provider)
+-- WHERE status IN ('active','trialing','incomplete','past_due');
 
 -- ----------------------------------------------------------
 -- Per-user Usage Counters (monthly or daily)
