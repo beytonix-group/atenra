@@ -12,7 +12,7 @@ export default function PricingPage() {
 	return (
 		<main className="min-h-screen bg-background">
 			<Navigation />
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
 				<PricingSection />
 			</div>
 		</main>

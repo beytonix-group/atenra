@@ -6,7 +6,7 @@ export function SocialHero() {
 	const { t } = useLanguage();
 	
 	return (
-		<section className="py-20 md:py-32 text-center">
+		<section className="py-12 md:py-16 text-center">
 			<div className="max-w-4xl mx-auto px-4">
 				<h1 className="text-5xl md:text-6xl lg:text-7xl font-light mb-8">
 					{t.social.title}
