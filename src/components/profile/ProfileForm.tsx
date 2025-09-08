@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { sanitizeAvatarUrl } from "@/lib/utils/avatar";
+import { formatStatus, formatRoleName } from "@/lib/utils/format";
 import { User, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 interface UserProfile {
 	firstName: string;
@@ -23,6 +25,7 @@ interface UserProfile {
 	status: string;
 	emailVerified: number;
 	createdAt: string;
+	roles?: { roleId: number; roleName: string }[];
 }
 
 export function ProfileForm() {
@@ -136,8 +139,13 @@ export function ProfileForm() {
 					<h2 className="text-2xl font-semibold">{profile.displayName || session?.user?.name}</h2>
 					<p className="text-muted-foreground">{profile.email}</p>
 					<div className="flex items-center gap-2 mt-2">
+						{profile.roles && profile.roles.length > 0 && (
+							<Badge variant="default">
+								{formatRoleName(profile.roles[0].roleName)}
+							</Badge>
+						)}
 						<span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-							{profile.status}
+							{formatStatus(profile.status)}
 						</span>
 						{profile.emailVerified ? (
 							<span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">

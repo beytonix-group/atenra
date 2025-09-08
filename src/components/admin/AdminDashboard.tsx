@@ -29,6 +29,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { 
+	formatRoleName, 
+	formatStatus, 
+	getRoleBadgeVariant, 
+	getStatusBadgeVariant 
+} from "@/lib/utils/format";
 
 interface User {
 	id: number;
@@ -152,23 +158,13 @@ export function AdminDashboard() {
 	);
 
 	const getStatusBadge = (status: string) => {
-		const variants: Record<string, "default" | "destructive" | "secondary"> = {
-			active: "default",
-			suspended: "destructive",
-			deleted: "secondary"
-		};
-		return <Badge variant={variants[status] || "default"}>{status}</Badge>;
+		return <Badge variant={getStatusBadgeVariant(status)}>{formatStatus(status)}</Badge>;
 	};
 
 	const getRoleBadge = (roles: { roleId: number; roleName: string }[]) => {
 		if (roles.length === 0) return <Badge variant="outline">No Role</Badge>;
 		const role = roles[0];
-		const roleColors: Record<string, "default" | "destructive" | "secondary"> = {
-			super_admin: "destructive",
-			admin: "default",
-			user: "secondary"
-		};
-		return <Badge variant={roleColors[role.roleName] || "secondary"}>{role.roleName}</Badge>;
+		return <Badge variant={getRoleBadgeVariant(role.roleName)}>{formatRoleName(role.roleName)}</Badge>;
 	};
 
 	if (loading) {
@@ -344,9 +340,9 @@ export function AdminDashboard() {
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="active">Active</SelectItem>
-											<SelectItem value="suspended">Suspended</SelectItem>
-											<SelectItem value="deleted">Deleted</SelectItem>
+											<SelectItem value="active">{formatStatus("active")}</SelectItem>
+											<SelectItem value="suspended">{formatStatus("suspended")}</SelectItem>
+											<SelectItem value="deleted">{formatStatus("deleted")}</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -362,7 +358,7 @@ export function AdminDashboard() {
 										<SelectContent>
 											{roles.map((role) => (
 												<SelectItem key={role.id} value={role.id.toString()}>
-													{role.name}
+													{formatRoleName(role.name)}
 												</SelectItem>
 											))}
 										</SelectContent>
