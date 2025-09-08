@@ -3,6 +3,7 @@ import { FooterSection } from "@/components/landing/FooterSection";
 import { Navigation } from "@/components/landing/Navigation";
 
 export const runtime = "edge";
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
 	title: "Atenra - Begin Your Referral Journey",
