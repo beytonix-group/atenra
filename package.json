@@ -74,6 +74,7 @@
     "wrangler": "^4.33.1"
   },
   "overrides": {
-    "vercel": "43.0.0"
+    "vercel": "43.0.0",
+    "simple-swizzle": "0.2.2"
   }
 }
