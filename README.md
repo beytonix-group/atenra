@@ -53,25 +53,6 @@ bun run dev:d1  # Recommended: runs both Next.js and wrangler proxy
 bun run dev     # Just Next.js (limited D1 access)
 ```
 
-### ⚠️ NextAuth Database Schema Fix
-
-If you encounter authentication "Configuration" errors, apply the NextAuth schema fix:
-
-```bash
-# Apply the NextAuth schema fix migration
-bunx wrangler d1 execute atenra-dev-db --file=drizzle/0001_nextauth_schema_fix.sql
-
-# For production database:
-bunx wrangler d1 execute atenra-dev-db --remote --file=drizzle/0001_nextauth_schema_fix.sql
-```
-
-This migration fixes:
-
-- ✅ `sessions.expires` field from TEXT to INTEGER
-- ✅ `verificationTokens.expires` field from TEXT to INTEGER
-- ✅ `auth_users.emailVerified` field from TEXT to INTEGER
-- ✅ Creates missing `accounts` table for OAuth providers
-
 **One-liner for fresh start:**
 
 ```bash
@@ -104,32 +85,13 @@ bun run db:query         # Execute SQL on local D1 database
 bun run db:query:prod    # Execute SQL on remote D1 database
 ```
 
-### Cloudflare Deployment
+### Building & Preview
 
 ```bash
 bun run pages:build      # Build for Cloudflare Pages (@cloudflare/next-on-pages)
 bun run preview          # Preview built app locally with Wrangler
-bun run deploy           # Quick deploy to Cloudflare Pages
-bun run deploy:full      # Full deploy with linting and migrations
-bun run deploy:staging   # Deploy to staging environment
 ```
 
-### CI/CD Scripts
-
-```bash
-bun run ci:build         # CI build step (lint + pages:build)
-bun run ci:deploy        # CI deploy step (migrate + deploy)
-```
-
-### Utilities
-
-```bash
-bun run cf-typegen       # Generate TypeScript types for Cloudflare environment
-bun run setup            # Interactive project setup
-bun run studio:start     # Start Drizzle Studio in background
-bun run studio:stop      # Stop background Drizzle Studio
-bun run studio:restart   # Restart Drizzle Studio
-```
 
 ## Environment Configuration
 
@@ -212,69 +174,3 @@ src/
 
 Add admin emails to `SUPER_USER_EMAIL` in env (comma-separated for multiple admins). The accounts will be assigned super admin role upon log in the first time
 
-## Deployment
-
-### Production Deployment
-
-```bash
-# Full deployment with all checks
-bun run deploy:full
-
-# Quick deployment
-bun run deploy
-
-# Deploy to staging
-bun run deploy:staging
-```
-
-### Build Output
-
-The application builds to `.vercel/output/static` for Cloudflare Pages deployment using `@cloudflare/next-on-pages`.
-
-### CI/CD Pipeline Example
-
-```yaml
-- name: Setup Bun
-  uses: oven-sh/setup-bun@v1
-  with:
-    bun-version: latest
-
-- name: Install Dependencies
-  run: bun install
-
-- name: Build
-  run: bun run ci:build
-
-- name: Deploy
-  run: bun run ci:deploy
-  env:
-    CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-    CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-```
-
-## Database Schema
-
-The application includes comprehensive tables for:
-
-- **User Management**: Users, authentication, profiles
-- **Asset Management**: Asset types, user assets, relationships
-- **Service Management**: Companies, services, job matching
-- **Subscription System**: Plans, billing, usage tracking
-- **RBAC**: Roles, permissions, access control
-- **Content Management**: Dynamic content, plan-based access
-
-## Development Notes
-
-- All components use **TypeScript** with strict type checking
-- **Server Components** by default, `"use client"` only when needed
-- **Edge Runtime** for optimal Cloudflare compatibility
-- **Mobile-first responsive design** with Tailwind CSS
-- **Security-first approach** with input validation and sanitization
-
-## Performance Features
-
-- **Edge deployment** for global low-latency
-- **Image optimization** with proper fallbacks
-- **Lazy loading** for non-critical components
-- **Suspense boundaries** for progressive loading
-- **Optimized database queries** with proper indexing
