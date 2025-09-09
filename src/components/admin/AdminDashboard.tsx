@@ -450,7 +450,11 @@ export function AdminDashboard() {
 												<Badge variant="outline">No Role</Badge>
 											)}
 										</TableCell>
-										<TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+										<TableCell>
+											{user.createdAt && user.createdAt !== 'CURRENT_TIMESTAMP' 
+												? new Date(user.createdAt).toLocaleDateString() 
+												: 'N/A'}
+										</TableCell>
 										<TableCell className="text-right">
 											<Button
 												variant="ghost"
