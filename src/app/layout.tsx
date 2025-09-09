@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeScript } from "@/lib/theme/theme-script";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
 
 export const runtime = 'edge';
 
@@ -28,6 +29,17 @@ export default function RootLayout({
         <SessionProvider>
           <LanguageProvider>
             {children}
+            <Toaster 
+              richColors 
+              position="top-right"
+              toastOptions={{
+                style: {
+                  fontSize: '1.125rem',  // 18px instead of default 14px (roughly 50% bigger)
+                  padding: '1rem 1.25rem',  // Larger padding
+                  minHeight: '4rem',  // Minimum height for consistency
+                },
+              }}
+            />
           </LanguageProvider>
         </SessionProvider>
       </body>

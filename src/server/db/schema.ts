@@ -1,5 +1,5 @@
 import { integer, sqliteTable, text, primaryKey, index, uniqueIndex } from "drizzle-orm/sqlite-core"
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { drizzle } from "drizzle-orm/libsql"
 import type { AdapterAccountType } from "next-auth/adapters"
 import { db } from "."
@@ -75,8 +75,8 @@ export const users = sqliteTable('users', {
   country: text('country').notNull().default('US'),
   emailVerified: integer('email_verified').notNull().default(0),
   status: text('status', { enum: ['active', 'suspended', 'deleted'] }).notNull().default('active'),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   emailIdx: uniqueIndex('idx_users_email').on(table.email),
 }));
@@ -99,8 +99,8 @@ export const userRelationships = sqliteTable('user_relationships', {
   relationshipTypeId: integer('relationship_type_id').notNull().references(() => relationshipTypes.id),
   notes: text('notes'),
   isConfirmed: integer('is_confirmed').notNull().default(0),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   uniqueRelationship: uniqueIndex('unique_user_relationship').on(table.userId, table.relatedUserId, table.relationshipTypeId),
   userIdx: index('idx_user_relationships_user').on(table.userId),
@@ -133,8 +133,8 @@ export const assets = sqliteTable('assets', {
   identificationInfo: text('identification_info'),
   notes: text('notes'),
   status: text('status', { enum: ['active', 'sold', 'disposed', 'inactive'] }).notNull().default('active'),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   typeIdx: index('idx_assets_type').on(table.assetTypeId),
   statusIdx: index('idx_assets_status').on(table.status),
@@ -151,8 +151,8 @@ export const userAssets = sqliteTable('user_assets', {
   relationshipNotes: text('relationship_notes'),
   acquiredDate: text('acquired_date'),
   isPrimaryContact: integer('is_primary_contact').notNull().default(0),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   uniqueUserAsset: uniqueIndex('unique_user_asset').on(table.userId, table.assetId),
   userIdx: index('idx_user_assets_user').on(table.userId),
@@ -190,8 +190,8 @@ export const companies = sqliteTable('companies', {
   memo: text('memo'),
   createdByUserId: integer('created_by_user_id').references(() => users.id),
   status: text('status', { enum: ['active', 'suspended', 'pending_verification'] }).notNull().default('active'),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   nameIdx: index('idx_companies_name').on(table.name),
   publicStatusIdx: index('idx_companies_public_status').on(table.isPublic, table.status),
@@ -240,8 +240,8 @@ export const userCompanyJobs = sqliteTable('user_company_jobs', {
   jobCity: text('job_city'),
   jobState: text('job_state'),
   jobZip: text('job_zip'),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   userIdx: index('idx_user_company_jobs_user').on(table.userId),
   companyIdx: index('idx_user_company_jobs_company').on(table.companyId),
@@ -261,8 +261,8 @@ export const plans = sqliteTable('plans', {
   interval: text('interval', { enum: ['month', 'year'] }).notNull(),
   featuresJson: text('features_json'),
   isActive: integer('is_active').notNull().default(1),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   activeIdx: index('idx_plans_active').on(table.isActive),
 }));
@@ -282,8 +282,8 @@ export const subscriptions = sqliteTable('subscriptions', {
   currentPeriodEnd: text('current_period_end'),
   trialEnd: text('trial_end'),
   canceledAt: text('canceled_at'),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   userIdx: index('idx_subscriptions_user').on(table.userId),
   companyIdx: index('idx_subscriptions_company').on(table.companyId),
@@ -300,8 +300,8 @@ export const contentItems = sqliteTable('content_items', {
   title: text('title').notNull(),
   body: text('body'),
   isActive: integer('is_active').notNull().default(1),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 });
 
 export const planContentAccess = sqliteTable('plan_content_access', {
@@ -321,8 +321,8 @@ export const usageCounters = sqliteTable('usage_counters', {
   metric: text('metric').notNull(),
   period: text('period').notNull(),
   value: integer('value').notNull().default(0),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-  updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   uniqueUserMetricPeriod: uniqueIndex('unique_user_metric_period').on(table.userId, table.metric, table.period),
   userMetricIdx: index('idx_usage_user_metric').on(table.userId, table.metric),

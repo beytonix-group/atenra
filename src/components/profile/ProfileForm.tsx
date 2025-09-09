@@ -3,10 +3,14 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { sanitizeAvatarUrl } from "@/lib/utils/avatar";
+import { formatStatus } from "@/lib/utils/format";
+import { formatPhoneNumber, formatZipCode } from "@/lib/utils/input-format";
 import { User, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { RoleBadge } from "@/components/ui/role-badge";
 
 interface UserProfile {
 	firstName: string;
@@ -23,6 +27,7 @@ interface UserProfile {
 	status: string;
 	emailVerified: number;
 	createdAt: string;
+	roles?: { roleId: number; roleName: string }[];
 }
 
 export function ProfileForm() {
@@ -134,10 +139,12 @@ export function ProfileForm() {
 				)}
 				<div>
 					<h2 className="text-2xl font-semibold">{profile.displayName || session?.user?.name}</h2>
-					<p className="text-muted-foreground">{profile.email}</p>
 					<div className="flex items-center gap-2 mt-2">
+						{profile.roles && profile.roles.length > 0 && (
+							<RoleBadge role={profile.roles[0].roleName} />
+						)}
 						<span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-							{profile.status}
+							{formatStatus(profile.status)}
 						</span>
 						{profile.emailVerified ? (
 							<span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -153,7 +160,7 @@ export function ProfileForm() {
 			</div>
 			
 			{message && (
-				<div className={`mb-6 p-4 rounded-lg ${message.includes('successfully') ? 'bg-green-50 text-green-800 border border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800' : 'bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800'}`}>
+				<div className={`mb-6 p-6 rounded-lg text-lg ${message.includes('successfully') ? 'bg-green-50 text-green-800 border border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800' : 'bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800'}`}>
 					{message}
 				</div>
 			)}
@@ -165,8 +172,9 @@ export function ProfileForm() {
 						<Input
 							id="firstName"
 							value={profile.firstName || ""}
-							onChange={(e) => setProfile({...profile, firstName: e.target.value})}
+							onChange={(e) => setProfile({...profile, firstName: e.target.value.slice(0, 30)})}
 							placeholder="Enter first name"
+							maxLength={30}
 						/>
 					</div>
 					<div className="space-y-2">
@@ -174,8 +182,9 @@ export function ProfileForm() {
 						<Input
 							id="lastName"
 							value={profile.lastName || ""}
-							onChange={(e) => setProfile({...profile, lastName: e.target.value})}
+							onChange={(e) => setProfile({...profile, lastName: e.target.value.slice(0, 30)})}
 							placeholder="Enter last name"
+							maxLength={30}
 						/>
 					</div>
 				</div>
@@ -185,52 +194,61 @@ export function ProfileForm() {
 					<Input
 						id="displayName"
 						value={profile.displayName || ""}
-						onChange={(e) => setProfile({...profile, displayName: e.target.value})}
+						onChange={(e) => setProfile({...profile, displayName: e.target.value.slice(0, 65)})}
 						placeholder="Enter display name"
+						maxLength={65}
 					/>
 				</div>
 				
-				<div className="space-y-2">
-					<Label htmlFor="email">Email</Label>
-					<Input
-						id="email"
-						value={profile.email}
-						disabled
-						className="bg-muted"
-					/>
-				</div>
-				
-				<div className="space-y-2">
-					<Label htmlFor="phone">Phone</Label>
-					<Input
-						id="phone"
-						value={profile.phone || ""}
-						onChange={(e) => setProfile({...profile, phone: e.target.value})}
-						placeholder="Enter phone number"
-					/>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div className="space-y-2">
+						<Label htmlFor="email">Email</Label>
+						<Input
+							id="email"
+							value={profile.email}
+							disabled
+							className="bg-muted"
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="phone">Phone</Label>
+						<Input
+							id="phone"
+							value={profile.phone || ""}
+							onChange={(e) => {
+								const formatted = formatPhoneNumber(e.target.value);
+								setProfile({...profile, phone: formatted});
+							}}
+							placeholder="(555) 555-5555"
+							type="tel"
+						/>
+					</div>
 				</div>
 				
 				<div className="space-y-4">
 					<h3 className="text-lg font-semibold">Address</h3>
 					
-					<div className="space-y-2">
-						<Label htmlFor="addressLine1">Address Line 1</Label>
-						<Input
-							id="addressLine1"
-							value={profile.addressLine1 || ""}
-							onChange={(e) => setProfile({...profile, addressLine1: e.target.value})}
-							placeholder="Enter street address"
-						/>
-					</div>
-					
-					<div className="space-y-2">
-						<Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
-						<Input
-							id="addressLine2"
-							value={profile.addressLine2 || ""}
-							onChange={(e) => setProfile({...profile, addressLine2: e.target.value})}
-							placeholder="Apartment, suite, etc."
-						/>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<Label htmlFor="addressLine1">Address Line 1</Label>
+							<Input
+								id="addressLine1"
+								value={profile.addressLine1 || ""}
+								onChange={(e) => setProfile({...profile, addressLine1: e.target.value.slice(0, 50)})}
+								placeholder="Enter street address"
+								maxLength={50}
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
+							<Input
+								id="addressLine2"
+								value={profile.addressLine2 || ""}
+								onChange={(e) => setProfile({...profile, addressLine2: e.target.value.slice(0, 50)})}
+								placeholder="Apartment, suite, etc."
+								maxLength={50}
+							/>
+						</div>
 					</div>
 					
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -257,8 +275,13 @@ export function ProfileForm() {
 							<Input
 								id="zipCode"
 								value={profile.zipCode || ""}
-								onChange={(e) => setProfile({...profile, zipCode: e.target.value})}
-								placeholder="Enter ZIP code"
+								onChange={(e) => {
+									const formatted = formatZipCode(e.target.value);
+									setProfile({...profile, zipCode: formatted});
+								}}
+								placeholder="12345"
+								maxLength={5}
+								pattern="[0-9]{5}"
 							/>
 						</div>
 					</div>

@@ -41,9 +41,12 @@ INSERT INTO permissions (action, resource, description) VALUES
   ('manage', 'roles', 'Manage user roles and permissions'),
   ('manage', 'system', 'System configuration and maintenance');
 
--- Create super admin role
+-- Create roles (super_admin, manager, employee, user)
 INSERT INTO roles (name, description) VALUES
-  ('super_admin', 'Super administrator with full system access');
+  ('super_admin', 'Super administrator with full system access'),
+  ('manager', 'Manager level access - can manage employees and view reports'),
+  ('employee', 'Employee level access - can access work-related features'),
+  ('user', 'Regular user access - basic features only');
 
 -- Assign ALL permissions to super admin role
 INSERT INTO role_permissions (role_id, permission_id)
