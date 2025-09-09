@@ -18,7 +18,7 @@ export function Navigation() {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
 	const [isAdmin, setIsAdmin] = useState(false);
-	const { theme, toggleTheme } = useTheme();
+	const { theme, toggleTheme, mounted } = useTheme();
 	const { t } = useLanguage();
 	const { data: session, status } = useSession();
 
@@ -81,10 +81,14 @@ export function Navigation() {
 							className="p-2 rounded-lg hover:bg-muted transition-colors"
 							aria-label="Toggle theme"
 						>
-							{theme === "dark" ? (
-								<Sun className="h-5 w-5" />
+							{mounted ? (
+								theme === "dark" ? (
+									<Sun className="h-5 w-5" />
+								) : (
+									<Moon className="h-5 w-5" />
+								)
 							) : (
-								<Moon className="h-5 w-5" />
+								<div className="h-5 w-5" />
 							)}
 						</button>
 						
@@ -198,10 +202,14 @@ export function Navigation() {
 									className="p-2 rounded-lg hover:bg-muted transition-colors"
 									aria-label="Toggle theme"
 								>
-									{theme === "dark" ? (
-										<Sun className="h-4 w-4" />
+									{mounted ? (
+										theme === "dark" ? (
+											<Sun className="h-4 w-4" />
+										) : (
+											<Moon className="h-4 w-4" />
+										)
 									) : (
-										<Moon className="h-4 w-4" />
+										<div className="h-4 w-4" />
 									)}
 								</button>
 							</div>
