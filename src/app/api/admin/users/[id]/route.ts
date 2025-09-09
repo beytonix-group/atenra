@@ -70,24 +70,28 @@ export async function PATCH(
 			roles: newRoles,
 		} = validatedData;
 
+		const updateData: any = {
+			email,
+			firstName,
+			lastName,
+			displayName,
+			phone,
+			status,
+			emailVerified,
+			updatedAt: new Date().toISOString(),
+		};
+
+		// Only include optional fields if they are explicitly provided
+		if (addressLine1 !== undefined) updateData.addressLine1 = addressLine1;
+		if (addressLine2 !== undefined) updateData.addressLine2 = addressLine2;
+		if (city !== undefined) updateData.city = city;
+		if (state !== undefined) updateData.state = state;
+		if (zipCode !== undefined) updateData.zipCode = zipCode;
+		if (country !== undefined) updateData.country = country;
+
 		await db
 			.update(users)
-			.set({
-				email,
-				firstName,
-				lastName,
-				displayName,
-				phone,
-				addressLine1: addressLine1 !== undefined ? addressLine1 : undefined,
-				addressLine2: addressLine2 !== undefined ? addressLine2 : undefined,
-				city: city !== undefined ? city : undefined,
-				state: state !== undefined ? state : undefined,
-				zipCode: zipCode !== undefined ? zipCode : undefined,
-				country: country !== undefined ? country : undefined,
-				status,
-				emailVerified,
-				updatedAt: new Date().toISOString(),
-			})
+			.set(updateData)
 			.where(eq(users.id, userId));
 
 		if (newRoles && newRoles.length > 0) {

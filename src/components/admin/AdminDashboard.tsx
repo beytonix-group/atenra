@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { RoleBadge } from "@/components/ui/role-badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
 	Users, 
@@ -49,7 +50,6 @@ import { toast } from "sonner";
 import { 
 	formatRoleName, 
 	formatStatus, 
-	getRoleBadgeVariant, 
 	getStatusBadgeVariant 
 } from "@/lib/utils/format";
 import { formatPhoneNumber, formatZipCode } from "@/lib/utils/input-format";
@@ -391,7 +391,6 @@ export function AdminDashboard() {
 							<TableHeader>
 								<TableRow>
 									<TableHead>User</TableHead>
-									<TableHead>Contact</TableHead>
 									<TableHead>Location</TableHead>
 									<TableHead>Status</TableHead>
 									<TableHead>Roles</TableHead>
@@ -410,17 +409,14 @@ export function AdminDashboard() {
 												<div className="text-sm text-muted-foreground">
 													{user.email}
 												</div>
-												{user.emailVerified && (
-													<span className="text-xs text-green-600">✓ Verified</span>
-												)}
-											</div>
-										</TableCell>
-										<TableCell>
-											<div className="space-y-1">
-												<div className="text-sm">{user.email}</div>
-												{user.phone && (
-													<div className="text-sm text-muted-foreground">{user.phone}</div>
-												)}
+												<div className="flex items-center gap-2 mt-1">
+													{user.emailVerified && (
+														<span className="text-xs text-green-600">✓ Verified</span>
+													)}
+													{user.phone && (
+														<span className="text-xs text-muted-foreground">{user.phone}</span>
+													)}
+												</div>
 											</div>
 										</TableCell>
 										<TableCell>
@@ -443,9 +439,7 @@ export function AdminDashboard() {
 										</TableCell>
 										<TableCell>
 											{user.roles.length > 0 ? (
-												<Badge variant={getRoleBadgeVariant(user.roles[0].roleName)}>
-													{formatRoleName(user.roles[0].roleName)}
-												</Badge>
+												<RoleBadge role={user.roles[0].roleName} />
 											) : (
 												<Badge variant="outline">No Role</Badge>
 											)}

@@ -4,7 +4,7 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, User } from "lucide-react";
 
 export const runtime = "edge";
 
@@ -24,12 +24,10 @@ export default async function ProfilePage() {
 		<main className="min-h-screen bg-background">
 			<Navigation />
 			<div className="pt-16">
-				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-					<div className="text-center mb-12">
-						<h1 className="text-4xl font-bold mb-4">User Profile</h1>
-						<p className="text-muted-foreground">
-							Manage your account settings and preferences
-						</p>
+				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+					<div className="flex items-center gap-2 mb-6">
+						<User className="h-5 w-5 text-muted-foreground" />
+						<h1 className="text-xl font-medium">Profile Settings</h1>
 					</div>
 					
 					<Suspense fallback={
