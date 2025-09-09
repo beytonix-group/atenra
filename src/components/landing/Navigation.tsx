@@ -11,6 +11,7 @@ import { LanguageSelector } from "@/components/ui/LanguageSelector";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useSession, signOut } from "next-auth/react";
 import { sanitizeAvatarUrl } from "@/lib/utils/avatar";
+import { Logo } from "@/components/ui/logo";
 
 export function Navigation() {
 	const pathname = usePathname();
@@ -52,10 +53,8 @@ export function Navigation() {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex items-center justify-between h-16">
 					<div className="flex items-center">
-						<Link href="/" className="flex items-center space-x-2">
-							<span className="text-2xl font-bold text-foreground">
-								Atenra
-							</span>
+						<Link href="/" className="flex items-center">
+							<Logo size={40} className="h-10 w-10" />
 						</Link>
 					</div>
 

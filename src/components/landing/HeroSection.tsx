@@ -1,53 +1,26 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { Logo } from "@/components/ui/logo";
 
 export function HeroSection() {
-	const containerRef = useRef<HTMLDivElement>(null);
 	const { t } = useLanguage();
 
-	useEffect(() => {
-		const container = containerRef.current;
-		if (!container) return;
-
-		const handleMouseMove = (e: MouseEvent) => {
-			const rect = container.getBoundingClientRect();
-			const x = ((e.clientX - rect.left) / rect.width - 0.5) * 20;
-			const y = ((e.clientY - rect.top) / rect.height - 0.5) * 20;
-			
-			const logo = container.querySelector('.atenra-logo-container') as HTMLElement;
-			if (logo) {
-				logo.style.transform = `perspective(1000px) rotateY(${x}deg) rotateX(${-y}deg)`;
-			}
-		};
-
-		container.addEventListener('mousemove', handleMouseMove);
-		return () => container.removeEventListener('mousemove', handleMouseMove);
-	}, []);
-
 	return (
-		<div ref={containerRef} className="relative min-h-screen flex items-center justify-center py-20">
-			<div className="text-center space-y-8 max-w-5xl mx-auto">
-				<div className="atenra-logo-container relative inline-block transition-transform duration-300 ease-out">
-					<div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl rounded-full scale-150 animate-pulse" />
-					<div className="relative">
-						<div className="absolute inset-0 flex items-center justify-center">
-							<div className="w-48 h-48 rounded-full border border-primary/20 animate-spin-slow" />
-							<div className="absolute w-64 h-64 rounded-full border border-secondary/10 animate-spin-reverse" />
-							<div className="absolute w-80 h-80 rounded-full border border-muted/5 animate-spin-slower" />
-						</div>
-						<h1 className="relative text-7xl md:text-8xl lg:text-9xl font-extralight tracking-tight">
-							<span className="bg-gradient-to-br from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent">
-								{t.hero.title}
-							</span>
+		<div className="relative min-h-screen flex items-center justify-center py-20">
+			<div className="text-center space-y-8 max-w-5xl mx-auto px-4">
+				<div className="flex flex-col items-center justify-center space-y-8">
+					<Logo size={384} className="h-64 w-64 md:h-80 md:w-80 lg:h-96 lg:w-96" />
+					<div>
+						<h1 className="text-5xl md:text-6xl lg:text-7xl font-extralight tracking-tight">
+							{t.hero.title}
 						</h1>
+						<p className="text-xl md:text-2xl text-muted-foreground font-light mt-4">
+							{t.hero.subtitle}
+						</p>
 					</div>
-					<p className="text-xl md:text-2xl text-muted-foreground font-light mt-6 animate-fade-in">
-						{t.hero.subtitle}
-					</p>
 				</div>
 
 				<div className="space-y-6 animate-fade-in-up animation-delay-200">
