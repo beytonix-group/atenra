@@ -2,46 +2,101 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { users, userRoles, roles } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
 
-export async function getCurrentUser() {
+export async function checkSuperAdmin() {
 	const session = await auth();
-	if (!session?.user?.id) return null;
+	
+	if (!session?.user?.id) {
+		return { 
+			isAuthorized: false, 
+			error: "Not authenticated",
+			response: NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+		};
+	}
 
-	const user = await db
-		.select()
-		.from(users)
-		.where(eq(users.authUserId, session.user.id))
-		.get();
+	try {
+		// Get user from database
+		const user = await db
+			.select()
+			.from(users)
+			.where(eq(users.authUserId, session.user.id))
+			.get();
 
-	return user;
+		if (!user) {
+			return { 
+				isAuthorized: false, 
+				error: "User not found",
+				response: NextResponse.json({ error: "User not found" }, { status: 404 })
+			};
+		}
+
+		// Check if user has super_admin role
+		const userRole = await db
+			.select({
+				roleName: roles.name
+			})
+			.from(userRoles)
+			.innerJoin(roles, eq(userRoles.roleId, roles.id))
+			.where(eq(userRoles.userId, user.id))
+			.get();
+
+		if (userRole?.roleName !== 'super_admin') {
+			return { 
+				isAuthorized: false, 
+				error: "Insufficient permissions",
+				response: NextResponse.json({ error: "Forbidden - Super Admin access required" }, { status: 403 })
+			};
+		}
+
+		return { 
+			isAuthorized: true, 
+			user,
+			response: null 
+		};
+	} catch (error) {
+		console.error("Error checking super admin status:", error);
+		return { 
+			isAuthorized: false, 
+			error: "Internal server error",
+			response: NextResponse.json({ error: "Internal server error" }, { status: 500 })
+		};
+	}
 }
 
-export async function getUserRoles(userId: number) {
-	const userRoleRecords = await db
-		.select({
-			roleId: userRoles.roleId,
-			roleName: roles.name,
-			roleDescription: roles.description,
-		})
-		.from(userRoles)
-		.innerJoin(roles, eq(userRoles.roleId, roles.id))
-		.where(eq(userRoles.userId, userId))
-		.all();
+export async function getUserRole(authUserId: string): Promise<string | null> {
+	try {
+		const user = await db
+			.select()
+			.from(users)
+			.where(eq(users.authUserId, authUserId))
+			.get();
 
-	return userRoleRecords;
-}
+		if (!user) return null;
 
-export async function hasRole(userId: number, roleName: string): Promise<boolean> {
-	const userRoleRecords = await getUserRoles(userId);
-	return userRoleRecords.some(r => r.roleName === roleName);
+		const userRole = await db
+			.select({
+				roleName: roles.name
+			})
+			.from(userRoles)
+			.innerJoin(roles, eq(userRoles.roleId, roles.id))
+			.where(eq(userRoles.userId, user.id))
+			.get();
+
+		return userRole?.roleName || null;
+	} catch (error) {
+		console.error("Error getting user role:", error);
+		return null;
+	}
 }
 
 export async function isSuperAdmin(): Promise<boolean> {
-	const user = await getCurrentUser();
-	if (!user) return false;
-	return hasRole(user.id, "super_admin");
-}
+	const session = await auth();
+	
+	if (!session?.user?.id) {
+		return false;
+	}
 
-export async function getAllRoles() {
-	return await db.select().from(roles).all();
+	const role = await getUserRole(session.user.id);
+	return role === 'super_admin';
 }

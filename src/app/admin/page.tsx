@@ -17,7 +17,7 @@ export default async function AdminPage() {
 	const isAdmin = await isSuperAdmin();
 	
 	if (!isAdmin) {
-		redirect("/");
+		redirect("/403");
 	}
 
 	return (
