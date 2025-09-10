@@ -19,7 +19,7 @@ export default function ForbiddenPage() {
 					<h1 className="text-4xl font-bold text-foreground">403</h1>
 					<h2 className="text-2xl font-semibold text-foreground">Access Forbidden</h2>
 					<p className="text-muted-foreground">
-						You don't have permission to access this resource. This area is restricted to administrators only.
+						You don&apos;t have permission to access this resource. This area is restricted to administrators only.
 					</p>
 				</div>
 
