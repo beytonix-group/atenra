@@ -87,7 +87,7 @@ export async function PATCH(request: NextRequest) {
       .update(users)
       .set({
         ...validatedData,
-        updatedAt: new Date().toISOString(),
+        updatedAt: Math.floor(Date.now() / 1000),
       })
       .where(eq(users.authUserId, session.user.id))
       .returning()

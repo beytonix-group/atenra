@@ -53,6 +53,7 @@ import {
 	getStatusBadgeVariant 
 } from "@/lib/utils/format";
 import { formatPhoneNumber, formatZipCode } from "@/lib/utils/input-format";
+import { ActivityTable } from "./ActivityTable";
 
 interface User {
 	id: number;
@@ -467,13 +468,17 @@ export function AdminDashboard() {
 				</TabsContent>
 
 				<TabsContent value="activity" className="space-y-4">
-					<div className="bg-card rounded-lg border p-8">
-						<div className="text-center text-muted-foreground">
-							<Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-							<p className="text-lg font-medium">Activity tracking coming soon</p>
-							<p className="text-sm mt-2">This feature is currently under development</p>
-						</div>
-					</div>
+					<ActivityTable 
+						users={users.map(user => ({
+							id: user.id,
+							email: user.email,
+							displayName: user.displayName,
+							firstName: user.firstName,
+							lastName: user.lastName,
+							activityCount: 0, // Will be populated from API
+							lastActivity: null // Will be populated from API
+						}))}
+					/>
 				</TabsContent>
 			</Tabs>
 
