@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
 	Table, 
@@ -18,20 +18,30 @@ import {
 	DialogDescription 
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, Activity, Calendar, Globe, Smartphone, Monitor } from "lucide-react";
-import { formatDistanceToNow } from "@/lib/utils/date";
+import { Eye, Activity, Calendar, Globe, Smartphone, Monitor, Loader2, ChevronLeft, ChevronRight, FileText, User, Shield } from "lucide-react";
+import { formatDistanceToNow, formatDate } from "@/lib/utils/date";
+import { toast } from "sonner";
 
 interface UserActivity {
 	id: number;
-	userId: number | null;
-	authUserId: string | null;
-	activityType: string;
-	description: string | null;
-	metadata: string | null;
-	ipAddress: string | null;
-	userAgent: string | null;
-	createdAt: number;
+	action: string;
+	timestamp: number;
+	info: {
+		message?: string;
+		path?: string;
+		method?: string;
+		statusCode?: number;
+		clientTimestamp?: number;
+		fieldsUpdated?: string[];
+		userCount?: number;
+		targetUserId?: number;
+		targetUserEmail?: string;
+		activitiesCount?: number;
+		duration?: string;
+		error?: string;
+		query?: Record<string, string>;
+		userAgent?: string;
+	};
 }
 
 interface UserWithActivities {
@@ -40,77 +50,107 @@ interface UserWithActivities {
 	displayName: string | null;
 	firstName: string | null;
 	lastName: string | null;
-	activityCount: number;
-	lastActivity: number | null;
+	roles?: { roleId: number; roleName: string }[];
+	activityCount?: number;
+	lastActivity?: number | null;
 }
 
 interface ActivityTableProps {
 	users: UserWithActivities[];
+	searchTerm?: string;
 }
 
-export function ActivityTable({ users }: ActivityTableProps) {
+const ITEMS_PER_PAGE = 10;
+
+export function ActivityTable({ users, searchTerm = "" }: ActivityTableProps) {
 	const [selectedUser, setSelectedUser] = useState<UserWithActivities | null>(null);
 	const [activities, setActivities] = useState<UserActivity[]>([]);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const [currentPage, setCurrentPage] = useState(1);
+	const [totalCount, setTotalCount] = useState(0);
+	const [hasMore, setHasMore] = useState(false);
 
-	const handleViewActivities = async (user: UserWithActivities) => {
-		setSelectedUser(user);
-		setModalOpen(true);
+	const fetchActivities = async (userId: number, page: number) => {
 		setLoading(true);
+		const offset = (page - 1) * ITEMS_PER_PAGE;
 		
 		try {
-			const response = await fetch(`/api/admin/users/${user.id}/activities`);
-			if (!response.ok) throw new Error("Failed to fetch activities");
-			const data = await response.json() as UserActivity[];
-			setActivities(data);
+			const response = await fetch(
+				`/api/admin/users/${userId}/activities?limit=${ITEMS_PER_PAGE}&offset=${offset}`
+			);
+			if (!response.ok) {
+				throw new Error("Failed to fetch activities");
+			}
+			const data = await response.json() as { 
+				activities?: UserActivity[];
+				pagination?: {
+					total: number;
+					hasMore: boolean;
+				};
+			};
+			setActivities(data.activities || []);
+			setTotalCount(data.pagination?.total || 0);
+			setHasMore(data.pagination?.hasMore || false);
 		} catch (error) {
 			console.error("Error fetching activities:", error);
+			toast.error("Failed to load user activities");
 			setActivities([]);
+			setTotalCount(0);
+			setHasMore(false);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const getActivityIcon = (type: string) => {
-		switch (type) {
-			case 'page_view':
-				return <Eye className="h-4 w-4" />;
-			case 'login':
-			case 'logout':
-				return <Activity className="h-4 w-4" />;
-			default:
-				return <Activity className="h-4 w-4" />;
-		}
+	const handleViewActivities = async (user: UserWithActivities) => {
+		setSelectedUser(user);
+		setCurrentPage(1);
+		setModalOpen(true);
+		await fetchActivities(user.id, 1);
 	};
 
-	const getActivityColor = (type: string) => {
-		switch (type) {
-			case 'login':
-				return 'text-green-600';
-			case 'logout':
-				return 'text-orange-600';
-			case 'page_view':
-				return 'text-blue-600';
-			case 'error':
-				return 'text-red-600';
-			default:
-				return 'text-gray-600';
-		}
+	const handlePageChange = async (newPage: number) => {
+		if (!selectedUser || loading) return;
+		setCurrentPage(newPage);
+		await fetchActivities(selectedUser.id, newPage);
 	};
 
-	const getDeviceIcon = (userAgent: string | null) => {
-		if (!userAgent) return <Monitor className="h-4 w-4" />;
+	const getActivityIcon = (action: string) => {
+		if (action === 'page_visit') return <Eye className="h-3 w-3" />;
+		if (action.includes('api')) return <Globe className="h-3 w-3" />;
+		if (action.includes('profile')) return <User className="h-3 w-3" />;
+		if (action.includes('admin')) return <Shield className="h-3 w-3" />;
+		if (action.includes('document')) return <FileText className="h-3 w-3" />;
+		return <Activity className="h-3 w-3" />;
+	};
+
+	const getActivityColor = (action: string) => {
+		if (action.includes('error')) return 'text-red-600';
+		if (action.includes('admin')) return 'text-purple-600';
+		if (action.includes('update') || action.includes('create')) return 'text-green-600';
+		if (action.includes('delete')) return 'text-orange-600';
+		if (action === 'page_visit') return 'text-blue-600';
+		if (action === 'api_call') return 'text-cyan-600';
+		return 'text-gray-600';
+	};
+
+	const getDeviceIcon = (userAgent?: string) => {
+		if (!userAgent) return <Monitor className="h-3 w-3" />;
 		
 		const ua = userAgent.toLowerCase();
 		if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')) {
-			return <Smartphone className="h-4 w-4" />;
+			return <Smartphone className="h-3 w-3" />;
 		}
-		return <Monitor className="h-4 w-4" />;
+		return <Monitor className="h-3 w-3" />;
 	};
 
-	const formatActivityType = (type: string) => {
-		return type.split('_').map(word => 
+	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+	const startItem = totalCount === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+	const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalCount);
+
+	const formatActivityAction = (action: string) => {
+		return action.split('_').map(word => 
 			word.charAt(0).toUpperCase() + word.slice(1)
 		).join(' ');
 	};
@@ -122,50 +162,41 @@ export function ActivityTable({ users }: ActivityTableProps) {
 		}
 		return user.email.split('@')[0];
 	};
+	
+	// Filter users based on search term
+	const filteredUsers = users.filter(user => {
+		if (!searchTerm) return true;
+		const search = searchTerm.toLowerCase();
+		const displayName = getUserDisplayName(user).toLowerCase();
+		return displayName.includes(search) || user.email.toLowerCase().includes(search);
+	});
 
 	return (
 		<>
-			<div className="bg-card rounded-lg border">
-				<div className="p-4 border-b">
-					<h3 className="text-lg font-semibold">User Activity Tracking</h3>
-					<p className="text-sm text-muted-foreground mt-1">
-						Monitor user interactions and system usage
-					</p>
-				</div>
-				
-				<Table>
+			<Table>
 					<TableHeader>
 						<TableRow>
 							<TableHead>User</TableHead>
-							<TableHead>Total Activities</TableHead>
 							<TableHead>Last Activity</TableHead>
 							<TableHead className="text-right">Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{users.length === 0 ? (
+						{filteredUsers.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-									No user data available
+								<TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+									{searchTerm ? "No users found matching your search" : "No user data available"}
 								</TableCell>
 							</TableRow>
 						) : (
-							users.map((user) => (
+							filteredUsers.map((user) => (
 								<TableRow key={user.id}>
 									<TableCell>
 										<div>
 											<div className="font-medium">
 												{getUserDisplayName(user)}
 											</div>
-											<div className="text-sm text-muted-foreground">
-												{user.email}
-											</div>
 										</div>
-									</TableCell>
-									<TableCell>
-										<Badge variant={user.activityCount > 0 ? "default" : "secondary"}>
-											{user.activityCount} {user.activityCount === 1 ? 'activity' : 'activities'}
-										</Badge>
 									</TableCell>
 									<TableCell>
 										{user.lastActivity ? (
@@ -192,25 +223,21 @@ export function ActivityTable({ users }: ActivityTableProps) {
 						)}
 					</TableBody>
 				</Table>
-			</div>
 
 			{/* Activity Details Modal */}
 			<Dialog open={modalOpen} onOpenChange={setModalOpen}>
-				<DialogContent className="max-w-3xl max-h-[80vh]">
+				<DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
 					<DialogHeader>
 						<DialogTitle>
-							User Activities - {selectedUser ? getUserDisplayName(selectedUser) : ''}
+							<span>User Activities - {selectedUser ? getUserDisplayName(selectedUser) : ''}</span>
 						</DialogTitle>
-						<DialogDescription>
-							{selectedUser?.email}
-						</DialogDescription>
 					</DialogHeader>
 					
-					<ScrollArea className="h-[500px] w-full pr-4">
+					<div className="border rounded-md overflow-hidden">
 						{loading ? (
 							<div className="flex items-center justify-center py-8">
 								<div className="text-center">
-									<Activity className="h-8 w-8 animate-pulse mx-auto mb-2" />
+									<Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
 									<p className="text-sm text-muted-foreground">Loading activities...</p>
 								</div>
 							</div>
@@ -222,78 +249,120 @@ export function ActivityTable({ users }: ActivityTableProps) {
 								</div>
 							</div>
 						) : (
-							<div className="space-y-4">
-								{activities.map((activity) => {
-									const metadata = activity.metadata ? JSON.parse(activity.metadata) : null;
-									
-									return (
-										<div key={activity.id} className="border rounded-lg p-4 space-y-3">
-											<div className="flex items-start justify-between">
-												<div className="flex items-center gap-2">
-													<span className={getActivityColor(activity.activityType)}>
-														{getActivityIcon(activity.activityType)}
-													</span>
-													<div>
-														<p className="font-medium">
-															{formatActivityType(activity.activityType)}
-														</p>
-														{activity.description && (
-															<p className="text-sm text-muted-foreground">
-																{activity.description}
-															</p>
-														)}
-													</div>
-												</div>
-												<span className="text-xs text-muted-foreground">
-													{formatDistanceToNow(activity.createdAt)}
-												</span>
-											</div>
-											
-											{metadata && (
-												<div className="bg-muted/30 rounded p-2 text-xs space-y-1">
-													{metadata.page && (
-														<div className="flex gap-2">
-															<span className="text-muted-foreground">Page:</span>
-															<span className="font-mono">{metadata.page}</span>
-														</div>
-													)}
-													{metadata.referrer && (
-														<div className="flex gap-2">
-															<span className="text-muted-foreground">Referrer:</span>
-															<span className="font-mono truncate">{metadata.referrer}</span>
-														</div>
-													)}
-													{metadata.duration && (
-														<div className="flex gap-2">
-															<span className="text-muted-foreground">Duration:</span>
-															<span>{metadata.duration}ms</span>
-														</div>
-													)}
-												</div>
-											)}
-											
-											<div className="flex items-center gap-4 text-xs text-muted-foreground">
-												{activity.ipAddress && (
-													<div className="flex items-center gap-1">
-														<Globe className="h-3 w-3" />
-														<span>{activity.ipAddress}</span>
-													</div>
-												)}
-												{activity.userAgent && (
-													<div className="flex items-center gap-1">
-														{getDeviceIcon(activity.userAgent)}
-														<span className="truncate max-w-[200px]" title={activity.userAgent}>
-															{activity.userAgent.split(' ')[0]}
+							<Table className="table-fixed">
+								<TableHeader>
+									<TableRow className="h-10">
+										<TableHead className="w-[160px] py-2">Action</TableHead>
+										<TableHead className="py-2">Description</TableHead>
+										<TableHead className="w-[180px] py-2">Date</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{activities.map((activity) => {
+										// Build description from activity info
+										let description = activity.info?.message || '';
+										if (activity.info?.path) {
+											description = activity.info.path;
+										}
+										if (activity.info?.targetUserEmail) {
+											description = `User: ${activity.info.targetUserEmail}`;
+										}
+										if (activity.info?.fieldsUpdated && activity.info.fieldsUpdated.length > 0) {
+											description = `Updated: ${activity.info.fieldsUpdated.join(', ')}`;
+										}
+										if (activity.info?.error) {
+											description = `Error: ${activity.info.error}`;
+										}
+										
+										return (
+											<TableRow key={activity.id} className="h-10">
+												<TableCell className="py-2">
+													<div className="flex items-center gap-1.5">
+														<span className={getActivityColor(activity.action)}>
+															{getActivityIcon(activity.action)}
+														</span>
+														<span className="text-xs font-medium">
+															{formatActivityAction(activity.action)}
 														</span>
 													</div>
-												)}
-											</div>
-										</div>
-									);
-								})}
-							</div>
+												</TableCell>
+												<TableCell className="py-2">
+													<span className="text-xs text-muted-foreground truncate block" title={description}>
+														{description || '-'}
+													</span>
+												</TableCell>
+												<TableCell className="py-2">
+													<span className="text-xs text-muted-foreground">
+														{formatDate(activity.timestamp)}
+													</span>
+												</TableCell>
+											</TableRow>
+										);
+									})}
+								</TableBody>
+							</Table>
 						)}
-					</ScrollArea>
+					</div>
+					
+					{/* Pagination Controls */}
+					{totalCount > 0 && (
+						<div className="flex items-center justify-between border-t pt-4">
+							<div className="text-sm text-muted-foreground">
+								Showing {startItem}-{endItem} of {totalCount} activities
+							</div>
+							{totalCount > ITEMS_PER_PAGE && (
+								<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handlePageChange(currentPage - 1)}
+									disabled={currentPage === 1 || loading}
+								>
+									<ChevronLeft className="h-4 w-4" />
+									Previous
+								</Button>
+								
+								{/* Page number buttons */}
+								<div className="flex items-center gap-1">
+									{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+										let pageNum;
+										if (totalPages <= 5) {
+											pageNum = i + 1;
+										} else if (currentPage <= 3) {
+											pageNum = i + 1;
+										} else if (currentPage >= totalPages - 2) {
+											pageNum = totalPages - 4 + i;
+										} else {
+											pageNum = currentPage - 2 + i;
+										}
+										return (
+											<Button
+												key={pageNum}
+												variant={currentPage === pageNum ? "default" : "outline"}
+												size="sm"
+												className="w-10"
+												onClick={() => handlePageChange(pageNum)}
+												disabled={loading}
+											>
+												{pageNum}
+											</Button>
+										);
+									})}
+								</div>
+								
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handlePageChange(currentPage + 1)}
+									disabled={!hasMore || loading}
+								>
+									Next
+									<ChevronRight className="h-4 w-4" />
+								</Button>
+							</div>
+							)}
+						</div>
+					)}
 				</DialogContent>
 			</Dialog>
 		</>

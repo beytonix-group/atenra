@@ -117,8 +117,10 @@ export function AdminDashboard() {
 	const [editModalOpen, setEditModalOpen] = useState(false);
 	const [createModalOpen, setCreateModalOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
+	const [activitySearchTerm, setActivitySearchTerm] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [activeTab, setActiveTab] = useState("users");
+	const [usersWithActivity, setUsersWithActivity] = useState<any[]>([]);
 	
 	// New user form state
 	const [newUser, setNewUser] = useState<{
@@ -157,6 +159,12 @@ export function AdminDashboard() {
 		fetchUsers();
 		fetchRoles();
 	}, []);
+	
+	useEffect(() => {
+		if (users.length > 0) {
+			fetchUsersWithActivity();
+		}
+	}, [users]);
 
 
 	const fetchUsers = async () => {
@@ -196,6 +204,27 @@ export function AdminDashboard() {
 		} catch (error) {
 			toast.error("Failed to load roles");
 			console.error(error);
+		}
+	};
+	
+	const fetchUsersWithActivity = async () => {
+		try {
+			const response = await fetch("/api/admin/users/activity-summary");
+			if (!response.ok) throw new Error("Failed to fetch users with activity");
+			const data = await response.json() as any[];
+			setUsersWithActivity(data);
+		} catch (error) {
+			console.error("Failed to fetch users with activity:", error);
+			// Fallback to users without activity data
+			const fallbackData = users.map(user => ({
+				id: user.id,
+				email: user.email,
+				displayName: user.displayName,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				lastActivity: null
+			}));
+			setUsersWithActivity(fallbackData);
 		}
 	};
 
@@ -468,17 +497,31 @@ export function AdminDashboard() {
 				</TabsContent>
 
 				<TabsContent value="activity" className="space-y-4">
-					<ActivityTable 
-						users={users.map(user => ({
-							id: user.id,
-							email: user.email,
-							displayName: user.displayName,
-							firstName: user.firstName,
-							lastName: user.lastName,
-							activityCount: 0, // Will be populated from API
-							lastActivity: null // Will be populated from API
-						}))}
-					/>
+					<div className="bg-card rounded-lg border">
+						<div className="p-4 border-b">
+							<div className="relative">
+								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+								<Input
+									placeholder="Search users..."
+									value={activitySearchTerm}
+									onChange={(e) => setActivitySearchTerm(e.target.value)}
+									className="pl-9 max-w-sm"
+								/>
+							</div>
+						</div>
+						<ActivityTable 
+							users={usersWithActivity.length > 0 ? usersWithActivity : users.map(user => ({
+								id: user.id,
+								email: user.email,
+								displayName: user.displayName,
+								firstName: user.firstName,
+								lastName: user.lastName,
+								activityCount: 0,
+								lastActivity: null
+							}))}
+							searchTerm={activitySearchTerm}
+						/>
+					</div>
 				</TabsContent>
 			</Tabs>
 

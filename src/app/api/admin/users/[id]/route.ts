@@ -4,6 +4,8 @@ import { users, userRoles } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import { z } from "zod";
+import { trackActivity } from "@/lib/server-activity-tracker";
+import { auth } from "@/server/auth";
 
 export const runtime = "edge";
 
@@ -78,7 +80,7 @@ export async function PATCH(
 			phone,
 			status,
 			emailVerified,
-			updatedAt: new Date().toISOString(),
+			updatedAt: Math.floor(Date.now() / 1000),
 		};
 
 		// Only include optional fields if they are explicitly provided
@@ -94,6 +96,8 @@ export async function PATCH(
 			.set(updateData)
 			.where(eq(users.id, userId));
 
+		// Track role changes
+		let roleChanged = false;
 		if (newRoles && newRoles.length > 0) {
 			await db.delete(userRoles).where(eq(userRoles.userId, userId));
 			
@@ -101,6 +105,25 @@ export async function PATCH(
 			await db.insert(userRoles).values({
 				userId,
 				roleId: newRoleId,
+			});
+			roleChanged = true;
+		}
+
+		// Track admin updating a user
+		const session = await auth();
+		if (session?.user?.id) {
+			const fieldsUpdated = Object.keys(updateData).filter(k => k !== 'updatedAt');
+			await trackActivity({
+				authUserId: session.user.id,
+				action: "admin_update_user",
+				info: {
+					updatedUserId: userId,
+					updatedUserEmail: email,
+					fieldsUpdated,
+					roleChanged,
+					newRoleId: roleChanged && newRoles ? newRoles[0].roleId : undefined,
+				},
+				request,
 			});
 		}
 

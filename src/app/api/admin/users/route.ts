@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { trackActivity } from "@/lib/server-activity-tracker";
+import { auth } from "@/server/auth";
 
 export const runtime = "edge";
 
@@ -103,6 +105,18 @@ export async function GET() {
 		// Convert map to array
 		const formattedUsers = Array.from(userMap.values());
 
+		// Track admin viewing users list
+		const session = await auth();
+		if (session?.user?.id) {
+			await trackActivity({
+				authUserId: session.user.id,
+				action: "admin_view_users",
+				info: {
+					userCount: formattedUsers.length
+				}
+			});
+		}
+
 		return NextResponse.json(formattedUsers);
 	} catch (error) {
 		console.error("Error fetching users:", error);
@@ -197,6 +211,21 @@ export async function POST(request: NextRequest) {
 			await db.insert(userRoles).values({
 				userId: newUser.id,
 				roleId: roleId,
+			});
+		}
+
+		// Track admin creating a new user
+		const session = await auth();
+		if (session?.user?.id && newUser) {
+			await trackActivity({
+				authUserId: session.user.id,
+				action: "admin_create_user",
+				info: {
+					createdUserId: newUser.id,
+					createdUserEmail: newUser.email,
+					assignedRoleId: roleId,
+				},
+				request,
 			});
 		}
 

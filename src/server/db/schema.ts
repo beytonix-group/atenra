@@ -582,13 +582,17 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
 
 export const userActivities = sqliteTable('user_activities', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  action: text('action').notNull(),
-  info: text('info'),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  authUserId: text('auth_user_id'),
+  activityType: text('activity_type').notNull(),
+  description: text('description'),
+  metadata: text('metadata'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
   createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   userTimeIdx: index('idx_ua_user_time').on(table.userId, table.createdAt),
-  actionTimeIdx: index('idx_ua_action_time').on(table.action, table.createdAt),
+  activityTypeTimeIdx: index('idx_ua_activity_type_time').on(table.activityType, table.createdAt),
   createdAtIdx: index('idx_ua_created_at').on(table.createdAt),
 }));
 
