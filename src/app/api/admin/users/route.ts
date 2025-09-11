@@ -32,28 +32,78 @@ export async function GET() {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 		}
 
-		const allUsers = await db.select().from(users).all();
-		
-		const usersWithRoles = await Promise.all(
-			allUsers.map(async (user) => {
-				const userRoleRecords = await db
-					.select({
-						roleId: userRoles.roleId,
-						roleName: roles.name,
-					})
-					.from(userRoles)
-					.innerJoin(roles, eq(userRoles.roleId, roles.id))
-					.where(eq(userRoles.userId, user.id))
-					.all();
-
-				return {
-					...user,
-					roles: userRoleRecords,
-				};
+		// Fetch all users with their roles in a single query
+		const usersWithRoles = await db
+			.select({
+				id: users.id,
+				email: users.email,
+				passwordHash: users.passwordHash,
+				firstName: users.firstName,
+				lastName: users.lastName,
+				displayName: users.displayName,
+				phone: users.phone,
+				addressLine1: users.addressLine1,
+				addressLine2: users.addressLine2,
+				city: users.city,
+				state: users.state,
+				zipCode: users.zipCode,
+				country: users.country,
+				status: users.status,
+				emailVerified: users.emailVerified,
+				authUserId: users.authUserId,
+				createdAt: users.createdAt,
+				updatedAt: users.updatedAt,
+				roleId: userRoles.roleId,
+				roleName: roles.name,
 			})
-		);
+			.from(users)
+			.leftJoin(userRoles, eq(users.id, userRoles.userId))
+			.leftJoin(roles, eq(userRoles.roleId, roles.id))
+			.all();
 
-		return NextResponse.json(usersWithRoles);
+		// Group the results by user
+		const userMap = new Map<number, any>();
+		
+		for (const row of usersWithRoles) {
+			const userId = row.id;
+			
+			if (!userMap.has(userId)) {
+				userMap.set(userId, {
+					id: row.id,
+					email: row.email,
+					passwordHash: row.passwordHash,
+					firstName: row.firstName,
+					lastName: row.lastName,
+					displayName: row.displayName,
+					phone: row.phone,
+					addressLine1: row.addressLine1,
+					addressLine2: row.addressLine2,
+					city: row.city,
+					state: row.state,
+					zipCode: row.zipCode,
+					country: row.country,
+					status: row.status,
+					emailVerified: row.emailVerified,
+					authUserId: row.authUserId,
+					createdAt: row.createdAt,
+					updatedAt: row.updatedAt,
+					roles: []
+				});
+			}
+			
+			// Add role if exists
+			if (row.roleId && row.roleName) {
+				userMap.get(userId).roles.push({
+					roleId: row.roleId,
+					roleName: row.roleName
+				});
+			}
+		}
+
+		// Convert map to array
+		const formattedUsers = Array.from(userMap.values());
+
+		return NextResponse.json(formattedUsers);
 	} catch (error) {
 		console.error("Error fetching users:", error);
 		return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
