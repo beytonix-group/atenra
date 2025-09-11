@@ -14,16 +14,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Atenra",
   description: "Professional SaaS Platform",
-  icons: {
-    icon: [
-      {
-        url: '/logos/tiered_crest_black.svg',
-        type: 'image/svg+xml',
-      }
-    ],
-    shortcut: '/logos/tiered_crest_black.svg',
-    apple: '/logos/tiered_crest_black.svg',
-  },
 };
 
 export default function RootLayout({

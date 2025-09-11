@@ -577,6 +577,29 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
 }));
 
 // ----------------------------------------------------------
+// Activity Tracking
+// ----------------------------------------------------------
+
+export const userActivities = sqliteTable('user_activities', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  action: text('action').notNull(),
+  info: text('info'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => ({
+  userTimeIdx: index('idx_ua_user_time').on(table.userId, table.createdAt),
+  actionTimeIdx: index('idx_ua_action_time').on(table.action, table.createdAt),
+  createdAtIdx: index('idx_ua_created_at').on(table.createdAt),
+}));
+
+export const userActivitiesRelations = relations(userActivities, ({ one }) => ({
+  user: one(users, {
+    fields: [userActivities.userId],
+    references: [users.id],
+  }),
+}));
+
+// ----------------------------------------------------------
 // Type Exports for TypeScript Inference
 // ----------------------------------------------------------
 
