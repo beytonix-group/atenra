@@ -75,8 +75,8 @@ export const users = sqliteTable('users', {
   country: text('country').notNull().default('US'),
   emailVerified: integer('email_verified').notNull().default(0),
   status: text('status', { enum: ['active', 'suspended', 'deleted'] }).notNull().default('active'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   emailIdx: uniqueIndex('idx_users_email').on(table.email),
 }));
@@ -99,8 +99,8 @@ export const userRelationships = sqliteTable('user_relationships', {
   relationshipTypeId: integer('relationship_type_id').notNull().references(() => relationshipTypes.id),
   notes: text('notes'),
   isConfirmed: integer('is_confirmed').notNull().default(0),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   uniqueRelationship: uniqueIndex('unique_user_relationship').on(table.userId, table.relatedUserId, table.relationshipTypeId),
   userIdx: index('idx_user_relationships_user').on(table.userId),
@@ -119,7 +119,7 @@ export const assetTypes = sqliteTable('asset_types', {
   category: text('category'),
   description: text('description'),
   isActive: integer('is_active').notNull().default(1),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
 });
 
 export const assets = sqliteTable('assets', {
@@ -133,8 +133,8 @@ export const assets = sqliteTable('assets', {
   identificationInfo: text('identification_info'),
   notes: text('notes'),
   status: text('status', { enum: ['active', 'sold', 'disposed', 'inactive'] }).notNull().default('active'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   typeIdx: index('idx_assets_type').on(table.assetTypeId),
   statusIdx: index('idx_assets_status').on(table.status),
@@ -151,8 +151,8 @@ export const userAssets = sqliteTable('user_assets', {
   relationshipNotes: text('relationship_notes'),
   acquiredDate: text('acquired_date'),
   isPrimaryContact: integer('is_primary_contact').notNull().default(0),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   uniqueUserAsset: uniqueIndex('unique_user_asset').on(table.userId, table.assetId),
   userIdx: index('idx_user_assets_user').on(table.userId),
@@ -190,8 +190,8 @@ export const companies = sqliteTable('companies', {
   memo: text('memo'),
   createdByUserId: integer('created_by_user_id').references(() => users.id),
   status: text('status', { enum: ['active', 'suspended', 'pending_verification'] }).notNull().default('active'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   nameIdx: index('idx_companies_name').on(table.name),
   publicStatusIdx: index('idx_companies_public_status').on(table.isPublic, table.status),
@@ -232,16 +232,16 @@ export const userCompanyJobs = sqliteTable('user_company_jobs', {
   categoryId: integer('category_id').notNull().references(() => serviceCategories.id),
   description: text('description').notNull(),
   status: text('status', { enum: ['active', 'completed', 'cancelled'] }).notNull().default('active'),
-  startDate: text('start_date'),
-  endDate: text('end_date'),
+  startDate: integer('start_date'),
+  endDate: integer('end_date'),
   notes: text('notes'),
   budgetCents: integer('budget_cents'),
   jobAddressLine1: text('job_address_line1'),
   jobCity: text('job_city'),
   jobState: text('job_state'),
   jobZip: text('job_zip'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   userIdx: index('idx_user_company_jobs_user').on(table.userId),
   companyIdx: index('idx_user_company_jobs_company').on(table.companyId),
@@ -261,8 +261,8 @@ export const plans = sqliteTable('plans', {
   interval: text('interval', { enum: ['month', 'year'] }).notNull(),
   featuresJson: text('features_json'),
   isActive: integer('is_active').notNull().default(1),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   activeIdx: index('idx_plans_active').on(table.isActive),
 }));
@@ -278,12 +278,12 @@ export const subscriptions = sqliteTable('subscriptions', {
   status: text('status', {
     enum: ['active', 'past_due', 'canceled', 'incomplete', 'trialing']
   }).notNull(),
-  currentPeriodStart: text('current_period_start'),
-  currentPeriodEnd: text('current_period_end'),
-  trialEnd: text('trial_end'),
-  canceledAt: text('canceled_at'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  currentPeriodStart: integer('current_period_start'),
+  currentPeriodEnd: integer('current_period_end'),
+  trialEnd: integer('trial_end'),
+  canceledAt: integer('canceled_at'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   userIdx: index('idx_subscriptions_user').on(table.userId),
   companyIdx: index('idx_subscriptions_company').on(table.companyId),
@@ -300,8 +300,8 @@ export const contentItems = sqliteTable('content_items', {
   title: text('title').notNull(),
   body: text('body'),
   isActive: integer('is_active').notNull().default(1),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 });
 
 export const planContentAccess = sqliteTable('plan_content_access', {
@@ -321,8 +321,8 @@ export const usageCounters = sqliteTable('usage_counters', {
   metric: text('metric').notNull(),
   period: text('period').notNull(),
   value: integer('value').notNull().default(0),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   uniqueUserMetricPeriod: uniqueIndex('unique_user_metric_period').on(table.userId, table.metric, table.period),
   userMetricIdx: index('idx_usage_user_metric').on(table.userId, table.metric),
@@ -337,7 +337,7 @@ export const roles = sqliteTable('roles', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull().unique(),
   description: text('description'),
-  createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
 });
 
 export const permissions = sqliteTable('permissions', {
@@ -573,6 +573,33 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
   permission: one(permissions, {
     fields: [rolePermissions.permissionId],
     references: [permissions.id],
+  }),
+}));
+
+// ----------------------------------------------------------
+// Activity Tracking
+// ----------------------------------------------------------
+
+export const userActivities = sqliteTable('user_activities', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  authUserId: text('auth_user_id'),
+  activityType: text('activity_type').notNull(),
+  description: text('description'),
+  metadata: text('metadata'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  userTimeIdx: index('idx_ua_user_time').on(table.userId, table.createdAt),
+  activityTypeTimeIdx: index('idx_ua_activity_type_time').on(table.activityType, table.createdAt),
+  createdAtIdx: index('idx_ua_created_at').on(table.createdAt),
+}));
+
+export const userActivitiesRelations = relations(userActivities, ({ one }) => ({
+  user: one(users, {
+    fields: [userActivities.userId],
+    references: [users.id],
   }),
 }));
 

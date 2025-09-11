@@ -4,6 +4,7 @@ import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { trackActivity } from "@/lib/server-activity-tracker";
 
 export const runtime = "edge";
 
@@ -64,6 +65,19 @@ export async function POST(request: NextRequest) {
 
 		// TODO: Send verification email
 		// await sendVerificationEmail(email, verificationToken);
+
+		// Track user registration
+		if (newUser) {
+			await trackActivity({
+				userId: newUser.id,
+				action: "user_register",
+				info: {
+					email: newUser.email,
+					registrationMethod: "email",
+				},
+				request,
+			});
+		}
 
 		return NextResponse.json({
 			success: true,

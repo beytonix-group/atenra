@@ -4,6 +4,7 @@ import { db } from "@/server/db";
 import { users, userRoles, roles } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { trackActivity } from "@/lib/server-activity-tracker";
 
 export const runtime = "edge";
 
@@ -50,6 +51,7 @@ export async function GET() {
       .all();
 
     return NextResponse.json({
+      id: user.id, // Include database user ID for tracking
       firstName: user.firstName,
       lastName: user.lastName,
       displayName: user.displayName,
@@ -87,7 +89,7 @@ export async function PATCH(request: NextRequest) {
       .update(users)
       .set({
         ...validatedData,
-        updatedAt: new Date().toISOString(),
+        updatedAt: Math.floor(Date.now() / 1000),
       })
       .where(eq(users.authUserId, session.user.id))
       .returning()
@@ -96,6 +98,17 @@ export async function PATCH(request: NextRequest) {
     if (!updatedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    // Track the profile update activity
+    await trackActivity({
+      userId: updatedUser.id,
+      authUserId: session.user.id,
+      action: "profile_update",
+      info: {
+        fieldsUpdated: Object.keys(validatedData),
+      },
+      request,
+    });
 
     return NextResponse.json({
       message: "Profile updated successfully",

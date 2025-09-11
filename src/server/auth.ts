@@ -12,23 +12,23 @@ function getEnvVar(name: string): string {
 	// In Cloudflare Pages, env vars are available via process.env
 	// In local dev, they come from .env.local or .dev.vars
 	const value = process.env[name] || "";
-	
+
 	// Debug logging for production
 	if (name === "AUTH_SECRET" && !value) {
 		console.error(`Missing required environment variable: ${name}`);
 	}
-	
+
 	return value;
 }
 
 // Get the URL for NextAuth
 const url = process.env.NEXTAUTH_URL || "https://atenra.com";
 
-export const { 
-	auth, 
-	handlers, 
-	signIn, 
-	signOut 
+export const {
+	auth,
+	handlers,
+	signIn,
+	signOut
 } = NextAuth({
 	secret: getEnvVar("AUTH_SECRET"),
 	trustHost: true,
@@ -112,17 +112,42 @@ export const {
 		async signIn({ user, account, profile }) {
 			try {
 				if (user.id && user.email) {
-					const existingUser = await db
+					// First check if user exists by auth_user_id
+					let existingUser = await db
 						.select()
 						.from(users)
 						.where(eq(users.authUserId, user.id))
 						.get();
 
+					// If not found by auth_user_id, check by email (for migrated users)
+					if (!existingUser) {
+						existingUser = await db
+							.select()
+							.from(users)
+							.where(eq(users.email, user.email))
+							.get();
+						
+						// If found by email, update the auth_user_id
+						if (existingUser) {
+							await db
+								.update(users)
+								.set({ 
+									authUserId: user.id,
+									updatedAt: Math.floor(Date.now() / 1000) // Unix timestamp
+								})
+								.where(eq(users.email, user.email));
+							return; // User exists and was updated, no need to create
+						}
+					} else {
+						return; // User already exists with correct auth_user_id
+					}
+
+					// Only create new user if not found by either auth_user_id or email
 					if (!existingUser) {
 						const nameParts = user.name?.split(' ') || [];
 						const firstName = nameParts[0] || '';
 						const lastName = nameParts.slice(1).join(' ') || '';
-						
+
 						const newUser = await db.insert(users).values({
 							authUserId: user.id,
 							email: user.email,
@@ -137,14 +162,14 @@ export const {
 						// Check if user should be assigned super admin role
 						const superUserEmails = process.env.SUPER_USER_EMAIL?.split(',').map(email => email.trim()) || [];
 						const isSuperUser = user.email && superUserEmails.includes(user.email);
-						
+
 						if (isSuperUser && newUser) {
 							const superAdminRole = await db
 								.select()
 								.from(roles)
 								.where(eq(roles.name, 'super_admin'))
 								.get();
-								
+
 							if (superAdminRole) {
 								await db.insert(userRoles).values({
 									userId: newUser.id,

@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeScript } from "@/lib/theme/theme-script";
-import { LanguageProvider } from "@/lib/i18n/LanguageContext";
-import { SessionProvider } from "next-auth/react";
+import { Providers } from "@/components/providers";
 import { Toaster } from "sonner";
 import { DynamicFavicon } from "@/components/ui/dynamic-favicon";
 
@@ -14,16 +13,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Atenra",
   description: "Professional SaaS Platform",
-  icons: {
-    icon: [
-      {
-        url: '/logos/tiered_crest_black.svg',
-        type: 'image/svg+xml',
-      }
-    ],
-    shortcut: '/logos/tiered_crest_black.svg',
-    apple: '/logos/tiered_crest_black.svg',
-  },
 };
 
 export default function RootLayout({
@@ -37,23 +26,21 @@ export default function RootLayout({
         <ThemeScript/>
       </head>
       <body className={inter.className}>
-        <SessionProvider>
-          <LanguageProvider>
-            <DynamicFavicon />
-            {children}
-            <Toaster 
-              richColors 
-              position="top-right"
-              toastOptions={{
-                style: {
-                  fontSize: '1.125rem',  // 18px instead of default 14px (roughly 50% bigger)
-                  padding: '1rem 1.25rem',  // Larger padding
-                  minHeight: '4rem',  // Minimum height for consistency
-                },
-              }}
-            />
-          </LanguageProvider>
-        </SessionProvider>
+        <Providers>
+          <DynamicFavicon />
+          {children}
+          <Toaster 
+            richColors 
+            position="top-right"
+            toastOptions={{
+              style: {
+                fontSize: '1.125rem',  // 18px instead of default 14px (roughly 50% bigger)
+                padding: '1rem 1.25rem',  // Larger padding
+                minHeight: '4rem',  // Minimum height for consistency
+              },
+            }}
+          />
+        </Providers>
       </body>
     </html>
   );
