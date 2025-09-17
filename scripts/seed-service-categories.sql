@@ -1,278 +1,564 @@
 ----------------------------------------------------------------
--- Service Categories Hierarchical Seed Data
+-- Service Categories Seed Script
+-- Clean version that focuses only on service_categories table
+-- Creates a complete hierarchical structure for marketplace
 ----------------------------------------------------------------
--- NOTE: This script uses INSERT OR IGNORE which relies on auto-generated IDs
--- If you need predictable IDs for foreign keys, consider using explicit IDs
--- and running update-sequences.sql afterwards to fix autoincrement counters
 
--- ROOTS
-INSERT OR IGNORE INTO service_categories (name, description, parent_id)
-VALUES
-('Normal User Services', 'Top-level: personal-facing services', NULL),
-('Business User Services', 'Top-level: business-facing services', NULL);
+-- Clear existing data (optional - comment out if you want to append)
+DELETE FROM service_categories;
 
 ----------------------------------------------------------------
--- Normal User Services
+-- ROOT CATEGORIES (Level 0)
 ----------------------------------------------------------------
--- Level 1
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Finance Personal', 'Personal finance categories', (SELECT id FROM service_categories WHERE name='Normal User Services' AND parent_id IS NULL)),
-('Healthcare Wellness', 'Healthcare and wellness services', (SELECT id FROM service_categories WHERE name='Normal User Services' AND parent_id IS NULL)),
-('Housing Home Services', 'Home improvement and housing-related services', (SELECT id FROM service_categories WHERE name='Normal User Services' AND parent_id IS NULL)),
-('Legal Community', 'Legal and community services', (SELECT id FROM service_categories WHERE name='Normal User Services' AND parent_id IS NULL)),
-('Education Childcare', 'Education and childcare services', (SELECT id FROM service_categories WHERE name='Normal User Services' AND parent_id IS NULL)),
-('Travel Leisure', 'Travel and leisure services', (SELECT id FROM service_categories WHERE name='Normal User Services' AND parent_id IS NULL));
-
--- Finance Personal children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Retail Banking', 'Checking, savings, and personal lending services', (SELECT id FROM service_categories WHERE name='Finance Personal')),
-('Credit Unions', 'Member-owned financial cooperative services', (SELECT id FROM service_categories WHERE name='Finance Personal')),
-('Personal Accounting', 'Personal accounting categories', (SELECT id FROM service_categories WHERE name='Finance Personal')),
-('Insurance Personal', 'Personal insurance categories', (SELECT id FROM service_categories WHERE name='Finance Personal'));
-
--- Personal Accounting grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('General Bookkeeping', 'Daily bookkeeping and record-keeping services', (SELECT id FROM service_categories WHERE name='Personal Accounting')),
-('Tax Preparation', 'Filing and advisory services for personal taxes', (SELECT id FROM service_categories WHERE name='Personal Accounting')),
-('Financial Planning', 'Personal financial planning and investment guidance', (SELECT id FROM service_categories WHERE name='Personal Accounting'));
-
--- Insurance Personal grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Health', 'Health insurance coverage and benefits', (SELECT id FROM service_categories WHERE name='Insurance Personal')),
-('Auto', 'Automobile insurance policies and claims services', (SELECT id FROM service_categories WHERE name='Insurance Personal')),
-('Homeowners Renters', 'Homeowners and renters insurance solutions', (SELECT id FROM service_categories WHERE name='Insurance Personal')),
-('Life Disability', 'Life and disability insurance products', (SELECT id FROM service_categories WHERE name='Insurance Personal'));
-
--- Healthcare Wellness children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Medical', 'Medical provider categories', (SELECT id FROM service_categories WHERE name='Healthcare Wellness')),
-('Dental', 'Dental provider categories', (SELECT id FROM service_categories WHERE name='Healthcare Wellness')),
-('Mental Health', 'Mental health services', (SELECT id FROM service_categories WHERE name='Healthcare Wellness')),
-('Allied Health', 'Allied health services', (SELECT id FROM service_categories WHERE name='Healthcare Wellness')),
-('Wellness Personal', 'Wellness, fitness, and beauty services', (SELECT id FROM service_categories WHERE name='Healthcare Wellness'));
-
--- Medical grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Hospitals', 'Comprehensive inpatient and outpatient medical services', (SELECT id FROM service_categories WHERE name='Medical')),
-('Urgent Care', 'Immediate medical care for non-life-threatening conditions', (SELECT id FROM service_categories WHERE name='Medical')),
-('Specialty Clinics', 'Specialized medical services and treatments', (SELECT id FROM service_categories WHERE name='Medical'));
-
--- Dental grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('General', 'Routine dental check-ups and cleanings', (SELECT id FROM service_categories WHERE name='Dental')),
-('Orthodontics', 'Braces, aligners, and orthodontic treatments', (SELECT id FROM service_categories WHERE name='Dental')),
-('Oral Surgery', 'Dental surgical procedures and extractions', (SELECT id FROM service_categories WHERE name='Dental'));
-
--- Mental Health grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Therapy', 'Counseling and psychotherapy services', (SELECT id FROM service_categories WHERE name='Mental Health')),
-('Psychiatry', 'Mental health evaluations and psychiatric care', (SELECT id FROM service_categories WHERE name='Mental Health')),
-('Addiction Treatment', 'Programs for substance abuse recovery', (SELECT id FROM service_categories WHERE name='Mental Health'));
-
--- Allied Health grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Physical Therapy', 'Rehabilitation for injuries and mobility improvement', (SELECT id FROM service_categories WHERE name='Allied Health')),
-('Occupational Therapy', 'Support for daily living and occupational skills', (SELECT id FROM service_categories WHERE name='Allied Health')),
-('Speech Therapy', 'Speech, language, and communication therapy', (SELECT id FROM service_categories WHERE name='Allied Health'));
-
--- Wellness Personal grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Nutritionists', 'Personal nutrition and diet planning', (SELECT id FROM service_categories WHERE name='Wellness Personal')),
-('Personal Training', 'Fitness coaching and personal exercise programs', (SELECT id FROM service_categories WHERE name='Wellness Personal')),
-('Massage Therapy', 'Therapeutic massage and wellness treatments', (SELECT id FROM service_categories WHERE name='Wellness Personal')),
-('Salons Spas', 'Hair, beauty, and spa services', (SELECT id FROM service_categories WHERE name='Wellness Personal'));
-
--- Housing Home Services children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Plumbing', 'Plumbing categories', (SELECT id FROM service_categories WHERE name='Housing Home Services')),
-('Electrical', 'Electrical categories', (SELECT id FROM service_categories WHERE name='Housing Home Services')),
-('HVAC', 'Heating, ventilation, and air conditioning', (SELECT id FROM service_categories WHERE name='Housing Home Services')),
-('Carpentry', 'Carpentry categories', (SELECT id FROM service_categories WHERE name='Housing Home Services')),
-('Masonry', 'Masonry categories', (SELECT id FROM service_categories WHERE name='Housing Home Services')),
-('Roofing', 'Roofing categories', (SELECT id FROM service_categories WHERE name='Housing Home Services')),
-('Landscaping', 'Landscaping categories', (SELECT id FROM service_categories WHERE name='Housing Home Services'));
-
--- Plumbing grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Drain Cleaning', 'Cleaning and maintenance of plumbing drains', (SELECT id FROM service_categories WHERE name='Plumbing' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Pipe Fitting', 'Installation and repair of plumbing pipes', (SELECT id FROM service_categories WHERE name='Plumbing' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Gas Fitting', 'Gas line installation and maintenance', (SELECT id FROM service_categories WHERE name='Plumbing' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Septic Services', 'Septic system installation and repair', (SELECT id FROM service_categories WHERE name='Plumbing' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services')));
-
--- Electrical grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Residential Wiring', 'Electrical wiring and repair for homes', (SELECT id FROM service_categories WHERE name='Electrical' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Generator Installation', 'Backup generator installation and maintenance', (SELECT id FROM service_categories WHERE name='Electrical' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Lighting Repairs', 'Indoor and outdoor lighting repair services', (SELECT id FROM service_categories WHERE name='Electrical' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services')));
-
--- HVAC grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Heating Furnace', 'Installation and maintenance of heating systems', (SELECT id FROM service_categories WHERE name='HVAC' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Air Conditioning', 'AC installation, repair, and maintenance', (SELECT id FROM service_categories WHERE name='HVAC' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Refrigeration', 'Commercial and residential refrigeration services', (SELECT id FROM service_categories WHERE name='HVAC' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services')));
-
--- Carpentry grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Framing', 'Structural framing and carpentry work', (SELECT id FROM service_categories WHERE name='Carpentry' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Cabinetry', 'Custom cabinets and wood storage solutions', (SELECT id FROM service_categories WHERE name='Carpentry' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Finish Work', 'Interior finish carpentry work', (SELECT id FROM service_categories WHERE name='Carpentry' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services')));
-
--- Masonry grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Brick', 'Brick masonry construction and repair', (SELECT id FROM service_categories WHERE name='Masonry' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Stone', 'Stone masonry and hardscape services', (SELECT id FROM service_categories WHERE name='Masonry' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Concrete', 'Concrete installation, repair, and finishing', (SELECT id FROM service_categories WHERE name='Masonry' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services')));
-
--- Roofing grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Shingle', 'Shingle roof installation and repair services', (SELECT id FROM service_categories WHERE name='Roofing' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Metal', 'Metal roofing services and installation', (SELECT id FROM service_categories WHERE name='Roofing' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services'))),
-('Flat', 'Flat roof construction and maintenance', (SELECT id FROM service_categories WHERE name='Roofing' AND parent_id=(SELECT id FROM service_categories WHERE name='Housing Home Services')));
-
--- Landscaping grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Tree Care', 'Tree trimming, pruning, and health services', (SELECT id FROM service_categories WHERE name='Landscaping')),
-('Irrigation', 'Sprinkler and irrigation system installation', (SELECT id FROM service_categories WHERE name='Landscaping')),
-('Lawn Turf', 'Lawn and turf installation and maintenance', (SELECT id FROM service_categories WHERE name='Landscaping')),
-('Stump Removal', 'Tree stump removal and grinding services', (SELECT id FROM service_categories WHERE name='Landscaping'));
-
--- Legal Community children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Family Law', 'Legal services for family law matters', (SELECT id FROM service_categories WHERE name='Legal Community')),
-('Immigration', 'Immigration legal services and visa assistance', (SELECT id FROM service_categories WHERE name='Legal Community')),
-('Estate Planning', 'Wills, trusts, and estate management', (SELECT id FROM service_categories WHERE name='Legal Community')),
-('Consumer Rights', 'Protection of consumer rights and disputes', (SELECT id FROM service_categories WHERE name='Legal Community'));
-
--- Education Childcare children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Schools', 'Primary, secondary, and high schools', (SELECT id FROM service_categories WHERE name='Education Childcare')),
-('Tutoring', 'Academic tutoring and test preparation', (SELECT id FROM service_categories WHERE name='Education Childcare')),
-('Childcare Daycare', 'Childcare, daycare, and early learning services', (SELECT id FROM service_categories WHERE name='Education Childcare')),
-('Vocational Training', 'Career and technical training programs', (SELECT id FROM service_categories WHERE name='Education Childcare'));
-
--- Travel Leisure children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Restaurants Cafes', 'Food and beverage services including dining', (SELECT id FROM service_categories WHERE name='Travel Leisure')),
-('Hotels Airbnb', 'Short-term lodging and hospitality services', (SELECT id FROM service_categories WHERE name='Travel Leisure')),
-('Airlines Tourism', 'Air travel and tourism services', (SELECT id FROM service_categories WHERE name='Travel Leisure')),
-('Fitness Gyms', 'Physical fitness centers and gym services', (SELECT id FROM service_categories WHERE name='Travel Leisure')),
-('Entertainment', 'Movies, amusement parks, theaters, and live shows', (SELECT id FROM service_categories WHERE name='Travel Leisure'));
+INSERT INTO service_categories (name, description, parent_id, sort_order) VALUES
+('Normal User Services', 'Services for individual consumers', NULL, 1),
+('Business User Services', 'Services for business clients', NULL, 2);
 
 ----------------------------------------------------------------
--- Business User Services
+-- NORMAL USER SERVICES - Level 1 Categories
 ----------------------------------------------------------------
--- Level 1
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Corporate Finance', 'Corporate finance categories', (SELECT id FROM service_categories WHERE name='Business User Services' AND parent_id IS NULL)),
-('Business Insurance', 'Business insurance categories', (SELECT id FROM service_categories WHERE name='Business User Services' AND parent_id IS NULL)),
-('Professional Legal', 'Corporate legal services', (SELECT id FROM service_categories WHERE name='Business User Services' AND parent_id IS NULL)),
-('Consulting Advisory', 'Consulting and advisory services', (SELECT id FROM service_categories WHERE name='Business User Services' AND parent_id IS NULL)),
-('Technology IT', 'IT and software services', (SELECT id FROM service_categories WHERE name='Business User Services' AND parent_id IS NULL)),
-('RealEstate Construction', 'Real estate & construction', (SELECT id FROM service_categories WHERE name='Business User Services' AND parent_id IS NULL)),
-('Marketing Communications', 'Marketing and communications', (SELECT id FROM service_categories WHERE name='Business User Services' AND parent_id IS NULL)),
-('Business Support', 'Business support services', (SELECT id FROM service_categories WHERE name='Business User Services' AND parent_id IS NULL)),
-('Industrial Research', 'Industrial R&D services', (SELECT id FROM service_categories WHERE name='Business User Services' AND parent_id IS NULL));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Finance Personal', 'Personal finance and insurance services', id, 1 
+FROM service_categories WHERE name = 'Normal User Services' AND parent_id IS NULL;
 
--- Corporate Finance children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Commercial Banking', 'Business checking, loans, and credit services', (SELECT id FROM service_categories WHERE name='Corporate Finance')),
-('Business Accounting', 'Business accounting categories', (SELECT id FROM service_categories WHERE name='Corporate Finance')),
-('Investment Banking', 'Advisory and capital raising services for businesses', (SELECT id FROM service_categories WHERE name='Corporate Finance')),
-('Corporate Tax', 'Corporate tax planning and filing services', (SELECT id FROM service_categories WHERE name='Corporate Finance'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Healthcare Wellness', 'Healthcare and wellness services', id, 2 
+FROM service_categories WHERE name = 'Normal User Services' AND parent_id IS NULL;
 
--- Business Accounting grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('General Bookkeeping', 'Business bookkeeping and accounting services', (SELECT id FROM service_categories WHERE name='Business Accounting')),
-('Payroll', 'Payroll processing and employee payment services', (SELECT id FROM service_categories WHERE name='Business Accounting')),
-('Forensic Audits', 'Investigative accounting and audit services', (SELECT id FROM service_categories WHERE name='Business Accounting')),
-('Financial Statements', 'Preparation of corporate financial statements', (SELECT id FROM service_categories WHERE name='Business Accounting'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Housing Home Services', 'Home improvement and maintenance', id, 3 
+FROM service_categories WHERE name = 'Normal User Services' AND parent_id IS NULL;
 
--- Business Insurance children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Commercial Property', 'Insurance coverage for commercial buildings and property', (SELECT id FROM service_categories WHERE name='Business Insurance')),
-('General Liability', 'Business liability insurance solutions', (SELECT id FROM service_categories WHERE name='Business Insurance')),
-('Workers Comp', 'Worker compensation insurance services', (SELECT id FROM service_categories WHERE name='Business Insurance')),
-('Group Health', 'Health insurance plans for employees', (SELECT id FROM service_categories WHERE name='Business Insurance'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Legal Community', 'Legal and community services', id, 4 
+FROM service_categories WHERE name = 'Normal User Services' AND parent_id IS NULL;
 
--- Professional Legal children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Corporate Law', 'Legal services for corporations and business entities', (SELECT id FROM service_categories WHERE name='Professional Legal')),
-('Intellectual Property', 'Patent, trademark, and IP legal services', (SELECT id FROM service_categories WHERE name='Professional Legal')),
-('Contract Litigation', 'Legal representation in contract disputes', (SELECT id FROM service_categories WHERE name='Professional Legal')),
-('Compliance Regulatory', 'Compliance consulting for business regulations', (SELECT id FROM service_categories WHERE name='Professional Legal')),
-('Mergers Acquisitions', 'Advisory services for mergers and acquisitions', (SELECT id FROM service_categories WHERE name='Professional Legal'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Education Childcare', 'Education and childcare services', id, 5 
+FROM service_categories WHERE name = 'Normal User Services' AND parent_id IS NULL;
 
--- Consulting Advisory children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Management', 'Management consulting for operational efficiency', (SELECT id FROM service_categories WHERE name='Consulting Advisory')),
-('Strategy', 'Business strategy planning and execution', (SELECT id FROM service_categories WHERE name='Consulting Advisory')),
-('IT Consulting', 'Information technology consulting services', (SELECT id FROM service_categories WHERE name='Consulting Advisory')),
-('HR Personnel', 'Human resources and personnel management consulting', (SELECT id FROM service_categories WHERE name='Consulting Advisory')),
-('Risk Management', 'Enterprise risk analysis and mitigation consulting', (SELECT id FROM service_categories WHERE name='Consulting Advisory'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Travel Leisure', 'Travel, dining, and entertainment', id, 6 
+FROM service_categories WHERE name = 'Normal User Services' AND parent_id IS NULL;
 
--- Technology IT children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Managed IT', 'Managed IT services and system administration', (SELECT id FROM service_categories WHERE name='Technology IT')),
-('Helpdesk', 'Technical support and helpdesk services', (SELECT id FROM service_categories WHERE name='Technology IT')),
-('Cloud Infrastructure', 'Cloud computing and infrastructure management', (SELECT id FROM service_categories WHERE name='Technology IT')),
-('Cybersecurity', 'Business cybersecurity services and protection', (SELECT id FROM service_categories WHERE name='Technology IT')),
-('Software Development', 'Software development categories', (SELECT id FROM service_categories WHERE name='Technology IT')),
-('Data Analytics', 'Business intelligence and data analytics services', (SELECT id FROM service_categories WHERE name='Technology IT'));
+----------------------------------------------------------------
+-- FINANCE PERSONAL - Level 2 & 3
+----------------------------------------------------------------
+-- Level 2: Finance subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Retail Banking', 'Personal banking services', id, 1
+FROM service_categories WHERE name = 'Finance Personal';
 
--- Software Development grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Web Applications', 'Development of web-based applications', (SELECT id FROM service_categories WHERE name='Software Development')),
-('Mobile Apps', 'Design and development of mobile applications', (SELECT id FROM service_categories WHERE name='Software Development')),
-('Enterprise Solutions', 'Custom enterprise software development', (SELECT id FROM service_categories WHERE name='Software Development'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Credit Unions', 'Member-owned financial cooperatives', id, 2
+FROM service_categories WHERE name = 'Finance Personal';
 
--- RealEstate Construction children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Commercial Leasing', 'Leasing and rental services for commercial properties', (SELECT id FROM service_categories WHERE name='RealEstate Construction')),
-('Property Management', 'Management of commercial and residential properties', (SELECT id FROM service_categories WHERE name='RealEstate Construction')),
-('General Contracting Commercial', 'Commercial general contracting categories', (SELECT id FROM service_categories WHERE name='RealEstate Construction')),
-('Specialized Trades', 'Specialized commercial trades', (SELECT id FROM service_categories WHERE name='RealEstate Construction')),
-('Fabrication Metalwork', 'Metal fabrication categories', (SELECT id FROM service_categories WHERE name='RealEstate Construction'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Personal Accounting', 'Personal accounting services', id, 3
+FROM service_categories WHERE name = 'Finance Personal';
 
--- General Contracting Commercial grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Civil Infrastructure', 'Civil construction and infrastructure projects', (SELECT id FROM service_categories WHERE name='General Contracting Commercial')),
-('HighRise Construction', 'Construction of high-rise commercial buildings', (SELECT id FROM service_categories WHERE name='General Contracting Commercial')),
-('Industrial Complexes', 'Industrial complex construction and management', (SELECT id FROM service_categories WHERE name='General Contracting Commercial'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Insurance Personal', 'Personal insurance products', id, 4
+FROM service_categories WHERE name = 'Finance Personal';
 
--- Specialized Trades grandchildren (as separate leaf nodes under this business branch)
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Plumbing', 'Commercial plumbing including drain, pipe, gas, and septic', (SELECT id FROM service_categories WHERE name='Specialized Trades')),
-('Electrical', 'Commercial electrical services including high voltage and lighting', (SELECT id FROM service_categories WHERE name='Specialized Trades')),
-('HVAC', 'Commercial heating, ventilation, and air conditioning services', (SELECT id FROM service_categories WHERE name='Specialized Trades')),
-('Carpentry', 'Commercial carpentry including framing, cabinetry, finish work', (SELECT id FROM service_categories WHERE name='Specialized Trades')),
-('Masonry', 'Concrete, brick, and stone masonry services', (SELECT id FROM service_categories WHERE name='Specialized Trades')),
-('Roofing', 'Commercial roofing services including flat, metal, shingle', (SELECT id FROM service_categories WHERE name='Specialized Trades'));
+-- Level 3: Personal Accounting subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Bookkeeping Personal', 'Personal bookkeeping services', id, 1
+FROM service_categories WHERE name = 'Personal Accounting';
 
--- Fabrication Metalwork grandchildren
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Welding', 'Structural, pipeline, and micro welding services', (SELECT id FROM service_categories WHERE name='Fabrication Metalwork')),
-('Machining', 'Metal machining and fabrication services', (SELECT id FROM service_categories WHERE name='Fabrication Metalwork')),
-('CNC Milling', 'Precision CNC milling and metal cutting services', (SELECT id FROM service_categories WHERE name='Fabrication Metalwork'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Tax Preparation', 'Personal tax filing services', id, 2
+FROM service_categories WHERE name = 'Personal Accounting';
 
--- Marketing Communications children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Advertising Agencies', 'Advertising and creative marketing agencies', (SELECT id FROM service_categories WHERE name='Marketing Communications')),
-('Public Relations', 'Public relations and media management services', (SELECT id FROM service_categories WHERE name='Marketing Communications')),
-('Market Research', 'Market research, surveys, and analytics', (SELECT id FROM service_categories WHERE name='Marketing Communications')),
-('Translation Localization', 'Language translation and localization services', (SELECT id FROM service_categories WHERE name='Marketing Communications'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Financial Planning', 'Personal financial planning', id, 3
+FROM service_categories WHERE name = 'Personal Accounting';
 
--- Business Support children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Notary Services', 'Business notary and document certification services', (SELECT id FROM service_categories WHERE name='Business Support')),
-('Virtual Assistants', 'Remote administrative and virtual assistant services', (SELECT id FROM service_categories WHERE name='Business Support')),
-('Call Centers', 'Business call center and customer support services', (SELECT id FROM service_categories WHERE name='Business Support')),
-('Payroll Services', 'Corporate payroll processing services', (SELECT id FROM service_categories WHERE name='Business Support')),
-('Event Travel Management', 'Corporate event planning and travel management', (SELECT id FROM service_categories WHERE name='Business Support'));
+-- Level 3: Personal Insurance subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Health Insurance', 'Health insurance coverage', id, 1
+FROM service_categories WHERE name = 'Insurance Personal';
 
--- Industrial Research children
-INSERT OR IGNORE INTO service_categories (name, description, parent_id) VALUES
-('Clinical Trials', 'Clinical research and trial management services', (SELECT id FROM service_categories WHERE name='Industrial Research')),
-('Genetic Sequencing', 'Genetic sequencing and analysis services', (SELECT id FROM service_categories WHERE name='Industrial Research')),
-('Materials Science', 'Research and development in materials science', (SELECT id FROM service_categories WHERE name='Industrial Research')),
-('Nanotechnology', 'Research and applications in nanotechnology', (SELECT id FROM service_categories WHERE name='Industrial Research')),
-('Nuclear Physics', 'Research and consulting in nuclear physics', (SELECT id FROM service_categories WHERE name='Industrial Research'));
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Auto Insurance', 'Vehicle insurance policies', id, 2
+FROM service_categories WHERE name = 'Insurance Personal';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Homeowners Renters', 'Property insurance', id, 3
+FROM service_categories WHERE name = 'Insurance Personal';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Life Disability', 'Life and disability insurance', id, 4
+FROM service_categories WHERE name = 'Insurance Personal';
+
+----------------------------------------------------------------
+-- HEALTHCARE WELLNESS - Level 2 & 3
+----------------------------------------------------------------
+-- Level 2: Healthcare subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Medical Services', 'Medical care providers', id, 1
+FROM service_categories WHERE name = 'Healthcare Wellness';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Dental Services', 'Dental care providers', id, 2
+FROM service_categories WHERE name = 'Healthcare Wellness';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Mental Health', 'Mental health services', id, 3
+FROM service_categories WHERE name = 'Healthcare Wellness';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Allied Health', 'Allied health services', id, 4
+FROM service_categories WHERE name = 'Healthcare Wellness';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Wellness Personal', 'Personal wellness services', id, 5
+FROM service_categories WHERE name = 'Healthcare Wellness';
+
+-- Level 3: Medical subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Hospitals', 'Hospital services', id, 1
+FROM service_categories WHERE name = 'Medical Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Urgent Care', 'Urgent care clinics', id, 2
+FROM service_categories WHERE name = 'Medical Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Specialty Clinics', 'Specialized medical clinics', id, 3
+FROM service_categories WHERE name = 'Medical Services';
+
+-- Level 3: Dental subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'General Dentistry', 'General dental services', id, 1
+FROM service_categories WHERE name = 'Dental Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Orthodontics', 'Orthodontic treatments', id, 2
+FROM service_categories WHERE name = 'Dental Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Oral Surgery', 'Dental surgical procedures', id, 3
+FROM service_categories WHERE name = 'Dental Services';
+
+-- Level 3: Mental Health subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Therapy Counseling', 'Therapy and counseling', id, 1
+FROM service_categories WHERE name = 'Mental Health';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Psychiatry', 'Psychiatric services', id, 2
+FROM service_categories WHERE name = 'Mental Health';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Addiction Treatment', 'Substance abuse treatment', id, 3
+FROM service_categories WHERE name = 'Mental Health';
+
+-- Level 3: Allied Health subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Physical Therapy', 'Physical rehabilitation', id, 1
+FROM service_categories WHERE name = 'Allied Health';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Occupational Therapy', 'Occupational rehabilitation', id, 2
+FROM service_categories WHERE name = 'Allied Health';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Speech Therapy', 'Speech and language therapy', id, 3
+FROM service_categories WHERE name = 'Allied Health';
+
+-- Level 3: Wellness subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Nutritionists', 'Nutrition counseling', id, 1
+FROM service_categories WHERE name = 'Wellness Personal';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Personal Training', 'Fitness training', id, 2
+FROM service_categories WHERE name = 'Wellness Personal';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Massage Therapy', 'Massage services', id, 3
+FROM service_categories WHERE name = 'Wellness Personal';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Salons Spas', 'Beauty and spa services', id, 4
+FROM service_categories WHERE name = 'Wellness Personal';
+
+----------------------------------------------------------------
+-- HOUSING HOME SERVICES - Level 2 & 3
+----------------------------------------------------------------
+-- Level 2: Home Service subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Plumbing', 'Plumbing services', id, 1
+FROM service_categories WHERE name = 'Housing Home Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Electrical', 'Electrical services', id, 2
+FROM service_categories WHERE name = 'Housing Home Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'HVAC', 'Heating and cooling services', id, 3
+FROM service_categories WHERE name = 'Housing Home Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Carpentry', 'Carpentry services', id, 4
+FROM service_categories WHERE name = 'Housing Home Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Masonry', 'Masonry services', id, 5
+FROM service_categories WHERE name = 'Housing Home Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Roofing', 'Roofing services', id, 6
+FROM service_categories WHERE name = 'Housing Home Services';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Landscaping', 'Landscaping services', id, 7
+FROM service_categories WHERE name = 'Housing Home Services';
+
+-- Level 3: Plumbing subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Drain Cleaning', 'Drain cleaning services', id, 1
+FROM service_categories WHERE name = 'Plumbing' 
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Pipe Fitting', 'Pipe installation and repair', id, 2
+FROM service_categories WHERE name = 'Plumbing'
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Gas Fitting', 'Gas line services', id, 3
+FROM service_categories WHERE name = 'Plumbing'
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Septic Services', 'Septic system services', id, 4
+FROM service_categories WHERE name = 'Plumbing'
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+-- Level 3: Electrical subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Residential Wiring', 'Home electrical wiring', id, 1
+FROM service_categories WHERE name = 'Electrical'
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Generator Installation', 'Generator services', id, 2
+FROM service_categories WHERE name = 'Electrical'
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Lighting Repairs', 'Lighting services', id, 3
+FROM service_categories WHERE name = 'Electrical'
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+-- Level 3: HVAC subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Heating Furnace', 'Heating system services', id, 1
+FROM service_categories WHERE name = 'HVAC'
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Air Conditioning', 'AC services', id, 2
+FROM service_categories WHERE name = 'HVAC'
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Refrigeration', 'Refrigeration services', id, 3
+FROM service_categories WHERE name = 'HVAC'
+AND parent_id = (SELECT id FROM service_categories WHERE name = 'Housing Home Services');
+
+----------------------------------------------------------------
+-- LEGAL COMMUNITY - Level 2
+----------------------------------------------------------------
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Family Law', 'Family legal services', id, 1
+FROM service_categories WHERE name = 'Legal Community';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Immigration Law', 'Immigration services', id, 2
+FROM service_categories WHERE name = 'Legal Community';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Estate Planning', 'Estate planning services', id, 3
+FROM service_categories WHERE name = 'Legal Community';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Consumer Rights', 'Consumer protection', id, 4
+FROM service_categories WHERE name = 'Legal Community';
+
+----------------------------------------------------------------
+-- EDUCATION CHILDCARE - Level 2
+----------------------------------------------------------------
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Schools', 'Educational institutions', id, 1
+FROM service_categories WHERE name = 'Education Childcare';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Tutoring', 'Tutoring services', id, 2
+FROM service_categories WHERE name = 'Education Childcare';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Childcare Daycare', 'Childcare services', id, 3
+FROM service_categories WHERE name = 'Education Childcare';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Vocational Training', 'Career training', id, 4
+FROM service_categories WHERE name = 'Education Childcare';
+
+----------------------------------------------------------------
+-- TRAVEL LEISURE - Level 2
+----------------------------------------------------------------
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Restaurants Cafes', 'Dining services', id, 1
+FROM service_categories WHERE name = 'Travel Leisure';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Hotels Lodging', 'Accommodation services', id, 2
+FROM service_categories WHERE name = 'Travel Leisure';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Travel Tourism', 'Travel services', id, 3
+FROM service_categories WHERE name = 'Travel Leisure';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Fitness Gyms', 'Fitness centers', id, 4
+FROM service_categories WHERE name = 'Travel Leisure';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Entertainment', 'Entertainment venues', id, 5
+FROM service_categories WHERE name = 'Travel Leisure';
+
+----------------------------------------------------------------
+-- BUSINESS USER SERVICES - Level 1 Categories
+----------------------------------------------------------------
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Corporate Finance', 'Business financial services', id, 1
+FROM service_categories WHERE name = 'Business User Services' AND parent_id IS NULL;
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Business Insurance', 'Commercial insurance', id, 2
+FROM service_categories WHERE name = 'Business User Services' AND parent_id IS NULL;
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Professional Legal', 'Business legal services', id, 3
+FROM service_categories WHERE name = 'Business User Services' AND parent_id IS NULL;
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Consulting Advisory', 'Business consulting', id, 4
+FROM service_categories WHERE name = 'Business User Services' AND parent_id IS NULL;
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Technology IT', 'IT and technology services', id, 5
+FROM service_categories WHERE name = 'Business User Services' AND parent_id IS NULL;
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Real Estate Construction', 'Commercial real estate', id, 6
+FROM service_categories WHERE name = 'Business User Services' AND parent_id IS NULL;
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Marketing Communications', 'Marketing services', id, 7
+FROM service_categories WHERE name = 'Business User Services' AND parent_id IS NULL;
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Business Support', 'Business support services', id, 8
+FROM service_categories WHERE name = 'Business User Services' AND parent_id IS NULL;
+
+----------------------------------------------------------------
+-- CORPORATE FINANCE - Level 2 & 3
+----------------------------------------------------------------
+-- Level 2: Corporate Finance subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Commercial Banking', 'Business banking', id, 1
+FROM service_categories WHERE name = 'Corporate Finance';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Business Accounting', 'Business accounting', id, 2
+FROM service_categories WHERE name = 'Corporate Finance';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Investment Banking', 'Investment services', id, 3
+FROM service_categories WHERE name = 'Corporate Finance';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Corporate Tax', 'Business tax services', id, 4
+FROM service_categories WHERE name = 'Corporate Finance';
+
+-- Level 3: Business Accounting subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Bookkeeping Business', 'Business bookkeeping', id, 1
+FROM service_categories WHERE name = 'Business Accounting';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Payroll Services', 'Payroll processing', id, 2
+FROM service_categories WHERE name = 'Business Accounting';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Financial Audits', 'Audit services', id, 3
+FROM service_categories WHERE name = 'Business Accounting';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Financial Reporting', 'Financial statements', id, 4
+FROM service_categories WHERE name = 'Business Accounting';
+
+----------------------------------------------------------------
+-- BUSINESS INSURANCE - Level 2
+----------------------------------------------------------------
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Commercial Property', 'Property insurance', id, 1
+FROM service_categories WHERE name = 'Business Insurance';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'General Liability', 'Liability insurance', id, 2
+FROM service_categories WHERE name = 'Business Insurance';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Workers Compensation', 'Workers comp insurance', id, 3
+FROM service_categories WHERE name = 'Business Insurance';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Group Health', 'Employee health insurance', id, 4
+FROM service_categories WHERE name = 'Business Insurance';
+
+----------------------------------------------------------------
+-- PROFESSIONAL LEGAL - Level 2
+----------------------------------------------------------------
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Corporate Law', 'Corporate legal services', id, 1
+FROM service_categories WHERE name = 'Professional Legal';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Intellectual Property', 'IP legal services', id, 2
+FROM service_categories WHERE name = 'Professional Legal';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Contract Litigation', 'Contract disputes', id, 3
+FROM service_categories WHERE name = 'Professional Legal';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Compliance Regulatory', 'Compliance services', id, 4
+FROM service_categories WHERE name = 'Professional Legal';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Mergers Acquisitions', 'M&A services', id, 5
+FROM service_categories WHERE name = 'Professional Legal';
+
+----------------------------------------------------------------
+-- CONSULTING ADVISORY - Level 2
+----------------------------------------------------------------
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Management Consulting', 'Management consulting', id, 1
+FROM service_categories WHERE name = 'Consulting Advisory';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Strategy Consulting', 'Strategy services', id, 2
+FROM service_categories WHERE name = 'Consulting Advisory';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'IT Consulting', 'IT consulting', id, 3
+FROM service_categories WHERE name = 'Consulting Advisory';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'HR Consulting', 'HR consulting', id, 4
+FROM service_categories WHERE name = 'Consulting Advisory';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Risk Management', 'Risk consulting', id, 5
+FROM service_categories WHERE name = 'Consulting Advisory';
+
+----------------------------------------------------------------
+-- TECHNOLOGY IT - Level 2 & 3
+----------------------------------------------------------------
+-- Level 2: Technology subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Managed IT', 'Managed IT services', id, 1
+FROM service_categories WHERE name = 'Technology IT';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'IT Support', 'Technical support', id, 2
+FROM service_categories WHERE name = 'Technology IT';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Cloud Services', 'Cloud computing', id, 3
+FROM service_categories WHERE name = 'Technology IT';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Cybersecurity', 'Security services', id, 4
+FROM service_categories WHERE name = 'Technology IT';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Software Development', 'Software development', id, 5
+FROM service_categories WHERE name = 'Technology IT';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Data Analytics', 'Data services', id, 6
+FROM service_categories WHERE name = 'Technology IT';
+
+-- Level 3: Software Development subcategories
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Web Development', 'Web applications', id, 1
+FROM service_categories WHERE name = 'Software Development';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Mobile Development', 'Mobile apps', id, 2
+FROM service_categories WHERE name = 'Software Development';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Enterprise Software', 'Enterprise solutions', id, 3
+FROM service_categories WHERE name = 'Software Development';
+
+----------------------------------------------------------------
+-- MARKETING COMMUNICATIONS - Level 2
+----------------------------------------------------------------
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Advertising Agencies', 'Advertising services', id, 1
+FROM service_categories WHERE name = 'Marketing Communications';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Public Relations', 'PR services', id, 2
+FROM service_categories WHERE name = 'Marketing Communications';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Market Research', 'Research services', id, 3
+FROM service_categories WHERE name = 'Marketing Communications';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Digital Marketing', 'Digital marketing', id, 4
+FROM service_categories WHERE name = 'Marketing Communications';
+
+----------------------------------------------------------------
+-- BUSINESS SUPPORT - Level 2
+----------------------------------------------------------------
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Virtual Assistants', 'Virtual assistant services', id, 1
+FROM service_categories WHERE name = 'Business Support';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Call Centers', 'Call center services', id, 2
+FROM service_categories WHERE name = 'Business Support';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Translation Services', 'Translation services', id, 3
+FROM service_categories WHERE name = 'Business Support';
+
+INSERT INTO service_categories (name, description, parent_id, sort_order)
+SELECT 'Event Management', 'Event planning', id, 4
+FROM service_categories WHERE name = 'Business Support';
+
+----------------------------------------------------------------
+-- Update sequences to prevent ID conflicts
+----------------------------------------------------------------
+UPDATE sqlite_sequence 
+SET seq = (SELECT MAX(id) FROM service_categories) 
+WHERE name = 'service_categories';
+
+----------------------------------------------------------------
+-- Verification query
+----------------------------------------------------------------
+SELECT 
+    'Total Categories: ' || COUNT(*) as summary,
+    'Root Categories: ' || SUM(CASE WHEN parent_id IS NULL THEN 1 ELSE 0 END) as roots,
+    'Level 1 Categories: ' || SUM(CASE WHEN parent_id IN (SELECT id FROM service_categories WHERE parent_id IS NULL) THEN 1 ELSE 0 END) as level1,
+    'Leaf Categories: ' || SUM(CASE WHEN id NOT IN (SELECT DISTINCT parent_id FROM service_categories WHERE parent_id IS NOT NULL) THEN 1 ELSE 0 END) as leaves
+FROM service_categories;

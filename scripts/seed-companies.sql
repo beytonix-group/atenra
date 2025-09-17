@@ -1,140 +1,218 @@
--- IMPORTANT: This script uses explicit IDs which can cause autoincrement issues
--- After running this script, run update-sequences.sql to fix the autoincrement counters
--- This ensures new records won't conflict with these hardcoded IDs
+----------------------------------------------------------------
+-- Clean Companies Seed Data
+-- This script inserts all 115 companies from the marketplace
+----------------------------------------------------------------
 
--- Insert companies
-INSERT INTO companies (id, name, slug, description, logo_url, website, email, phone, address_line1, city, state, zip_code, country, status) VALUES
--- Normal User Services Companies
-(1, 'Sparkle Clean Services', 'sparkle-clean-services', 'Professional home cleaning services', 'https://example.com/logos/sparkle-clean.png', 'https://sparkleclean.com', 'contact@sparkleclean.com', '+1-555-0101', '123 Clean Street', 'New York', 'NY', '10001', 'USA', 'active'),
-(2, 'Green Thumb Landscaping', 'green-thumb-landscaping', 'Expert lawn care and landscaping', 'https://example.com/logos/green-thumb.png', 'https://greenthumbland.com', 'info@greenthumbland.com', '+1-555-0102', '456 Garden Ave', 'Los Angeles', 'CA', '90001', 'USA', 'active'),
-(3, 'Handy Helper Home Services', 'handy-helper-home-services', 'Professional handyman services', 'https://example.com/logos/handy-helper.png', 'https://handyhelper.com', 'help@handyhelper.com', '+1-555-0103', '789 Fix-It Blvd', 'Chicago', 'IL', '60601', 'USA', 'active'),
-(4, 'Crystal Waters Pool Service', 'crystal-waters-pool-service', 'Pool cleaning and maintenance', 'https://example.com/logos/crystal-waters.png', 'https://crystalwaters.com', 'service@crystalwaters.com', '+1-555-0104', '321 Aqua Lane', 'Miami', 'FL', '33101', 'USA', 'active'),
-(5, 'Plumb Perfect Solutions', 'plumb-perfect-solutions', 'Expert plumbing services', 'https://example.com/logos/plumb-perfect.png', 'https://plumbperfect.com', 'contact@plumbperfect.com', '+1-555-0105', '654 Pipe Road', 'Houston', 'TX', '77001', 'USA', 'active'),
-(6, 'Bright Spark Electrical', 'bright-spark-electrical', '24/7 electrical services', 'https://example.com/logos/bright-spark.png', 'https://brightspark.com', 'info@brightspark.com', '+1-555-0106', '987 Electric Ave', 'Phoenix', 'AZ', '85001', 'USA', 'active'),
-(7, 'Cool Breeze HVAC', 'cool-breeze-hvac', 'Heating and cooling specialists', 'https://example.com/logos/cool-breeze.png', 'https://coolbreezehvac.com', 'service@coolbreeze.com', '+1-555-0107', '246 Climate Dr', 'Philadelphia', 'PA', '19101', 'USA', 'active'),
-(8, 'Happy Tails Pet Care', 'happy-tails-pet-care', 'Professional pet grooming and sitting', 'https://example.com/logos/happy-tails.png', 'https://happytails.com', 'pets@happytails.com', '+1-555-0108', '135 Pet Plaza', 'San Antonio', 'TX', '78201', 'USA', 'active'),
-(9, 'Fit Life Personal Training', 'fit-life-personal-training', 'Certified personal trainers', 'https://example.com/logos/fit-life.png', 'https://fitlife.com', 'train@fitlife.com', '+1-555-0109', '864 Gym Street', 'San Diego', 'CA', '92101', 'USA', 'active'),
-(10, 'Elite Tutoring Services', 'elite-tutoring-services', 'Academic tutoring for all ages', 'https://example.com/logos/elite-tutoring.png', 'https://elitetutoring.com', 'learn@elitetutoring.com', '+1-555-0110', '753 Education Way', 'Dallas', 'TX', '75201', 'USA', 'active'),
-(11, 'Secure Home Systems', 'secure-home-systems', 'Home security installation', 'https://example.com/logos/secure-home.png', 'https://securehome.com', 'safety@securehome.com', '+1-555-0111', '951 Safety Blvd', 'San Jose', 'CA', '95101', 'USA', 'active'),
-(12, 'Tech Support Heroes', 'tech-support-heroes', 'Computer repair and IT support', 'https://example.com/logos/tech-heroes.png', 'https://techheroes.com', 'help@techheroes.com', '+1-555-0112', '357 Tech Lane', 'Austin', 'TX', '78701', 'USA', 'active'),
-(13, 'Gourmet Bites Catering', 'gourmet-bites-catering', 'Premium catering services', 'https://example.com/logos/gourmet-bites.png', 'https://gourmetbites.com', 'cater@gourmetbites.com', '+1-555-0113', '258 Cuisine Court', 'Seattle', 'WA', '98101', 'USA', 'active'),
-(14, 'Wedding Bliss Planning', 'wedding-bliss-planning', 'Complete wedding planning services', 'https://example.com/logos/wedding-bliss.png', 'https://weddingbliss.com', 'plan@weddingbliss.com', '+1-555-0114', '456 Ceremony Ave', 'Denver', 'CO', '80201', 'USA', 'active'),
-(15, 'Happy Faces Childcare', 'happy-faces-childcare', 'Licensed childcare services', 'https://example.com/logos/happy-faces.png', 'https://happyfaces.com', 'care@happyfaces.com', '+1-555-0115', '789 Kids Way', 'Boston', 'MA', '02101', 'USA', 'active'),
+-- Financial Services Companies (5)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES 
+('First National Bank','first-national-bank','Provides personal checking, savings, and lending solutions.','www.fnb.com','120 Main St','Dallas','TX','75201','(214) 555-0101','support@fnb.com','active'),
+('Union Credit Cooperative','union-credit-cooperative','Member-owned credit union offering loans and savings accounts.','www.unioncredit.coop','200 Maple Avenue','Denver','CO','80203','(303) 555-0112','info@unioncredit.coop','active'),
+('Precision Bookkeeping','precision-bookkeeping','Daily bookkeeping and accounting services for individuals and small businesses.','www.precisionbookkeeping.com','456 Market Street','San Francisco','CA','94104','(415) 555-0123','info@precisionbookkeeping.com','active'),
+('ClearTax Consulting','cleartax-consulting','Tax planning and preparation services for individuals and corporations.','www.cleartaxconsulting.com','789 Ocean Drive','Miami','FL','33132','(305) 555-0987','info@cleartaxconsulting.com','active'),
+('WealthWise Financial','wealthwise-financial','Personal financial planning, investment guidance, and retirement strategies.','www.wealthwise.com','321 Oak Street','Chicago','IL','60611','(312) 555-0145','info@wealthwise.com','active');
 
--- Business User Services Companies
-(16, 'CloudTech Solutions', 'cloudtech-solutions', 'Enterprise cloud computing services', 'https://example.com/logos/cloudtech.png', 'https://cloudtech.com', 'enterprise@cloudtech.com', '+1-555-0201', '100 Cloud Drive', 'San Francisco', 'CA', '94101', 'USA', 'active'),
-(17, 'DataGuard Security', 'dataguard-security', 'Cybersecurity and data protection', 'https://example.com/logos/dataguard.png', 'https://dataguard.com', 'security@dataguard.com', '+1-555-0202', '200 Secure Plaza', 'Washington', 'DC', '20001', 'USA', 'active'),
-(18, 'NetFlow Systems', 'netflow-systems', 'Network infrastructure solutions', 'https://example.com/logos/netflow.png', 'https://netflow.com', 'network@netflow.com', '+1-555-0203', '300 Network Way', 'San Jose', 'CA', '95110', 'USA', 'active'),
-(19, 'DevOps Pro Services', 'devops-pro-services', 'DevOps consulting and implementation', 'https://example.com/logos/devops-pro.png', 'https://devopspro.com', 'consult@devopspro.com', '+1-555-0204', '400 Pipeline Road', 'Seattle', 'WA', '98109', 'USA', 'active'),
-(20, 'AI Innovations Lab', 'ai-innovations-lab', 'Artificial intelligence solutions', 'https://example.com/logos/ai-lab.png', 'https://ailab.com', 'ai@ailab.com', '+1-555-0205', '500 Intelligence Ave', 'Palo Alto', 'CA', '94301', 'USA', 'active'),
-(21, 'Peak Performance Consulting', 'peak-performance-consulting', 'Business strategy and optimization', 'https://example.com/logos/peak-performance.png', 'https://peakperform.com', 'strategy@peakperform.com', '+1-555-0206', '600 Strategy Lane', 'New York', 'NY', '10011', 'USA', 'active'),
-(22, 'Global Audit Partners', 'global-audit-partners', 'Financial auditing and compliance', 'https://example.com/logos/global-audit.png', 'https://globalaudit.com', 'audit@globalaudit.com', '+1-555-0207', '700 Compliance Court', 'Chicago', 'IL', '60611', 'USA', 'active'),
-(23, 'Tax Masters Pro', 'tax-masters-pro', 'Corporate tax planning and filing', 'https://example.com/logos/tax-masters.png', 'https://taxmasters.com', 'tax@taxmasters.com', '+1-555-0208', '800 Tax Plaza', 'Atlanta', 'GA', '30301', 'USA', 'active'),
-(24, 'Legal Eagle Associates', 'legal-eagle-associates', 'Corporate legal services', 'https://example.com/logos/legal-eagle.png', 'https://legaleagle.com', 'legal@legaleagle.com', '+1-555-0209', '900 Justice Way', 'Boston', 'MA', '02111', 'USA', 'active'),
-(25, 'IP Shield Law', 'ip-shield-law', 'Intellectual property protection', 'https://example.com/logos/ip-shield.png', 'https://ipshield.com', 'ip@ipshield.com', '+1-555-0210', '1000 Patent Drive', 'San Francisco', 'CA', '94105', 'USA', 'active'),
-(26, 'Brand Builders Marketing', 'brand-builders-marketing', 'Digital marketing and branding', 'https://example.com/logos/brand-builders.png', 'https://brandbuilders.com', 'brand@brandbuilders.com', '+1-555-0211', '1100 Marketing Ave', 'Los Angeles', 'CA', '90015', 'USA', 'active'),
-(27, 'Social Pulse Media', 'social-pulse-media', 'Social media management', 'https://example.com/logos/social-pulse.png', 'https://socialpulse.com', 'social@socialpulse.com', '+1-555-0212', '1200 Social Street', 'Miami', 'FL', '33132', 'USA', 'active'),
-(28, 'Content Craft Agency', 'content-craft-agency', 'Content creation and copywriting', 'https://example.com/logos/content-craft.png', 'https://contentcraft.com', 'content@contentcraft.com', '+1-555-0213', '1300 Creative Blvd', 'Austin', 'TX', '78702', 'USA', 'active'),
-(29, 'SEO Experts Inc', 'seo-experts-inc', 'Search engine optimization', 'https://example.com/logos/seo-experts.png', 'https://seoexperts.com', 'seo@seoexperts.com', '+1-555-0214', '1400 Search Lane', 'Denver', 'CO', '80202', 'USA', 'active'),
-(30, 'AdVantage PPC', 'advantage-ppc', 'Pay-per-click advertising', 'https://example.com/logos/advantage-ppc.png', 'https://advantageppc.com', 'ppc@advantageppc.com', '+1-555-0215', '1500 Click Road', 'Phoenix', 'AZ', '85004', 'USA', 'active'),
-(31, 'Talent Scout HR', 'talent-scout-hr', 'Executive recruitment services', 'https://example.com/logos/talent-scout.png', 'https://talentscout.com', 'recruit@talentscout.com', '+1-555-0216', '1600 Talent Way', 'Dallas', 'TX', '75202', 'USA', 'active'),
-(32, 'PayPro Solutions', 'paypro-solutions', 'Payroll and benefits management', 'https://example.com/logos/paypro.png', 'https://paypro.com', 'payroll@paypro.com', '+1-555-0217', '1700 Payroll Plaza', 'Houston', 'TX', '77002', 'USA', 'active'),
-(33, 'Skill Builder Training', 'skill-builder-training', 'Corporate training programs', 'https://example.com/logos/skill-builder.png', 'https://skillbuilder.com', 'train@skillbuilder.com', '+1-555-0218', '1800 Training Court', 'Philadelphia', 'PA', '19102', 'USA', 'active'),
-(34, 'Culture Shift Consulting', 'culture-shift-consulting', 'Organizational development', 'https://example.com/logos/culture-shift.png', 'https://cultureshift.com', 'culture@cultureshift.com', '+1-555-0219', '1900 Culture Ave', 'Portland', 'OR', '97201', 'USA', 'active'),
-(35, 'Performance Plus Benefits', 'performance-plus-benefits', 'Employee benefits consulting', 'https://example.com/logos/performance-plus.png', 'https://performanceplus.com', 'benefits@performanceplus.com', '+1-555-0220', '2000 Benefits Blvd', 'San Diego', 'CA', '92102', 'USA', 'active'),
-(36, 'Global Logistics Partners', 'global-logistics-partners', 'Supply chain management', 'https://example.com/logos/global-logistics.png', 'https://globallogistics.com', 'logistics@globallogistics.com', '+1-555-0221', '2100 Supply Way', 'Memphis', 'TN', '38101', 'USA', 'active'),
-(37, 'FleetMax Management', 'fleetmax-management', 'Fleet management solutions', 'https://example.com/logos/fleetmax.png', 'https://fleetmax.com', 'fleet@fleetmax.com', '+1-555-0222', '2200 Fleet Road', 'Detroit', 'MI', '48201', 'USA', 'active'),
-(38, 'Warehouse Pro Systems', 'warehouse-pro-systems', 'Warehouse management systems', 'https://example.com/logos/warehouse-pro.png', 'https://warehousepro.com', 'warehouse@warehousepro.com', '+1-555-0223', '2300 Storage Lane', 'Columbus', 'OH', '43201', 'USA', 'active'),
-(39, 'Express Ship International', 'express-ship-international', 'International shipping services', 'https://example.com/logos/express-ship.png', 'https://expressship.com', 'ship@expressship.com', '+1-555-0224', '2400 Shipping Ave', 'Long Beach', 'CA', '90801', 'USA', 'active'),
-(40, 'Inventory Genius', 'inventory-genius', 'Inventory management software', 'https://example.com/logos/inventory-genius.png', 'https://inventorygenius.com', 'inventory@inventorygenius.com', '+1-555-0225', '2500 Stock Street', 'Charlotte', 'NC', '28201', 'USA', 'active'),
-(41, 'Capital Growth Advisors', 'capital-growth-advisors', 'Investment banking services', 'https://example.com/logos/capital-growth.png', 'https://capitalgrowth.com', 'invest@capitalgrowth.com', '+1-555-0226', '2600 Wall Street', 'New York', 'NY', '10005', 'USA', 'active'),
-(42, 'Venture Bridge Partners', 'venture-bridge-partners', 'Venture capital funding', 'https://example.com/logos/venture-bridge.png', 'https://venturebridge.com', 'vc@venturebridge.com', '+1-555-0227', '2700 Innovation Way', 'Menlo Park', 'CA', '94025', 'USA', 'active'),
-(43, 'Wealth Wise Management', 'wealth-wise-management', 'Wealth management services', 'https://example.com/logos/wealth-wise.png', 'https://wealthwise.com', 'wealth@wealthwise.com', '+1-555-0228', '2800 Prosperity Lane', 'Greenwich', 'CT', '06830', 'USA', 'active'),
-(44, 'Risk Shield Insurance', 'risk-shield-insurance', 'Business insurance solutions', 'https://example.com/logos/risk-shield.png', 'https://riskshield.com', 'insurance@riskshield.com', '+1-555-0229', '2900 Coverage Blvd', 'Hartford', 'CT', '06101', 'USA', 'active'),
-(45, 'Asset Pro Valuation', 'asset-pro-valuation', 'Asset valuation services', 'https://example.com/logos/asset-pro.png', 'https://assetpro.com', 'value@assetpro.com', '+1-555-0230', '3000 Value Court', 'Chicago', 'IL', '60604', 'USA', 'active');
+-- Healthcare Companies (3)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('City Hospital','city-hospital','Comprehensive inpatient and outpatient medical care.','www.cityhospital.com','101 Health Blvd','New York','NY','10016','(212) 555-0133','info@cityhospital.com','active'),
+('QuickCare Urgent Clinic','quickcare-urgent-clinic','Immediate treatment for non-life-threatening conditions.','www.quickcare.com','55 Main Street','Austin','TX','78701','(512) 555-0144','contact@quickcare.com','active'),
+('Heart & Lung Specialty Clinic','heart-and-lung-specialty-clinic','Specialized care in cardiology and pulmonology.','www.heartlungclinic.com','88 Medical Park','Boston','MA','02118','(617) 555-0155','info@heartlungclinic.com','active');
 
--- Insert company_service_categories associations
--- Home Services
-INSERT INTO company_service_categories (company_id, category_id) VALUES
-(1, 2), -- Sparkle Clean -> Cleaning
-(2, 3), -- Green Thumb -> Landscaping
-(3, 4), -- Handy Helper -> Handyman
-(4, 5), -- Crystal Waters -> Pool Cleaning
-(5, 6), -- Plumb Perfect -> Plumbing
-(6, 7), -- Bright Spark -> Electrical
-(7, 8), -- Cool Breeze -> HVAC
-(8, 9), -- Happy Tails -> Pet Care
+-- Dental Services (3)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Smile Dental','smile-dental','Routine dental check-ups and cleanings.','www.smiledental.com','100 Smile Lane','Los Angeles','CA','90012','(213) 555-0166','contact@smiledental.com','active'),
+('Align Orthodontics','align-orthodontics','Braces and aligners for children and adults.','www.alignortho.com','200 Brace Street','Chicago','IL','60610','(312) 555-0177','support@alignortho.com','active'),
+('OralCare Surgery Center','oralcare-surgery-center','Specialized oral surgical procedures.','www.oralcare.com','300 Dental Ave','Seattle','WA','98101','(206) 555-0188','info@oralcare.com','active');
 
--- Personal Services
-(9, 11), -- Fit Life -> Personal Training
-(10, 12), -- Elite Tutoring -> Tutoring
-(11, 13), -- Secure Home -> Home Security
-(12, 14), -- Tech Support Heroes -> Tech Support
+-- Mental Health Services (3)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('MindBalance Therapy','mindbalance-therapy','Counseling and psychotherapy services.','www.mindbalance.com','120 Wellness Rd','Miami','FL','33130','(305) 555-0199','info@mindbalance.com','active'),
+('Peak Psychiatry','peak-psychiatry','Mental health evaluations and psychiatric care.','www.peakpsychiatry.com','44 Brain Street','Denver','CO','80204','(303) 555-0200','contact@peakpsychiatry.com','active'),
+('Recovery Path','recovery-path','Substance abuse treatment and recovery programs.','www.recoverypath.com','88 Hope Lane','Boston','MA','02118','(617) 555-0211','info@recoverypath.com','active');
 
--- Event Services
-(13, 16), -- Gourmet Bites -> Catering
-(14, 17), -- Wedding Bliss -> Wedding Planning
-(15, 18), -- Happy Faces -> Child Care
+-- Therapy Services (3)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('MoveWell Physical Therapy','movewell-physical-therapy','Rehabilitation and mobility improvement programs.','www.movewell.com','55 Rehab Street','Los Angeles','CA','90012','(213) 555-0222','contact@movewell.com','active'),
+('SkillMotion Occupational Therapy','skillmotion-occupational-therapy','Support for daily living and occupational skills.','www.skillmotion.com','78 Therapy Blvd','Chicago','IL','60610','(312) 555-0233','info@skillmotion.com','active'),
+('SpeechEase Therapy','speechease-therapy','Speech and language therapy services.','www.speechease.com','22 Voice Lane','Seattle','WA','98101','(206) 555-0244','info@speechease.com','active');
 
--- Technology Services
-(16, 20), -- CloudTech -> Cloud Computing
-(17, 21), -- DataGuard -> Cybersecurity
-(18, 22), -- NetFlow -> Network Solutions
-(19, 23), -- DevOps Pro -> DevOps
-(20, 24), -- AI Lab -> AI/ML
+-- Wellness Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('NutriGuide','nutriguide','Personal nutrition and diet planning.','www.nutriguide.com','101 Health Ave','Miami','FL','33132','(305) 555-0255','info@nutriguide.com','active'),
+('FitPro Training','fitpro-training','Personalized fitness coaching and exercise programs.','www.fitpro.com','55 Gym Street','Austin','TX','78701','(512) 555-0266','contact@fitpro.com','active'),
+('Relaxation Spa','relaxation-spa','Therapeutic massage and wellness treatments.','www.relaxspa.com','120 Wellness Way','Denver','CO','80204','(303) 555-0277','info@relaxspa.com','active'),
+('Luxury Salon & Spa','luxury-salon-and-spa','Hair, beauty, and spa services.','www.luxurysalon.com','88 Beauty Blvd','New York','NY','10016','(212) 555-0288','contact@luxurysalon.com','active');
 
--- Business Consulting
-(21, 26), -- Peak Performance -> Strategy Consulting
-(22, 27), -- Global Audit -> Financial Auditing
-(23, 28), -- Tax Masters -> Tax Services
-(24, 29), -- Legal Eagle -> Business Law
-(25, 30), -- IP Shield -> IP Law
+-- Plumbing Services (5)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Flow Rite Plumbing Co.','flow-rite-plumbing-co','Cleaning and maintenance of plumbing drains.','www.flowriteplumbing.com','4487 Sunset Boulevard','Los Angeles','CA','90027','(213) 555-0123','service@flowriteplumbing.com','active'),
+('PipeMasters','pipemasters','Installation and repair of plumbing pipes.','www.pipemasters.com','500 Oak Street','Seattle','WA','98101','(206) 555-0134','support@pipemasters.com','active'),
+('GasSafe Installers','gassafe-installers','Installation and maintenance of gas lines.','www.gassafe.com','88 Energy Ave','Houston','TX','77002','(713) 555-0145','contact@gassafe.com','active'),
+('Septic Solutions','septic-solutions','Septic system installation and repair.','www.septicsolutions.com','120 Waste Lane','Denver','CO','80204','(303) 555-0156','info@septicsolutions.com','active'),
+('PlumbRight Industrial','plumbright-industrial','Commercial plumbing services including drains, pipe, gas, and septic.','www.plumbright.com','88 Pipe Lane','Los Angeles','CA','90012','(323) 555-0455','info@plumbright.com','active');
 
--- Marketing Services
-(26, 32), -- Brand Builders -> Digital Marketing
-(27, 33), -- Social Pulse -> Social Media
-(28, 34), -- Content Craft -> Content Creation
-(29, 35), -- SEO Experts -> SEO
-(30, 36), -- AdVantage -> PPC
+-- Electrical Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('BrightWire Electric','brightwire-electric','Electrical wiring and repair for homes.','www.brightwireelectric.com','2211 E Texas Street','Dallas','TX','75201','(214) 555-0198','support@brightwireelectric.com','active'),
+('GenPower Installers','genpower-installers','Backup generator installation and maintenance.','www.genpower.com','300 Generator Blvd','Miami','FL','33137','(305) 555-0167','contact@genpower.com','active'),
+('LightFix Solutions','lightfix-solutions','Indoor and outdoor lighting repair services.','www.lightfix.com','200 Lamp Street','New York','NY','10010','(212) 555-0178','support@lightfix.com','active'),
+('HighVolt Electrical','highvolt-electrical','Industrial and high voltage electrical services including lighting.','www.highvolt.com','55 Power St','Dallas','TX','75201','(214) 555-0466','support@highvolt.com','active');
 
--- Human Resources
-(31, 38), -- Talent Scout -> Recruitment
-(32, 39), -- PayPro -> Payroll
-(33, 40), -- Skill Builder -> Training
-(34, 41), -- Culture Shift -> Org Development
-(35, 42), -- Performance Plus -> Benefits
+-- HVAC Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('AirFlow Solutions HVAC','airflow-solutions-hvac','Installation and maintenance of heating systems.','www.airflowsolutionshvac.com','3301 Biscayne Boulevard','Miami','FL','33137','(305) 555-0110','contact@airflowsolutionshvac.com','active'),
+('CoolBreeze HVAC','coolbreeze-hvac','AC installation, repair, and maintenance.','www.coolbreeze.com','400 Chill Street','Austin','TX','78701','(512) 555-0181','support@coolbreeze.com','active'),
+('FreezeTech Refrigeration','freezetech-refrigeration','Commercial and residential refrigeration services.','www.freezetech.com','88 Ice Lane','Denver','CO','80204','(303) 555-0192','info@freezetech.com','active'),
+('CoolAir HVAC','coolair-hvac','Commercial heating, cooling, and refrigeration services.','www.coolairhvac.com','200 Chill Blvd','Miami','FL','33132','(305) 555-0477','info@coolairhvac.com','active');
 
--- Supply Chain
-(36, 44), -- Global Logistics -> Logistics
-(37, 45), -- FleetMax -> Fleet Management
-(38, 46), -- Warehouse Pro -> Warehouse
-(39, 47), -- Express Ship -> Shipping
-(40, 48), -- Inventory Genius -> Inventory
+-- Carpentry Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Craftsman Carpentry','craftsman-carpentry','Structural framing and carpentry work.','www.craftsmancarpentry.com','845 N Michigan Avenue','Chicago','IL','60611','(312) 555-0181','info@craftsmancarpentry.com','active'),
+('CabinetPro','cabinetpro','Custom cabinets and wood storage solutions.','www.cabinetpro.com','200 Wood Street','Seattle','WA','98101','(206) 555-0202','info@cabinetpro.com','active'),
+('FinishWorks','finishworks','Interior finish carpentry work.','www.finishworks.com','300 Interior Lane','Miami','FL','33132','(305) 555-0213','contact@finishworks.com','active'),
+('MasterCarpentry','mastercarpentry','Commercial carpentry including framing, cabinetry, and finish work.','www.mastercarpentry.com','321 Woodwork Lane','Chicago','IL','60611','(312) 555-0488','contact@mastercarpentry.com','active');
 
--- Financial Services
-(41, 50), -- Capital Growth -> Investment Banking
-(42, 51), -- Venture Bridge -> VC
-(43, 52), -- Wealth Wise -> Wealth Management
-(44, 53), -- Risk Shield -> Insurance
-(45, 54); -- Asset Pro -> Valuation
+-- Masonry Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('StoneCraft Masonry','stonecraft-masonry','Brick masonry construction and repair.','www.stonecraftmasonry.com','180 Congress Street','Boston','MA','02110','(617) 555-0143','contact@stonecraftmasonry.com','active'),
+('RockSolid','rocksolid','Stone masonry and hardscape services.','www.rocksolid.com','88 Granite Ave','Denver','CO','80204','(303) 555-0224','info@rocksolid.com','active'),
+('Concrete Pros','concrete-pros','Concrete installation, repair, and finishing.','www.concretepros.com','120 Cement Street','Chicago','IL','60611','(312) 555-0235','support@concretepros.com','active'),
+('MasonWorks','masonworks','Concrete, brick, and stone masonry services.','www.masonworks.com','101 Stone Ave','Denver','CO','80204','(303) 555-0499','info@masonworks.com','active');
 
--- Add some companies to multiple categories for realistic associations
-INSERT INTO company_service_categories (company_id, category_id) VALUES
--- Handy Helper also does plumbing and electrical
-(3, 6), -- Handy Helper -> Plumbing
-(3, 7), -- Handy Helper -> Electrical
+-- Roofing Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Peak Roofing Solutions','peak-roofing-solutions','Shingle roof installation and repair services.','www.peakroofing.com','1029 Redwood Way','Portland','OR','97205','(503) 555-0142','info@peakroofing.com','active'),
+('MetalMasters','metalmasters','Metal roofing services and installation.','www.metalmasters.com','200 Steel Blvd','Houston','TX','77002','(713) 555-0246','support@metalmasters.com','active'),
+('FlatRoof Solutions','flatroof-solutions','Flat roof construction and maintenance.','www.flatroofsolutions.com','88 Skyline Lane','Los Angeles','CA','90012','(213) 555-0257','info@flatroofsolutions.com','active'),
+('RoofPro Solutions','roofpro-solutions','Flat, metal, and shingle roofing services for commercial buildings.','www.roofpro.com','88 Roofing Rd','Los Angeles','CA','90012','(323) 555-0500','support@roofpro.com','active');
 
--- Tech Support Heroes also does cybersecurity
-(12, 21), -- Tech Support Heroes -> Cybersecurity
+-- Landscaping Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('TreeMight Arborists','treemight-arborists','Tree trimming, pruning, and health services.','www.treemightarborists.com','421 Division Street','Spokane','WA','99201','(509) 555-0195','info@treemight.com','active'),
+('Irrigate Pros','irrigate-pros','Sprinkler and irrigation system installation.','www.irrigatepros.com','120 Sprinkler Lane','Denver','CO','80204','(303) 555-0268','contact@irrigatepros.com','active'),
+('Lawn Masters','lawn-masters','Lawn and turf installation and maintenance.','www.lawnmasters.com','88 Turf Lane','Austin','TX','78701','(512) 555-0279','info@lawnmasters.com','active'),
+('StumpBusters','stumpbusters','Tree stump removal and grinding services.','www.stumpbusters.com','200 Grind Street','Miami','FL','33132','(305) 555-0280','support@stumpbusters.com','active');
 
--- Legal Eagle also does IP Law
-(24, 30), -- Legal Eagle -> IP Law
+-- Legal Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('FamilyFirst Law','familyfirst-law','Legal services for family law matters.','www.familyfirst.com','120 Justice Blvd','New York','NY','10016','(212) 555-0291','contact@familyfirst.com','active'),
+('CrossBorder Immigration Services','crossborder-immigration-services','Immigration legal services and visa assistance.','www.crossborderimmigration.com','3300 Wilshire Blvd','Los Angeles','CA','90010','(323) 555-0111','services@crossborderimmigration.com','active'),
+('EstateWise Planning','estatewise-planning','Wills, trusts, and estate management services.','www.estatewise.com','88 Wealth Lane','Miami','FL','33132','(305) 555-0122','info@estatewise.com','active'),
+('ConsumerProtect','consumerprotect','Protection of consumer rights and dispute resolution.','www.consumerprotect.com','101 Rights Ave','Denver','CO','80204','(303) 555-0133','contact@consumerprotect.com','active');
 
--- Brand Builders also does SEO and PPC
-(26, 35), -- Brand Builders -> SEO
-(26, 36); -- Brand Builders -> PPC
+-- Education Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Bright Futures School','bright-futures-school','Primary, secondary, and high school educational services.','www.brightfutures.com','120 Learning Blvd','Chicago','IL','60611','(312) 555-0144','info@brightfutures.com','active'),
+('SmartTutors','smarttutors','Academic tutoring and test preparation for all ages.','www.smarttutors.com','88 Academic Lane','Boston','MA','02110','(617) 555-0155','contact@smarttutors.com','active'),
+('Little Stars Daycare','little-stars-daycare','Childcare and early learning programs.','www.littlestars.com','200 Childcare Rd','Denver','CO','80204','(303) 555-0166','info@littlestars.com','active'),
+('CareerTech Vocational','careertech-vocational','Vocational training and technical career programs.','www.careertech.com','55 Trade Street','Miami','FL','33132','(305) 555-0177','contact@careertech.com','active');
 
--- Update the autoincrement sequence to prevent ID conflicts
-UPDATE sqlite_sequence 
-SET seq = (SELECT MAX(id) FROM companies) 
-WHERE name = 'companies';
+-- Travel & Hospitality (5)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('City Bites Cafe','city-bites-cafe','Dining and food services.','www.citybites.com','120 Food Lane','New York','NY','10016','(212) 555-0188','contact@citybites.com','active'),
+('Urban Stay Hotels','urban-stay-hotels','Short-term lodging and hospitality services.','www.urbanstay.com','88 Hospitality Ave','Los Angeles','CA','90012','(323) 555-0199','info@urbanstay.com','active'),
+('SkyHigh Airlines','skyhigh-airlines','Air travel and tourism services.','www.skyhighairlines.com','500 Airport Blvd','Miami','FL','33132','(305) 555-0200','support@skyhighairlines.com','active'),
+('FitZone Gym','fitzone-gym','Physical fitness and gym services.','www.fitzone.com','101 Fitness Street','Denver','CO','80204','(303) 555-0211','info@fitzone.com','active'),
+('FunTime Entertainment','funtime-entertainment','Movies, amusement parks, theaters, and live shows.','www.funtime.com','88 Leisure Ave','Chicago','IL','60611','(312) 555-0222','contact@funtime.com','active');
+
+-- Business Insurance (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Secure Commercial Property','secure-commercial-property','Insurance coverage for commercial buildings.','www.secureproperty.com','101 Insurance Blvd','Los Angeles','CA','90012','(323) 555-0178','info@secureproperty.com','active'),
+('Liability Shield','liability-shield','Business liability insurance solutions.','www.liabilityshield.com','88 Protection St','Denver','CO','80204','(303) 555-0189','contact@liabilityshield.com','active'),
+('WorkersComp Experts','workerscomp-experts','Workers compensation insurance services.','www.workerscompexperts.com','55 Safety Rd','Miami','FL','33132','(305) 555-0190','support@workerscompexperts.com','active'),
+('Group Health Solutions','group-health-solutions','Health insurance plans for employees.','www.grouphealth.com','200 Wellness Lane','Chicago','IL','60611','(312) 555-0201','info@grouphealth.com','active');
+
+-- Corporate Legal (5)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('CorporateLaw Partners','corporatelaw-partners','Legal services for corporate entities.','www.corporatelaw.com','120 Legal Ave','New York','NY','10005','(212) 555-0212','info@corporatelaw.com','active'),
+('IP Protectors','ip-protectors','Patent, trademark, and IP legal services.','www.ipprotectors.com','88 Patent St','Boston','MA','02110','(617) 555-0223','contact@ipprotectors.com','active'),
+('ContractLitigation Group','contractlitigation-group','Legal representation in contract disputes.','www.contractlitigation.com','55 Legal Blvd','Chicago','IL','60606','(312) 555-0234','info@contractlitigation.com','active'),
+('Compliance Advisors','compliance-advisors','Business regulatory compliance consulting.','www.complianceadvisors.com','200 Regulation Lane','Miami','FL','33132','(305) 555-0245','support@complianceadvisors.com','active'),
+('M&A Solutions','m-and-a-solutions','Advisory services for mergers and acquisitions.','www.masolutions.com','321 Merger St','New York','NY','10005','(212) 555-0256','contact@masolutions.com','active');
+
+-- Business Consulting (5)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Top Management Consultants','top-management-consultants','Operational efficiency consulting for businesses.','www.topmanagement.com','120 Strategy Blvd','Boston','MA','02110','(617) 555-0267','info@topmanagement.com','active'),
+('Strategic Edge','strategic-edge','Business strategy planning and execution services.','www.strategicedge.com','88 Market Lane','Chicago','IL','60606','(312) 555-0278','contact@strategicedge.com','active'),
+('IT Insight Consulting','it-insight-consulting','IT consulting services for corporate clients.','www.itinsight.com','55 Tech Ave','New York','NY','10005','(212) 555-0289','support@itinsight.com','active'),
+('HR Solutions','hr-solutions','Human resources and personnel management consulting.','www.hrsolutions.com','200 People Street','Miami','FL','33132','(305) 555-0300','info@hrsolutions.com','active'),
+('RiskGuard Advisory','riskguard-advisory','Enterprise risk analysis and mitigation services.','www.riskguard.com','321 Risk Blvd','Denver','CO','80204','(303) 555-0311','contact@riskguard.com','active');
+
+-- IT Services (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Managed IT Pros','managed-it-pros','Managed IT and system administration services.','www.manageditpros.com','101 Tech Lane','San Francisco','CA','94104','(415) 555-0322','support@manageditpros.com','active'),
+('Helpdesk Heroes','helpdesk-heroes','Technical support and helpdesk services.','www.helpdeskheroes.com','88 Support St','Austin','TX','78701','(512) 555-0333','info@helpdeskheroes.com','active'),
+('CloudWorks','cloudworks','Cloud infrastructure management and consulting.','www.cloudworks.com','55 Cloud Ave','Miami','FL','33132','(305) 555-0344','contact@cloudworks.com','active'),
+('CyberShield','cybershield','Corporate cybersecurity services.','www.cybershield.com','200 Security Blvd','Denver','CO','80204','(303) 555-0355','support@cybershield.com','active');
+
+-- Software Development (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('WebApps Co.','webapps-co','Custom web application development.','www.webappsco.com','321 Web Street','Chicago','IL','60611','(312) 555-0366','info@webappsco.com','active'),
+('AppMakers','appmakers','Mobile app development services.','www.appmakers.com','88 Mobile Blvd','Boston','MA','02110','(617) 555-0377','contact@appmakers.com','active'),
+('Enterprise Solutions Inc.','enterprise-solutions-inc','Enterprise software development for large corporations.','www.enterprisesolutions.com','55 Enterprise St','New York','NY','10005','(212) 555-0388','support@enterprisesolutions.com','active'),
+('DataIntel Analytics','dataintel-analytics','Business intelligence and analytics solutions.','www.datainteel.com','120 Data Rd','San Francisco','CA','94104','(415) 555-0399','info@datainteel.com','active');
+
+-- Real Estate & Construction (5)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('LeasePro Commercial','leasepro-commercial','Commercial property leasing and rental services.','www.leasepro.com','101 Property Ave','New York','NY','10005','(212) 555-0400','info@leasepro.com','active'),
+('PropManage Solutions','propmanage-solutions','Management services for commercial and residential properties.','www.propmanage.com','88 Realty Lane','Chicago','IL','60606','(312) 555-0411','contact@propmanage.com','active'),
+('Civic Builders','civic-builders','Civil construction and infrastructure projects.','www.civicbuilders.com','55 Construction Rd','Denver','CO','80204','(303) 555-0422','support@civicbuilders.com','active'),
+('HighRise Constructors','highrise-constructors','Construction of high-rise commercial buildings.','www.highriseconstructors.com','200 Tower Blvd','Miami','FL','33132','(305) 555-0433','info@highriseconstructors.com','active'),
+('Industrial Complex Co.','industrial-complex-co','Construction and management of industrial complexes.','www.industrialcomplex.com','321 Factory St','Houston','TX','77002','(713) 555-0444','contact@industrialcomplex.com','active');
+
+-- Industrial Services (3)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('WeldTech','weldtech','Structural, pipeline, and micro welding services.','www.weldtech.com','55 Metal St','Houston','TX','77002','(713) 555-0511','info@weldtech.com','active'),
+('Machinex','machinex','Metal machining and fabrication services.','www.machinex.com','200 Industrial Blvd','Chicago','IL','60606','(312) 555-0522','contact@machinex.com','active'),
+('CNC Precision','cnc-precision','Precision CNC milling and metal cutting services.','www.cncprecision.com','321 Milling Lane','San Francisco','CA','94104','(415) 555-0533','info@cncprecision.com','active');
+
+-- Marketing & PR (4)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Creative Ads Agency','creative-ads-agency','Advertising and creative marketing services.','www.creativeads.com','120 Marketing Blvd','New York','NY','10005','(212) 555-0544','info@creativeads.com','active'),
+('PR Connect','pr-connect','Public relations and media management services.','www.prconnect.com','88 Media Lane','Chicago','IL','60606','(312) 555-0555','contact@prconnect.com','active'),
+('MarketVision','marketvision','Market research, surveys, and analytics services.','www.marketvision.com','55 Research Rd','Denver','CO','80204','(303) 555-0566','info@marketvision.com','active'),
+('LinguaLocal','lingualocal','Language translation and localization services.','www.lingualocal.com','200 Translation Blvd','Miami','FL','33132','(305) 555-0577','support@lingualocal.com','active');
+
+-- Business Support Services (5)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Notary Express','notary-express','Business notary and document certification services.','www.notaryexpress.com','101 Sign St','New York','NY','10005','(212) 555-0588','info@notaryexpress.com','active'),
+('Virtual Assist Co.','virtual-assist-co','Remote administrative and virtual assistant services.','www.virtualassistco.com','88 Remote Ln','Chicago','IL','60606','(312) 555-0599','contact@virtualassistco.com','active'),
+('CallConnect Solutions','callconnect-solutions','Business call center and customer support services.','www.callconnect.com','55 Support Blvd','Denver','CO','80204','(303) 555-0600','info@callconnect.com','active'),
+('Payroll Experts','payroll-experts','Corporate payroll processing services.','www.payrollexperts.com','200 Pay Lane','Miami','FL','33132','(305) 555-0611','support@payrollexperts.com','active'),
+('Event Travel Co.','event-travel-co','Corporate event planning and travel management.','www.eventtravel.com','321 Event St','New York','NY','10005','(212) 555-0622','contact@eventtravel.com','active');
+
+-- Research & Development (5)
+INSERT INTO companies (name, slug, description, website, address_line1, city, state, zip_code, phone, email, status)
+VALUES
+('Clinical Trials Inc.','clinical-trials-inc','Clinical research and trial management services.','www.clinicaltrials.com','120 Research Blvd','Boston','MA','02110','(617) 555-0633','info@clinicaltrials.com','active'),
+('GeneSeq Labs','geneseq-labs','Genetic sequencing and analysis services.','www.geneseq.com','88 Genome Lane','San Francisco','CA','94104','(415) 555-0644','support@geneseq.com','active'),
+('Material Science Co.','material-science-co','Research and development in materials science.','www.materialscience.com','55 Innovation Rd','Chicago','IL','60606','(312) 555-0655','info@materialscience.com','active'),
+('NanoTech Research','nanotech-research','Research and applications in nanotechnology.','www.nanotech.com','200 Nano Blvd','Boston','MA','02110','(617) 555-0666','contact@nanotech.com','active'),
+('Nuclear Physics Labs','nuclear-physics-labs','Research and consulting in nuclear physics.','www.nuclearphysics.com','321 Atomic Ave','Denver','CO','80204','(303) 555-0677','support@nuclearphysics.com','active');
+
+-- Verification query (should return 115)
+SELECT COUNT(*) as total_companies FROM companies;
