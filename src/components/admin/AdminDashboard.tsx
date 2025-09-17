@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
 	Table, 
 	TableBody, 
@@ -44,7 +45,15 @@ import {
 	Edit, 
 	Loader2,
 	TrendingUp,
-	TrendingDown
+	TrendingDown,
+	UserPlus,
+	UserCheck,
+	MoreHorizontal,
+	Mail,
+	Phone,
+	MapPin,
+	Calendar,
+	ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -323,39 +332,39 @@ export function AdminDashboard() {
 		icon: Icon, 
 		label, 
 		value, 
-		growth 
+		growth,
+		description 
 	}: { 
 		icon: any; 
 		label: string; 
 		value: number; 
 		growth: number;
+		description?: string;
 	}) => (
-		<div className="bg-card rounded-lg border p-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<div className="flex items-center gap-2 text-muted-foreground mb-2">
-						<Icon className="h-5 w-5" />
-						<span className="text-sm font-medium">{label}</span>
-					</div>
-					<div className="text-3xl font-bold">{value}</div>
-				</div>
-				<div className={`flex items-center gap-1 text-sm ${growth > 0 ? 'text-green-600' : growth < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-					{growth > 0 ? (
+		<Card>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle className="text-sm font-medium">{label}</CardTitle>
+				<Icon className="h-4 w-4 text-muted-foreground" />
+			</CardHeader>
+			<CardContent>
+				<div className="text-2xl font-bold">{value.toLocaleString()}</div>
+				<p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+					{growth !== 0 && (
 						<>
-							<TrendingUp className="h-4 w-4" />
-							<span>+{growth}%</span>
+							{growth > 0 ? (
+								<TrendingUp className="h-3 w-3 text-green-500" />
+							) : (
+								<TrendingDown className="h-3 w-3 text-red-500" />
+							)}
+							<span className={growth > 0 ? 'text-green-600' : 'text-red-600'}>
+								{growth > 0 ? '+' : ''}{growth}%
+							</span>
 						</>
-					) : growth < 0 ? (
-						<>
-							<TrendingDown className="h-4 w-4" />
-							<span>{growth}%</span>
-						</>
-					) : (
-						<span>0%</span>
 					)}
-				</div>
-			</div>
-		</div>
+					{description && <span className="ml-1">{description}</span>}
+				</p>
+			</CardContent>
+		</Card>
 	);
 
 	if (loading) {
@@ -368,25 +377,35 @@ export function AdminDashboard() {
 
 	return (
 		<div className="space-y-6">
-			{/* Stats Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+			{/* Stats Overview */}
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				<StatCard 
 					icon={Users} 
 					label="Total Users" 
 					value={stats.totalUsers} 
-					growth={stats.userGrowth} 
+					growth={stats.userGrowth}
+					description="from last month" 
 				/>
 				<StatCard 
-					icon={Activity} 
+					icon={UserCheck} 
 					label="Active Users" 
 					value={stats.activeUsers} 
-					growth={stats.activeGrowth} 
+					growth={stats.activeGrowth}
+					description="from last month" 
 				/>
 				<StatCard 
 					icon={Shield} 
 					label="Super Admins" 
 					value={stats.superAdmins} 
-					growth={stats.adminGrowth} 
+					growth={stats.adminGrowth}
+					description="total admins" 
+				/>
+				<StatCard 
+					icon={UserPlus} 
+					label="New Today" 
+					value={0} 
+					growth={0}
+					description="registrations" 
 				/>
 			</div>
 
@@ -398,24 +417,33 @@ export function AdminDashboard() {
 				</TabsList>
 
 				<TabsContent value="users" className="space-y-4">
-					<div className="bg-card rounded-lg border">
-						<div className="p-4 border-b">
+					<Card>
+						<CardHeader>
 							<div className="flex items-center justify-between">
-								<div className="relative">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-									<Input
-										placeholder="Search..."
-										value={searchTerm}
-										onChange={(e) => setSearchTerm(e.target.value)}
-										className="pl-9 max-w-sm"
-									/>
+								<div>
+									<CardTitle>User Management</CardTitle>
+									<CardDescription>
+										Manage user accounts, roles, and permissions
+									</CardDescription>
 								</div>
-								<Button onClick={() => setCreateModalOpen(true)}>
-									<Plus className="mr-2 h-4 w-4" />
-									Create User
-								</Button>
+								<div className="flex items-center gap-3">
+									<div className="relative">
+										<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+										<Input
+											placeholder="Search users..."
+											value={searchTerm}
+											onChange={(e) => setSearchTerm(e.target.value)}
+											className="pl-9 w-[250px]"
+										/>
+									</div>
+									<Button onClick={() => setCreateModalOpen(true)}>
+										<UserPlus className="mr-2 h-4 w-4" />
+										Create User
+									</Button>
+								</div>
 							</div>
-						</div>
+						</CardHeader>
+						<CardContent className="p-0">
 
 						<Table>
 							<TableHeader>
@@ -429,39 +457,53 @@ export function AdminDashboard() {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{filteredUsers.map((user) => (
-									<TableRow key={user.id}>
-										<TableCell>
-											<div>
-												<div className="font-medium">
-													{user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"}
-												</div>
-												<div className="text-sm text-muted-foreground">
-													{user.email}
-												</div>
-												<div className="flex items-center gap-2 mt-1">
-													{user.emailVerified && (
-														<span className="text-xs text-green-600">✓ Verified</span>
-													)}
-													{user.phone && (
-														<span className="text-xs text-muted-foreground">{user.phone}</span>
-													)}
-												</div>
+								{filteredUsers.length === 0 ? (
+									<TableRow>
+										<TableCell colSpan={6} className="text-center py-8">
+											<div className="text-muted-foreground">
+												{searchTerm ? "No users found matching your search" : "No users found"}
 											</div>
 										</TableCell>
-										<TableCell>
-											<div className="text-sm">
-												{user.city && user.state ? (
-													<>
-														{user.city}, {user.state}
-														<br />
-														<span className="text-muted-foreground">{user.country || "US"}</span>
-													</>
-												) : (
-													<span className="text-muted-foreground">Not provided</span>
-												)}
-											</div>
-										</TableCell>
+									</TableRow>
+								) : (
+									filteredUsers.map((user) => (
+										<TableRow key={user.id} className="hover:bg-muted/50">
+											<TableCell>
+												<div className="flex items-center gap-3">
+													<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+														<Users className="h-5 w-5 text-primary" />
+													</div>
+													<div>
+														<div className="font-medium">
+															{user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"}
+														</div>
+														<div className="flex items-center gap-2 text-sm text-muted-foreground">
+															<Mail className="h-3 w-3" />
+															{user.email}
+															{user.emailVerified && (
+																<Badge variant="secondary" className="text-xs px-1 py-0">
+																	Verified
+																</Badge>
+															)}
+														</div>
+													</div>
+												</div>
+											</TableCell>
+											<TableCell>
+												<div className="flex items-start gap-1 text-sm">
+													<MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+													<div>
+														{user.city && user.state ? (
+															<>
+																<div>{user.city}, {user.state}</div>
+																<div className="text-xs text-muted-foreground">{user.country || "US"}</div>
+															</>
+														) : (
+															<span className="text-muted-foreground">Not provided</span>
+														)}
+													</div>
+												</div>
+											</TableCell>
 										<TableCell>
 											<Badge variant={getStatusBadgeVariant(user.status) as any}>
 												{formatStatus(user.status)}
@@ -475,53 +517,73 @@ export function AdminDashboard() {
 											)}
 										</TableCell>
 										<TableCell>
-											{user.createdAt && user.createdAt !== 'CURRENT_TIMESTAMP' 
-												? new Date(user.createdAt).toLocaleDateString() 
-												: 'N/A'}
+											<div className="flex items-center gap-1 text-sm">
+												<Calendar className="h-3 w-3 text-muted-foreground" />
+												<span>
+													{user.createdAt && user.createdAt !== 'CURRENT_TIMESTAMP' 
+														? new Date(user.createdAt).toLocaleDateString('en-US', { 
+															month: 'short', 
+															day: 'numeric', 
+															year: 'numeric' 
+														}) 
+														: 'N/A'}
+												</span>
+											</div>
 										</TableCell>
 										<TableCell className="text-right">
 											<Button
 												variant="ghost"
-												size="sm"
+												size="icon"
 												onClick={() => handleEditUser(user)}
 											>
-												<Edit className="h-4 w-4" />
-												<span className="ml-2">Edit</span>
+												<MoreHorizontal className="h-4 w-4" />
 											</Button>
 										</TableCell>
 									</TableRow>
-								))}
+									))
+								)}
 							</TableBody>
 						</Table>
-					</div>
+						</CardContent>
+					</Card>
 				</TabsContent>
 
 				<TabsContent value="activity" className="space-y-4">
-					<div className="bg-card rounded-lg border">
-						<div className="p-4 border-b">
-							<div className="relative">
-								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-								<Input
-									placeholder="Search users..."
-									value={activitySearchTerm}
-									onChange={(e) => setActivitySearchTerm(e.target.value)}
-									className="pl-9 max-w-sm"
-								/>
+					<Card>
+						<CardHeader>
+							<div className="flex items-center justify-between">
+								<div>
+									<CardTitle>User Activity Tracking</CardTitle>
+									<CardDescription>
+										Monitor user interactions and system usage
+									</CardDescription>
+								</div>
+								<div className="relative">
+									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+									<Input
+										placeholder="Search users..."
+										value={activitySearchTerm}
+										onChange={(e) => setActivitySearchTerm(e.target.value)}
+										className="pl-9 w-[250px]"
+									/>
+								</div>
 							</div>
-						</div>
-						<ActivityTable 
-							users={usersWithActivity.length > 0 ? usersWithActivity : users.map(user => ({
-								id: user.id,
-								email: user.email,
-								displayName: user.displayName,
-								firstName: user.firstName,
-								lastName: user.lastName,
-								activityCount: 0,
-								lastActivity: null
-							}))}
-							searchTerm={activitySearchTerm}
-						/>
-					</div>
+						</CardHeader>
+						<CardContent>
+							<ActivityTable 
+								users={usersWithActivity.length > 0 ? usersWithActivity : users.map(user => ({
+									id: user.id,
+									email: user.email,
+									displayName: user.displayName,
+									firstName: user.firstName,
+									lastName: user.lastName,
+									activityCount: 0,
+									lastActivity: null
+								}))}
+								searchTerm={activitySearchTerm}
+							/>
+						</CardContent>
+					</Card>
 				</TabsContent>
 			</Tabs>
 
