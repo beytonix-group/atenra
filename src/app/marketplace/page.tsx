@@ -26,7 +26,18 @@ export default async function MarketplacePage() {
 
 	return (
 		<Layout user={session.user}>
-			<MarketplaceContent />
+			<div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+				<div className="max-w-md space-y-4">
+					<h1 className="text-3xl font-bold text-foreground">Marketplace</h1>
+					<div className="text-6xl">🚧</div>
+					<p className="text-lg text-muted-foreground">
+						This page is currently under development.
+					</p>
+					<p className="text-sm text-muted-foreground">
+						Coming soon! We're working hard to bring you an amazing marketplace experience.
+					</p>
+				</div>
+			</div>
 		</Layout>
 	);
 }
