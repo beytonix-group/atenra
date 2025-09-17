@@ -1,12 +1,10 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { ProfileForm } from "@/components/profile/ProfileForm";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { isSuperAdmin } from "@/lib/auth-helpers";
 
 export const runtime = "edge";
 
@@ -22,13 +20,8 @@ export default async function ProfilePage() {
 		redirect("/auth/signin");
 	}
 
-	const isAdmin = await isSuperAdmin();
-	
-	// Use different layout based on user role
-	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
-
 	return (
-		<Layout user={session.user}>
+		<DashboardLayout user={session.user}>
 			<div className="space-y-6">
 				<Suspense fallback={
 					<Card>
@@ -40,6 +33,6 @@ export default async function ProfilePage() {
 					<ProfileForm />
 				</Suspense>
 			</div>
-		</Layout>
+		</DashboardLayout>
 	);
 }

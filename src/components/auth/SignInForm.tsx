@@ -34,6 +34,7 @@ export function SignInForm() {
 			if (result?.error) {
 				setError(t.auth.signIn.errors.invalidCredentials);
 			} else {
+				// Redirect will be handled by middleware based on user role
 				router.push("/");
 			}
 		} catch (error) {

@@ -2,20 +2,17 @@ import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
-import { ProfileForm } from "@/components/profile/ProfileForm";
-import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { MarketplaceContent } from "@/components/marketplace/MarketplaceContent";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
 export const runtime = "edge";
 
 export const metadata = {
-	title: "Profile - Atenra",
-	description: "Manage your account settings and preferences.",
+	title: "Marketplace - Atenra",
+	description: "Browse and discover products and services.",
 };
 
-export default async function ProfilePage() {
+export default async function MarketplacePage() {
 	const session = await auth();
 	
 	if (!session?.user) {
@@ -29,17 +26,7 @@ export default async function ProfilePage() {
 
 	return (
 		<Layout user={session.user}>
-			<div className="space-y-6">
-				<Suspense fallback={
-					<Card>
-						<CardContent className="flex items-center justify-center py-12">
-							<Loader2 className="h-8 w-8 animate-spin" />
-						</CardContent>
-					</Card>
-				}>
-					<ProfileForm />
-				</Suspense>
-			</div>
+			<MarketplaceContent />
 		</Layout>
 	);
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeScript } from "@/lib/theme/theme-script";
 import { Providers } from "@/components/providers";
 import { Toaster } from "sonner";
 import { DynamicFavicon } from "@/components/ui/dynamic-favicon";
@@ -21,10 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <ThemeScript/>
-      </head>
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
           <DynamicFavicon />
