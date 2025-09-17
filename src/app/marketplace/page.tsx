@@ -34,7 +34,7 @@ export default async function MarketplacePage() {
 						This page is currently under development.
 					</p>
 					<p className="text-sm text-muted-foreground">
-						Coming soon! We're working hard to bring you an amazing marketplace experience.
+						Coming soon! We&apos;re working hard to bring you an amazing marketplace experience.
 					</p>
 				</div>
 			</div>
