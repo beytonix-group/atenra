@@ -209,16 +209,23 @@ export const companyUsers = sqliteTable('company_users', {
   companyIdx: index('idx_company_users_company').on(table.companyId),
 }));
 
-export const companyServices = sqliteTable('company_services', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+// This is the actual junction table between companies and service categories
+export const companyServiceCategories = sqliteTable('company_service_categories', {
   companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
-  categoryId: integer('category_id').notNull().references(() => serviceCategories.id),
-  description: text('description'),
-  isActive: integer('is_active').notNull().default(1),
+  categoryId: integer('category_id').notNull().references(() => serviceCategories.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
-  uniqueCompanyCategory: uniqueIndex('unique_company_category').on(table.companyId, table.categoryId),
-  companyIdx: index('idx_company_services_company').on(table.companyId),
-  categoryIdx: index('idx_company_services_category').on(table.categoryId),
+  pk: primaryKey({ columns: [table.companyId, table.categoryId] }),
+  categoryIdx: index('idx_csc_category').on(table.categoryId),
+  companyCreatedIdx: index('idx_csc_company_created_at').on(table.companyId, table.createdAt),
+}));
+
+// Legacy table - kept for compatibility but not used in marketplace
+export const companyServices = sqliteTable('company_services', {
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  serviceId: integer('service_id').notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.companyId, table.serviceId] }),
 }));
 
 // ----------------------------------------------------------
@@ -451,6 +458,7 @@ export const companiesRelations = relations(companies, ({ one, many }) => ({
   }),
   teamMembers: many(companyUsers),
   services: many(companyServices),
+  serviceCategories: many(companyServiceCategories),
   jobRequests: many(userCompanyJobs),
   subscriptions: many(subscriptions),
 }));
@@ -468,6 +476,7 @@ export const companyUsersRelations = relations(companyUsers, ({ one }) => ({
 
 export const serviceCategoriesRelations = relations(serviceCategories, ({ many }) => ({
   companyServices: many(companyServices),
+  companyServiceCategories: many(companyServiceCategories),
   jobs: many(userCompanyJobs),
 }));
 
@@ -476,8 +485,15 @@ export const companyServicesRelations = relations(companyServices, ({ one }) => 
     fields: [companyServices.companyId],
     references: [companies.id],
   }),
+}));
+
+export const companyServiceCategoriesRelations = relations(companyServiceCategories, ({ one }) => ({
+  company: one(companies, {
+    fields: [companyServiceCategories.companyId],
+    references: [companies.id],
+  }),
   category: one(serviceCategories, {
-    fields: [companyServices.categoryId],
+    fields: [companyServiceCategories.categoryId],
     references: [serviceCategories.id],
   }),
 }));

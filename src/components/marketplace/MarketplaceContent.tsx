@@ -1,183 +1,351 @@
-"use client";
+'use client';
 
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  Search, 
-  Filter, 
-  TrendingUp, 
-  Package, 
-  Star, 
-  Download,
-  ArrowRight,
-  Sparkles
-} from "lucide-react";
+import { useState, useEffect, useTransition } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { Building2, MapPin, Globe, Phone, Mail, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { fetchCompanies, fetchServiceCategories, type CompanyWithCategories } from '@/app/marketplace/actions';
 
-export function MarketplaceContent() {
+interface MarketplaceContentProps {
+  initialCompanies?: CompanyWithCategories[];
+  initialCategories?: Array<{ id: number; name: string; description: string | null }>;
+  initialTotalPages?: number;
+}
+
+export function MarketplaceContent({
+  initialCompanies = [],
+  initialCategories = [],
+  initialTotalPages = 1
+}: MarketplaceContentProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+
+  const [companies, setCompanies] = useState<CompanyWithCategories[]>(initialCompanies);
+  const [categories, setCategories] = useState(initialCategories);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Get current filter values from URL
+  const currentPage = Number(searchParams.get('page') || 1);
+  const currentLimit = Number(searchParams.get('limit') || 25);
+  const currentCategory = searchParams.get('category') || '';
+  const currentSort = searchParams.get('sort') || 'createdAt';
+
+  // Load data when URL params change
+  useEffect(() => {
+    loadCompanies();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Load categories on mount if not provided
+  useEffect(() => {
+    if (categories.length === 0) {
+      loadCategories();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const cats = await fetchServiceCategories();
+      setCategories(cats);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
+  const loadCompanies = async () => {
+    startTransition(async () => {
+      try {
+        const result = await fetchCompanies({
+          page: currentPage,
+          limit: currentLimit,
+          categoryId: currentCategory ? Number(currentCategory) : undefined,
+          sortBy: currentSort as 'name' | 'createdAt',
+          sortOrder: 'desc'
+        });
+
+        setCompanies(result.companies);
+        setTotalPages(result.totalPages);
+      } catch (error) {
+        console.error('Error loading companies:', error);
+      }
+    });
+  };
+
+  const updateUrlParams = (params: Record<string, string | null>) => {
+    const newParams = new URLSearchParams(searchParams);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null || value === '') {
+        newParams.delete(key);
+      } else {
+        newParams.set(key, value);
+      }
+    });
+
+    router.push(`/marketplace?${newParams.toString()}`);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    updateUrlParams({ category: value === 'all' ? null : value, page: '1' });
+  };
+
+  const handleLimitChange = (value: string) => {
+    updateUrlParams({ limit: value, page: '1' });
+  };
+
+  const handleSortChange = (value: string) => {
+    updateUrlParams({ sort: value, page: '1' });
+  };
+
+  const handlePageChange = (page: number) => {
+    updateUrlParams({ page: page.toString() });
+  };
+
+  // Filter companies by search term locally
+  const filteredCompanies = companies.filter(company => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      company.name.toLowerCase().includes(term) ||
+      company.description?.toLowerCase().includes(term) ||
+      company.city?.toLowerCase().includes(term) ||
+      company.state?.toLowerCase().includes(term) ||
+      company.categories.some(cat => cat.name.toLowerCase().includes(term))
+    );
+  });
+
   return (
-    <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 gap-2">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search marketplace..."
-              className="pl-9"
-            />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col lg:flex-row gap-4 items-center">
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-xl">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search companies, services, or locations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 h-10 bg-gray-100 border-gray-200 focus:bg-white"
+              />
+            </div>
+
+            {/* Filters */}
+            <div className="flex gap-3 flex-wrap">
+              {/* Category Filter */}
+              <Select value={currentCategory || 'all'} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="w-[180px] h-10 bg-white">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    <SelectValue placeholder="All Categories" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id.toString()}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Sort Filter */}
+              <Select value={currentSort} onValueChange={handleSortChange}>
+                <SelectTrigger className="w-[150px] h-10 bg-white">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="createdAt">Newest First</SelectItem>
+                  <SelectItem value="name">Name (A-Z)</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Items per page */}
+              <Select value={currentLimit.toString()} onValueChange={handleLimitChange}>
+                <SelectTrigger className="w-[120px] h-10 bg-white">
+                  <SelectValue placeholder="25 items" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="25">25 items</SelectItem>
+                  <SelectItem value="50">50 items</SelectItem>
+                  <SelectItem value="75">75 items</SelectItem>
+                  <SelectItem value="100">100 items</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="integrations">Integrations</SelectItem>
-              <SelectItem value="templates">Templates</SelectItem>
-              <SelectItem value="workflows">Workflows</SelectItem>
-              <SelectItem value="analytics">Analytics</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="icon">
-            <Filter className="h-4 w-4" />
-          </Button>
         </div>
-        <Button>
-          <Sparkles className="mr-2 h-4 w-4" />
-          Submit Your App
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Apps
-            </CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+20%</span> from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Installs
-            </CardTitle>
-            <Download className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">45.2K</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+12%</span> from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Top Rated
-            </CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">892</div>
-            <p className="text-xs text-muted-foreground">
-              Apps with 4+ stars
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              New This Week
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">
-              Fresh integrations
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6">
+        {/* Results count */}
+        <div className="mb-4 text-sm text-gray-600">
+          Showing {filteredCompanies.length} of {companies.length} companies
+        </div>
 
-      {/* Featured Section */}
-      <div>
-        <h3 className="mb-4 text-xl font-semibold">Featured Apps</h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600" />
-                    <div>
-                      <CardTitle className="text-base">App Name {i}</CardTitle>
-                      <CardDescription className="text-xs">by Company</CardDescription>
+        {/* Companies Grid */}
+        {isPending ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {Array.from({ length: currentLimit }).map((_, i) => (
+              <Card key={i} className="overflow-hidden">
+                <Skeleton className="h-48 w-full" />
+                <div className="p-4 space-y-2">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredCompanies.map((company) => (
+              <Link key={company.id} href={`/marketplace/${company.id}`}>
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full">
+                  {/* Company Logo Placeholder */}
+                  <div className="h-48 bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center relative">
+                    <Building2 className="h-20 w-20 text-blue-300" />
+                    {company.status === 'pending_verification' && (
+                      <Badge className="absolute top-2 right-2 bg-yellow-100 text-yellow-800">
+                        Pending Verification
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Company Info */}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-lg mb-1 line-clamp-1">
+                      {company.name}
+                    </h3>
+
+                    {/* Location */}
+                    {(company.city || company.state) && (
+                      <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+                        <MapPin className="h-3 w-3" />
+                        <span className="line-clamp-1">
+                          {[company.city, company.state].filter(Boolean).join(', ')}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Description */}
+                    {company.description && (
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {company.description}
+                      </p>
+                    )}
+
+                    {/* Categories */}
+                    {company.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {company.categories.slice(0, 2).map((cat) => (
+                          <Badge key={cat.id} variant="secondary" className="text-xs">
+                            {cat.name}
+                          </Badge>
+                        ))}
+                        {company.categories.length > 2 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{company.categories.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Contact Icons */}
+                    <div className="flex items-center gap-3 text-gray-400">
+                      {company.websiteUrl && (
+                        <Globe className="h-4 w-4" />
+                      )}
+                      {company.phone && (
+                        <Phone className="h-4 w-4" />
+                      )}
+                      {company.email && (
+                        <Mail className="h-4 w-4" />
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">4.8</span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Powerful integration that helps you streamline your workflow and boost productivity.
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
-                    <span className="rounded-full bg-secondary px-2 py-1 text-xs">Integration</span>
-                    <span className="rounded-full bg-secondary px-2 py-1 text-xs">Analytics</span>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    View
-                    <ArrowRight className="ml-1 h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
 
-      {/* Coming Soon Banner */}
-      <Card className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/20">
-        <CardHeader>
-          <CardTitle className="text-xl">🚀 Marketplace Coming Soon!</CardTitle>
-          <CardDescription>
-            We&apos;re building an amazing marketplace where you can discover, share, and monetize 
-            integrations, templates, and workflows. Stay tuned for updates!
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button>
-            Get Early Access
-          </Button>
-        </CardContent>
-      </Card>
+        {/* Empty State */}
+        {!isPending && filteredCompanies.length === 0 && (
+          <div className="text-center py-12">
+            <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-1">No companies found</h3>
+            <p className="text-gray-500">Try adjusting your filters or search terms</p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || isPending}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+
+            {/* Page Numbers */}
+            <div className="flex gap-1">
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+
+                return (
+                  <Button
+                    key={i}
+                    variant={pageNum === currentPage ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handlePageChange(pageNum)}
+                    disabled={isPending}
+                    className="w-10"
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || isPending}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
