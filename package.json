@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "next dev",
-    "dev:d1": "bun run pages:build && bunx wrangler pages dev --port 3000",
+    "dev:d1": "bunx wrangler pages dev --port 3000",
+    "dev:rebuild": "bun run pages:build && bun run dev:d1",
+    "dev:wrangler": "bunx wrangler pages dev --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -45,6 +47,7 @@
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "@t3-oss/env-nextjs": "^0.11.1",
@@ -81,6 +84,6 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vercel": "43.0.0",
-    "wrangler": "^4.37.1"
+    "wrangler": "4.16.1"
   }
 }
