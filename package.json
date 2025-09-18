@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:d1": "bun run pages:build && bunx wrangler pages dev --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -80,6 +81,6 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vercel": "43.0.0",
-    "wrangler": "^4.33.1"
+    "wrangler": "^4.37.1"
   }
 }
