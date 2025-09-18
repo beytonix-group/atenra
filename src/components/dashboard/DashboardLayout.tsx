@@ -18,7 +18,6 @@ import {
   LogOut,
   User,
   Activity,
-  Package,
   CreditCard,
   FileText,
 } from "lucide-react";
@@ -68,12 +67,6 @@ const navigationItems = [
     title: "Analytics",
     href: "/admindashboard/analytics",
     icon: BarChart3,
-    badge: null,
-  },
-  {
-    title: "Products",
-    href: "/admindashboard/products",
-    icon: Package,
     badge: null,
   },
   {
