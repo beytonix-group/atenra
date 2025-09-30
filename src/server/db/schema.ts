@@ -168,8 +168,23 @@ export const serviceCategories = sqliteTable('service_categories', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull().unique(),
   description: text('description'),
+  parentId: integer('parent_id').references((): any => serviceCategories.id),
+  icon: text('icon'),
+  sortOrder: integer('sort_order').default(0),
   isActive: integer('is_active').notNull().default(1),
 });
+
+export const userServicePreferences = sqliteTable('user_service_preferences', {
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  categoryId: integer('category_id').notNull().references(() => serviceCategories.id, { onDelete: 'cascade' }),
+  priority: integer('priority').default(0),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.categoryId] }),
+  userIdx: index('idx_usp_user').on(table.userId),
+  categoryIdx: index('idx_usp_category').on(table.categoryId),
+  userPriorityIdx: index('idx_usp_user_priority').on(table.userId, table.priority),
+}));
 
 export const companies = sqliteTable('companies', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -402,6 +417,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   subscriptions: many(subscriptions),
   usageCounters: many(usageCounters),
 
+  // Service Preferences
+  servicePreferences: many(userServicePreferences),
+
   // RBAC
   rolesAssigned: many(userRoles, { relationName: 'userRole' }),
   roleAssignments: many(userRoles, { relationName: 'assignedByUser' }),
@@ -478,6 +496,18 @@ export const serviceCategoriesRelations = relations(serviceCategories, ({ many }
   companyServices: many(companyServices),
   companyServiceCategories: many(companyServiceCategories),
   jobs: many(userCompanyJobs),
+  userPreferences: many(userServicePreferences),
+}));
+
+export const userServicePreferencesRelations = relations(userServicePreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userServicePreferences.userId],
+    references: [users.id],
+  }),
+  category: one(serviceCategories, {
+    fields: [userServicePreferences.categoryId],
+    references: [serviceCategories.id],
+  }),
 }));
 
 export const companyServicesRelations = relations(companyServices, ({ one }) => ({
@@ -652,3 +682,6 @@ export type NewContentItem = typeof contentItems.$inferInsert;
 
 export type UsageCounter = typeof usageCounters.$inferSelect;
 export type NewUsageCounter = typeof usageCounters.$inferInsert;
+
+export type UserServicePreference = typeof userServicePreferences.$inferSelect;
+export type NewUserServicePreference = typeof userServicePreferences.$inferInsert;
