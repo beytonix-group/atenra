@@ -2,7 +2,7 @@
 
 import { db } from '@/server/db';
 import { companies, serviceCategories, companyServiceCategories } from '@/server/db/schema';
-import { eq, and, sql, desc, asc, inArray } from 'drizzle-orm';
+import { eq, and, sql, desc, asc, inArray, or, like } from 'drizzle-orm';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export type CompanyWithCategories = typeof companies.$inferSelect & {
@@ -18,6 +18,7 @@ interface FetchCompaniesParams {
   categoryId?: number;
   sortBy?: 'name' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
+  search?: string;
 }
 
 export async function fetchCompanies({
@@ -25,20 +26,37 @@ export async function fetchCompanies({
   limit = 25,
   categoryId,
   sortBy = 'createdAt',
-  sortOrder = 'desc'
+  sortOrder = 'desc',
+  search
 }: FetchCompaniesParams = {}) {
   const offset = (page - 1) * limit;
 
   try {
-    // If filtering by category, first get company IDs that have this category
-    let companyIds: number[] | undefined;
+    // Build base query with joins
+    let baseQuery = db
+      .select({
+        company: companies,
+        categoryId: companyServiceCategories.categoryId,
+        categoryName: serviceCategories.name,
+      })
+      .from(companies)
+      .leftJoin(companyServiceCategories, eq(companies.id, companyServiceCategories.companyId))
+      .leftJoin(serviceCategories, eq(companyServiceCategories.categoryId, serviceCategories.id));
+
+    // Build conditions array
+    const conditions = [
+      eq(companies.isPublic, 1),
+      eq(companies.status, 'active')
+    ];
+
+    // Add category filter if specified
     if (categoryId) {
       const companiesWithCategory = await db
         .select({ companyId: companyServiceCategories.companyId })
         .from(companyServiceCategories)
         .where(eq(companyServiceCategories.categoryId, categoryId));
 
-      companyIds = companiesWithCategory.map(c => c.companyId);
+      const companyIds = companiesWithCategory.map(c => c.companyId);
 
       if (companyIds.length === 0) {
         return {
@@ -49,28 +67,57 @@ export async function fetchCompanies({
           totalPages: 0
         };
       }
+
+      conditions.push(inArray(companies.id, companyIds));
     }
 
-    // Build the query with conditions
-    const conditions = [
-      eq(companies.isPublic, 1),
-      eq(companies.status, 'active'),
-      ...(companyIds ? [inArray(companies.id, companyIds)] : [])
-    ];
-
-    const baseQuery = db
-      .select({
-        company: companies,
-        categoryId: companyServiceCategories.categoryId,
-        categoryName: serviceCategories.name,
-      })
-      .from(companies)
-      .leftJoin(companyServiceCategories, eq(companies.id, companyServiceCategories.companyId))
-      .leftJoin(serviceCategories, eq(companyServiceCategories.categoryId, serviceCategories.id))
-      .where(and(...conditions));
+    // Apply base conditions
+    baseQuery = baseQuery.where(and(...conditions));
 
     // Get all matching records to group them
-    const allRecords = await baseQuery;
+    let allRecords = await baseQuery;
+
+    // If search term provided, filter results
+    if (search && search.trim()) {
+      const searchTerm = search.trim().toLowerCase();
+
+      // Group records by company first
+      const companyMap = new Map<number, typeof allRecords>();
+
+      for (const record of allRecords) {
+        const companyId = record.company.id;
+        if (!companyMap.has(companyId)) {
+          companyMap.set(companyId, []);
+        }
+        companyMap.get(companyId)!.push(record);
+      }
+
+      // Filter companies that match search criteria
+      const filteredCompanyIds = new Set<number>();
+
+      for (const [companyId, records] of companyMap) {
+        const company = records[0].company;
+
+        // Check if company fields match
+        const companyMatches =
+          company.name?.toLowerCase().includes(searchTerm) ||
+          company.description?.toLowerCase().includes(searchTerm) ||
+          company.city?.toLowerCase().includes(searchTerm) ||
+          company.state?.toLowerCase().includes(searchTerm);
+
+        // Check if any category matches
+        const categoryMatches = records.some(r =>
+          r.categoryName?.toLowerCase().includes(searchTerm)
+        );
+
+        if (companyMatches || categoryMatches) {
+          filteredCompanyIds.add(companyId);
+        }
+      }
+
+      // Filter allRecords to only include matching companies
+      allRecords = allRecords.filter(r => filteredCompanyIds.has(r.company.id));
+    }
 
     // Group by company
     const companyMap = new Map<number, CompanyWithCategories>();

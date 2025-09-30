@@ -9,16 +9,22 @@ import { trackActivity } from "@/lib/server-activity-tracker";
 export const runtime = "edge";
 
 const updateProfileSchema = z.object({
-  firstName: z.string().min(1).max(30).optional(),
-  lastName: z.string().min(1).max(30).optional(),
-  displayName: z.string().min(1).max(65).optional(),
-  phone: z.string().max(14).optional(), // (XXX) XXX-XXXX format
-  addressLine1: z.string().max(50).optional(),
-  addressLine2: z.string().max(50).optional(),
-  city: z.string().max(50).optional(),
-  state: z.string().max(50).optional(),
-  zipCode: z.string().regex(/^\d{5}$/, "ZIP code must be exactly 5 digits").optional(),
-  country: z.string().max(50).optional(),
+  firstName: z.string().max(30).nullish().transform(val => val || ""),
+  lastName: z.string().max(30).nullish().transform(val => val || ""),
+  displayName: z.string().max(65).nullish().transform(val => val || ""),
+  phone: z.string().max(20).nullish().transform(val => val || ""),
+  addressLine1: z.string().max(50).nullish().transform(val => val || ""),
+  addressLine2: z.string().max(50).nullish().transform(val => val || ""),
+  city: z.string().max(50).nullish().transform(val => val || ""),
+  state: z.string().max(50).nullish().transform(val => val || ""),
+  zipCode: z.union([
+    z.string().regex(/^\d{5}$/, "ZIP code must be exactly 5 digits"),
+    z.string().length(0),
+    z.literal(""),
+    z.null(),
+    z.undefined()
+  ]).transform(val => val || "").optional(),
+  country: z.string().max(50).nullish().transform(val => val || ""),
 });
 
 export async function GET() {
@@ -127,13 +133,17 @@ export async function PATCH(request: NextRequest) {
     });
   } catch (error) {
     console.error("Update profile error:", error);
-    
+
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: "Invalid data"
+      const errorMessages = error.errors.map(err => {
+        return `${err.path.join('.')}: ${err.message}`;
+      }).join(', ');
+
+      return NextResponse.json({
+        error: `Validation error: ${errorMessages}`
       }, { status: 400 });
     }
-    
+
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
