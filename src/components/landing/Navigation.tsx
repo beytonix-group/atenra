@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Menu, X, Sun, Moon, User, LogOut, Settings, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useTheme } from "@/hooks/use-theme";
+import { useTheme } from "next-themes";
 import { LanguageSelector } from "@/components/ui/LanguageSelector";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useSession, signOut } from "next-auth/react";
@@ -18,9 +18,14 @@ export function Navigation() {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
 	const [isAdmin, setIsAdmin] = useState(false);
-	const { theme, toggleTheme, mounted } = useTheme();
+	const { theme, setTheme, resolvedTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
 	const { t } = useLanguage();
 	const { data: session, status } = useSession();
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	useEffect(() => {
 		const checkAdminStatus = async () => {
@@ -77,12 +82,12 @@ export function Navigation() {
 
 					<div className="hidden md:flex items-center space-x-4">
 						<button
-							onClick={toggleTheme}
+							onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
 							className="p-2 rounded-lg hover:bg-muted transition-colors"
 							aria-label="Toggle theme"
 						>
 							{mounted ? (
-								theme === "dark" ? (
+								resolvedTheme === "dark" ? (
 									<Sun className="h-5 w-5" />
 								) : (
 									<Moon className="h-5 w-5" />
@@ -198,12 +203,12 @@ export function Navigation() {
 							<div className="flex items-center justify-between px-3 py-2">
 								<span className="text-sm font-medium">Theme</span>
 								<button
-									onClick={toggleTheme}
+									onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
 									className="p-2 rounded-lg hover:bg-muted transition-colors"
 									aria-label="Toggle theme"
 								>
 									{mounted ? (
-										theme === "dark" ? (
+										resolvedTheme === "dark" ? (
 											<Sun className="h-4 w-4" />
 										) : (
 											<Moon className="h-4 w-4" />
