@@ -18,13 +18,15 @@ interface MarketplaceContentProps {
   initialCategories?: Array<{ id: number; name: string; description: string | null }>;
   initialTotalPages?: number;
   isUsingPreferences?: boolean;
+  defaultCategoryId?: number;
 }
 
 export function MarketplaceContent({
   initialCompanies = [],
   initialCategories = [],
   initialTotalPages = 1,
-  isUsingPreferences = false
+  isUsingPreferences = false,
+  defaultCategoryId
 }: MarketplaceContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,9 +38,11 @@ export function MarketplaceContent({
   const [showingPreferences, setShowingPreferences] = useState(isUsingPreferences);
 
   // Get current filter values from URL
+  // Only use defaultCategoryId if category param is not in URL at all
   const currentPage = Number(searchParams.get('page') || 1);
   const currentLimit = Number(searchParams.get('limit') || 25);
-  const currentCategory = searchParams.get('category') || '';
+  const categoryParam = searchParams.get('category');
+  const currentCategory = categoryParam !== null ? categoryParam : (defaultCategoryId ? String(defaultCategoryId) : '');
   const currentSort = searchParams.get('sort') || 'createdAt';
   const currentSearch = searchParams.get('search') || '';
 
@@ -102,7 +106,7 @@ export function MarketplaceContent({
     const newParams = new URLSearchParams(searchParams);
 
     Object.entries(params).forEach(([key, value]) => {
-      if (value === null || value === '') {
+      if (value === null) {
         newParams.delete(key);
       } else {
         newParams.set(key, value);
@@ -114,7 +118,7 @@ export function MarketplaceContent({
 
   const handleCategoryChange = (value: string) => {
     setShowingPreferences(false); // User manually changed category, not using preferences
-    updateUrlParams({ category: value === 'all' ? null : value, page: '1' });
+    updateUrlParams({ category: value === 'all' ? '' : value, page: '1' });
   };
 
   const handleLimitChange = (value: string) => {

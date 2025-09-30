@@ -41,10 +41,11 @@ export default async function MarketplacePage({
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
 
 	// Get user preferences for default filtering (only for non-admin users)
+	// Only apply preferences if category param is not in URL at all
 	let defaultCategoryId: number | undefined = undefined;
 	let isUsingPreferences = false;
 
-	if (!isAdmin && !searchParams.category && session.user.id) {
+	if (!isAdmin && !('category' in searchParams) && session.user.id) {
 		try {
 			// Get user's database ID
 			const user = await db
@@ -77,7 +78,10 @@ export default async function MarketplacePage({
 	// Parse search params
 	const page = Number(searchParams.page) || 1;
 	const limit = Number(searchParams.limit) || 25;
-	const categoryId = searchParams.category ? Number(searchParams.category) : defaultCategoryId;
+	// Use category from URL if present (even if empty string), otherwise use preference
+	const categoryId = 'category' in searchParams && searchParams.category
+		? Number(searchParams.category)
+		: defaultCategoryId;
 	const sortBy = (searchParams.sort || 'createdAt') as 'name' | 'createdAt';
 	const search = searchParams.search || '';
 
@@ -101,6 +105,7 @@ export default async function MarketplacePage({
 				initialCategories={categories}
 				initialTotalPages={companiesData.totalPages}
 				isUsingPreferences={isUsingPreferences}
+				defaultCategoryId={categoryId}
 			/>
 		</Layout>
 	);
