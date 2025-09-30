@@ -197,7 +197,7 @@ export function MarketplaceContent({
         <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
           {currentSearch && (
             <span>
-              Search results for "{currentSearch}": {companies.length} companies found
+              Search results for &quot;{currentSearch}&quot;: {companies.length} companies found
             </span>
           )}
           {!currentSearch && (

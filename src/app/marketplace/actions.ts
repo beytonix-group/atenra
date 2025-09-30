@@ -32,17 +32,6 @@ export async function fetchCompanies({
   const offset = (page - 1) * limit;
 
   try {
-    // Build base query with joins
-    let baseQuery = db
-      .select({
-        company: companies,
-        categoryId: companyServiceCategories.categoryId,
-        categoryName: serviceCategories.name,
-      })
-      .from(companies)
-      .leftJoin(companyServiceCategories, eq(companies.id, companyServiceCategories.companyId))
-      .leftJoin(serviceCategories, eq(companyServiceCategories.categoryId, serviceCategories.id));
-
     // Build conditions array
     const conditions = [
       eq(companies.isPublic, 1),
@@ -71,8 +60,17 @@ export async function fetchCompanies({
       conditions.push(inArray(companies.id, companyIds));
     }
 
-    // Apply base conditions
-    baseQuery = baseQuery.where(and(...conditions));
+    // Build and execute query
+    const baseQuery = db
+      .select({
+        company: companies,
+        categoryId: companyServiceCategories.categoryId,
+        categoryName: serviceCategories.name,
+      })
+      .from(companies)
+      .leftJoin(companyServiceCategories, eq(companies.id, companyServiceCategories.companyId))
+      .leftJoin(serviceCategories, eq(companyServiceCategories.categoryId, serviceCategories.id))
+      .where(and(...conditions));
 
     // Get all matching records to group them
     let allRecords = await baseQuery;
@@ -95,7 +93,7 @@ export async function fetchCompanies({
       // Filter companies that match search criteria
       const filteredCompanyIds = new Set<number>();
 
-      for (const [companyId, records] of companyMap) {
+      for (const [companyId, records] of Array.from(companyMap)) {
         const company = records[0].company;
 
         // Check if company fields match
