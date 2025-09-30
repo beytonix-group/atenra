@@ -17,12 +17,14 @@ interface MarketplaceContentProps {
   initialCompanies?: CompanyWithCategories[];
   initialCategories?: Array<{ id: number; name: string; description: string | null }>;
   initialTotalPages?: number;
+  isUsingPreferences?: boolean;
 }
 
 export function MarketplaceContent({
   initialCompanies = [],
   initialCategories = [],
-  initialTotalPages = 1
+  initialTotalPages = 1,
+  isUsingPreferences = false
 }: MarketplaceContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -31,6 +33,7 @@ export function MarketplaceContent({
   const [companies, setCompanies] = useState<CompanyWithCategories[]>(initialCompanies);
   const [categories, setCategories] = useState(initialCategories);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [showingPreferences, setShowingPreferences] = useState(isUsingPreferences);
 
   // Get current filter values from URL
   const currentPage = Number(searchParams.get('page') || 1);
@@ -52,6 +55,7 @@ export function MarketplaceContent({
   // Update URL when debounced search changes
   useEffect(() => {
     if (debouncedSearch !== currentSearch) {
+      setShowingPreferences(false); // Hide preferences when searching
       updateUrlParams({ search: debouncedSearch || null, page: '1' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,6 +113,7 @@ export function MarketplaceContent({
   };
 
   const handleCategoryChange = (value: string) => {
+    setShowingPreferences(false); // User manually changed category, not using preferences
     updateUrlParams({ category: value === 'all' ? null : value, page: '1' });
   };
 
@@ -193,6 +198,31 @@ export function MarketplaceContent({
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
+        {/* Preference Filter Indicator */}
+        {showingPreferences && currentCategory && !currentSearch && (
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm text-blue-800 dark:text-blue-200">
+                  Showing results based on your preferences
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowingPreferences(false);
+                  updateUrlParams({ category: null, page: '1' });
+                }}
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+              >
+                View all
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Results count */}
         <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
           {currentSearch && (

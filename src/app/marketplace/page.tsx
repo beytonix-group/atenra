@@ -5,6 +5,9 @@ import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout"
 import { MarketplaceContent } from "@/components/marketplace/MarketplaceContent";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import { fetchCompanies, fetchServiceCategories } from "./actions";
+import { db } from "@/server/db";
+import { users, userServicePreferences } from "@/server/db/schema";
+import { eq, asc } from "drizzle-orm";
 
 export const runtime = "edge";
 
@@ -37,10 +40,44 @@ export default async function MarketplacePage({
 	// Use different layout based on user role
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
 
+	// Get user preferences for default filtering (only for non-admin users)
+	let defaultCategoryId: number | undefined = undefined;
+	let isUsingPreferences = false;
+
+	if (!isAdmin && !searchParams.category && session.user.id) {
+		try {
+			// Get user's database ID
+			const user = await db
+				.select({ id: users.id })
+				.from(users)
+				.where(eq(users.authUserId, session.user.id))
+				.get();
+
+			if (user) {
+				// Get user's top preference (ordered by priority)
+				const topPreference = await db
+					.select({ categoryId: userServicePreferences.categoryId })
+					.from(userServicePreferences)
+					.where(eq(userServicePreferences.userId, user.id))
+					.orderBy(asc(userServicePreferences.priority))
+					.limit(1)
+					.get();
+
+				if (topPreference) {
+					defaultCategoryId = topPreference.categoryId;
+					isUsingPreferences = true;
+				}
+			}
+		} catch (error) {
+			console.error("Failed to fetch user preferences:", error);
+			// Continue without preferences if there's an error
+		}
+	}
+
 	// Parse search params
 	const page = Number(searchParams.page) || 1;
 	const limit = Number(searchParams.limit) || 25;
-	const categoryId = searchParams.category ? Number(searchParams.category) : undefined;
+	const categoryId = searchParams.category ? Number(searchParams.category) : defaultCategoryId;
 	const sortBy = (searchParams.sort || 'createdAt') as 'name' | 'createdAt';
 	const search = searchParams.search || '';
 
@@ -63,6 +100,7 @@ export default async function MarketplacePage({
 				initialCompanies={companiesData.companies}
 				initialCategories={categories}
 				initialTotalPages={companiesData.totalPages}
+				isUsingPreferences={isUsingPreferences}
 			/>
 		</Layout>
 	);
