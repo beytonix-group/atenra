@@ -18,6 +18,7 @@ interface SearchParams {
 	limit?: string;
 	category?: string;
 	sort?: string;
+	search?: string;
 }
 
 export default async function MarketplacePage({
@@ -41,6 +42,7 @@ export default async function MarketplacePage({
 	const limit = Number(searchParams.limit) || 25;
 	const categoryId = searchParams.category ? Number(searchParams.category) : undefined;
 	const sortBy = (searchParams.sort || 'createdAt') as 'name' | 'createdAt';
+	const search = searchParams.search || '';
 
 	// Fetch initial data
 	const [companiesData, categories] = await Promise.all([
@@ -49,7 +51,8 @@ export default async function MarketplacePage({
 			limit,
 			categoryId,
 			sortBy,
-			sortOrder: 'desc'
+			sortOrder: 'desc',
+			search
 		}),
 		fetchServiceCategories()
 	]);
