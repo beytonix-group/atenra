@@ -75,6 +75,7 @@ export const users = sqliteTable('users', {
   country: text('country').notNull().default('US'),
   emailVerified: integer('email_verified').notNull().default(0),
   status: text('status', { enum: ['active', 'suspended', 'deleted'] }).notNull().default('active'),
+  stripeCustomerId: text('stripe_customer_id').unique(),
   createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
@@ -283,6 +284,9 @@ export const plans = sqliteTable('plans', {
   interval: text('interval', { enum: ['month', 'year'] }).notNull(),
   featuresJson: text('features_json'),
   isActive: integer('is_active').notNull().default(1),
+  stripeProductId: text('stripe_product_id').unique(),
+  stripePriceId: text('stripe_price_id').unique(),
+  trialDays: integer('trial_days').default(0),
   createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
@@ -304,12 +308,119 @@ export const subscriptions = sqliteTable('subscriptions', {
   currentPeriodEnd: integer('current_period_end'),
   trialEnd: integer('trial_end'),
   canceledAt: integer('canceled_at'),
+  stripeCheckoutSessionId: text('stripe_checkout_session_id'),
+  cancelAtPeriodEnd: integer('cancel_at_period_end').default(0),
+  canceledReason: text('canceled_reason'),
+  metadata: text('metadata'),
   createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   userIdx: index('idx_subscriptions_user').on(table.userId),
   companyIdx: index('idx_subscriptions_company').on(table.companyId),
   statusIdx: index('idx_subscriptions_status').on(table.status),
+}));
+
+// ----------------------------------------------------------
+// Stripe Payment Methods
+// ----------------------------------------------------------
+
+export const paymentMethods = sqliteTable('payment_methods', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  stripePaymentMethodId: text('stripe_payment_method_id').unique().notNull(),
+  type: text('type', {
+    enum: ['card', 'us_bank_account', 'sepa_debit', 'link', 'paypal']
+  }).notNull(),
+  cardBrand: text('card_brand'),
+  cardLast4: text('card_last4'),
+  cardExpMonth: integer('card_exp_month'),
+  cardExpYear: integer('card_exp_year'),
+  isDefault: integer('is_default').default(0),
+  status: text('status', {
+    enum: ['valid', 'invalid', 'detached']
+  }).default('valid'),
+  fingerprint: text('fingerprint'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  userIdx: index('idx_pm_user').on(table.userId),
+  stripeIdIdx: index('idx_pm_stripe_id').on(table.stripePaymentMethodId),
+  statusIdx: index('idx_pm_status').on(table.status),
+}));
+
+// ----------------------------------------------------------
+// Invoices
+// ----------------------------------------------------------
+
+export const invoices = sqliteTable('invoices', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  subscriptionId: integer('subscription_id').references(() => subscriptions.id, { onDelete: 'set null' }),
+  stripeInvoiceId: text('stripe_invoice_id').unique().notNull(),
+  stripeCustomerId: text('stripe_customer_id').notNull(),
+  amountDue: integer('amount_due').notNull(),
+  amountPaid: integer('amount_paid').notNull(),
+  status: text('status', {
+    enum: ['draft', 'open', 'paid', 'void', 'uncollectible']
+  }).notNull(),
+  hostedInvoiceUrl: text('hosted_invoice_url'),
+  invoicePdf: text('invoice_pdf'),
+  dueDate: integer('due_date'),
+  paidAt: integer('paid_at'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  userIdx: index('idx_inv_user').on(table.userId),
+  subscriptionIdx: index('idx_inv_subscription').on(table.subscriptionId),
+  stripeIdIdx: index('idx_inv_stripe_id').on(table.stripeInvoiceId),
+  statusIdx: index('idx_inv_status').on(table.status),
+}));
+
+// ----------------------------------------------------------
+// Payment Transactions
+// ----------------------------------------------------------
+
+export const paymentTransactions = sqliteTable('payment_transactions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  subscriptionId: integer('subscription_id').references(() => subscriptions.id, { onDelete: 'set null' }),
+  invoiceId: integer('invoice_id').references(() => invoices.id, { onDelete: 'set null' }),
+  stripePaymentIntentId: text('stripe_payment_intent_id').unique(),
+  stripeChargeId: text('stripe_charge_id'),
+  amountCents: integer('amount_cents').notNull(),
+  currency: text('currency').default('usd'),
+  status: text('status', {
+    enum: ['succeeded', 'pending', 'failed', 'canceled', 'refunded']
+  }).notNull(),
+  paymentMethodId: integer('payment_method_id').references(() => paymentMethods.id),
+  failureCode: text('failure_code'),
+  failureMessage: text('failure_message'),
+  metadata: text('metadata'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  userIdx: index('idx_pt_user').on(table.userId),
+  subscriptionIdx: index('idx_pt_subscription').on(table.subscriptionId),
+  statusIdx: index('idx_pt_status').on(table.status),
+}));
+
+// ----------------------------------------------------------
+// Stripe Webhook Events
+// ----------------------------------------------------------
+
+export const stripeWebhookEvents = sqliteTable('stripe_webhook_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  stripeEventId: text('stripe_event_id').unique().notNull(),
+  eventType: text('event_type').notNull(),
+  eventData: text('event_data').notNull(),
+  processed: integer('processed').default(0),
+  processingError: text('processing_error'),
+  receivedAt: integer('received_at').notNull().default(sql`(unixepoch())`),
+  processedAt: integer('processed_at'),
+}, (table) => ({
+  eventIdIdx: index('idx_swe_event_id').on(table.stripeEventId),
+  processedIdx: index('idx_swe_processed').on(table.processed),
+  typeIdx: index('idx_swe_type').on(table.eventType),
 }));
 
 // ----------------------------------------------------------
@@ -416,6 +527,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   // Billing
   subscriptions: many(subscriptions),
   usageCounters: many(usageCounters),
+  paymentMethods: many(paymentMethods),
+  invoices: many(invoices),
+  paymentTransactions: many(paymentTransactions),
 
   // Service Preferences
   servicePreferences: many(userServicePreferences),
@@ -548,7 +662,7 @@ export const plansRelations = relations(plans, ({ many }) => ({
   contentAccess: many(planContentAccess),
 }));
 
-export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+export const subscriptionsRelations = relations(subscriptions, ({ one, many }) => ({
   user: one(users, {
     fields: [subscriptions.userId],
     references: [users.id],
@@ -561,6 +675,8 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     fields: [subscriptions.planId],
     references: [plans.id],
   }),
+  invoices: many(invoices),
+  transactions: many(paymentTransactions),
 }));
 
 export const contentItemsRelations = relations(contentItems, ({ many }) => ({
@@ -649,6 +765,45 @@ export const userActivitiesRelations = relations(userActivities, ({ one }) => ({
   }),
 }));
 
+export const paymentMethodsRelations = relations(paymentMethods, ({ one, many }) => ({
+  user: one(users, {
+    fields: [paymentMethods.userId],
+    references: [users.id],
+  }),
+  transactions: many(paymentTransactions),
+}));
+
+export const invoicesRelations = relations(invoices, ({ one, many }) => ({
+  user: one(users, {
+    fields: [invoices.userId],
+    references: [users.id],
+  }),
+  subscription: one(subscriptions, {
+    fields: [invoices.subscriptionId],
+    references: [subscriptions.id],
+  }),
+  transactions: many(paymentTransactions),
+}));
+
+export const paymentTransactionsRelations = relations(paymentTransactions, ({ one }) => ({
+  user: one(users, {
+    fields: [paymentTransactions.userId],
+    references: [users.id],
+  }),
+  subscription: one(subscriptions, {
+    fields: [paymentTransactions.subscriptionId],
+    references: [subscriptions.id],
+  }),
+  invoice: one(invoices, {
+    fields: [paymentTransactions.invoiceId],
+    references: [invoices.id],
+  }),
+  paymentMethod: one(paymentMethods, {
+    fields: [paymentTransactions.paymentMethodId],
+    references: [paymentMethods.id],
+  }),
+}));
+
 // ----------------------------------------------------------
 // Type Exports for TypeScript Inference
 // ----------------------------------------------------------
@@ -685,3 +840,15 @@ export type NewUsageCounter = typeof usageCounters.$inferInsert;
 
 export type UserServicePreference = typeof userServicePreferences.$inferSelect;
 export type NewUserServicePreference = typeof userServicePreferences.$inferInsert;
+
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type NewPaymentMethod = typeof paymentMethods.$inferInsert;
+
+export type Invoice = typeof invoices.$inferSelect;
+export type NewInvoice = typeof invoices.$inferInsert;
+
+export type PaymentTransaction = typeof paymentTransactions.$inferSelect;
+export type NewPaymentTransaction = typeof paymentTransactions.$inferInsert;
+
+export type StripeWebhookEvent = typeof stripeWebhookEvents.$inferSelect;
+export type NewStripeWebhookEvent = typeof stripeWebhookEvents.$inferInsert;
