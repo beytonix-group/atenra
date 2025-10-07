@@ -44,7 +44,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 			return NextResponse.json({ error: "No active subscription found" }, { status: 404 });
 		}
 
-		if (!subscription.providerSubscriptionId) {
+		if (!subscription.externalSubscriptionId) {
 			return NextResponse.json(
 				{ error: "Subscription does not have a provider subscription ID" },
 				{ status: 400 }
@@ -52,7 +52,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		}
 
 		// Cancel subscription at period end in Stripe
-		const updatedSubscription = await stripe.subscriptions.update(subscription.providerSubscriptionId, {
+		const updatedSubscription = await stripe.subscriptions.update(subscription.externalSubscriptionId, {
 			cancel_at_period_end: true,
 		});
 

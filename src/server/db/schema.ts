@@ -218,7 +218,7 @@ export const companyUsers = sqliteTable('company_users', {
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   role: text('role', { enum: ['owner', 'manager', 'staff'] }).notNull(),
   isDefault: integer('is_default').notNull().default(0),
-  invitedAt: text('invited_at').notNull().default('CURRENT_TIMESTAMP'),
+  invitedAt: text('invited_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
   pk: primaryKey({ columns: [table.companyId, table.userId] }),
   userIdx: index('idx_company_users_user').on(table.userId),
@@ -485,7 +485,7 @@ export const permissions = sqliteTable('permissions', {
 export const userRoles = sqliteTable('user_roles', {
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   roleId: integer('role_id').notNull().references(() => roles.id, { onDelete: 'cascade' }),
-  assignedAt: text('assigned_at').notNull().default('CURRENT_TIMESTAMP'),
+  assignedAt: text('assigned_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   assignedByUserId: integer('assigned_by_user_id').references(() => users.id),
 }, (table) => ({
   pk: primaryKey({ columns: [table.userId, table.roleId] }),

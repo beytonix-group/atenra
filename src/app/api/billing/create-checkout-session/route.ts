@@ -45,23 +45,30 @@ export async function POST(request: Request): Promise<NextResponse> {
 		// Parse request body
 		const body = (await request.json()) as CreateCheckoutSessionBody;
 
+		console.log("Creating checkout session for plan slug:", body.planSlug);
+
 		if (!body.planSlug) {
 			return NextResponse.json({ error: "planSlug is required" }, { status: 400 });
 		}
 
 		// Validate plan slug
 		if (!["essentials", "premium", "executive"].includes(body.planSlug)) {
-			return NextResponse.json({ error: "Invalid plan slug" }, { status: 400 });
+			console.error("Invalid plan slug:", body.planSlug);
+			return NextResponse.json({ error: `Invalid plan slug: ${body.planSlug}` }, { status: 400 });
 		}
 
 		// Get plan from database
 		const plan = await getPlanBySlug(body.planSlug);
 
 		if (!plan) {
-			return NextResponse.json({ error: "Plan not found" }, { status: 404 });
+			console.error("Plan not found in database for slug:", body.planSlug);
+			return NextResponse.json({ error: `Plan not found: ${body.planSlug}` }, { status: 404 });
 		}
 
+		console.log("Found plan:", plan.name, "Price ID:", plan.stripe_price_id);
+
 		if (!plan.stripe_price_id) {
+			console.error("Plan missing Stripe price ID:", plan.name);
 			return NextResponse.json(
 				{ error: "Plan does not have a Stripe price ID configured" },
 				{ status: 400 }

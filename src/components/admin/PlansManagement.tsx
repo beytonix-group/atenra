@@ -35,6 +35,7 @@ interface Plan {
 }
 
 interface EditingPlan {
+	id: number;
 	name: string;
 	price: number;
 	description: string;
@@ -78,6 +79,7 @@ export function PlansManagement() {
 	const openEditDialog = (plan: Plan) => {
 		const features = parseFeatures(plan.features);
 		setEditingPlan({
+			id: plan.id,
 			name: plan.name,
 			price: plan.price,
 			description: plan.description || "",
@@ -101,17 +103,15 @@ export function PlansManagement() {
 		try {
 			setSaving(true);
 
-			// Build request body with only changed fields
+			// Build request body with fields to update
 			const updates: any = {};
 
-			if (editingPlan.price) updates.price = editingPlan.price;
+			if (editingPlan.price !== undefined) updates.price = editingPlan.price;
 			if (editingPlan.description) updates.description = editingPlan.description;
-			if (editingPlan.features.length > 0) updates.features = editingPlan.features;
-			if (editingPlan.stripeProductId) updates.stripeProductId = editingPlan.stripeProductId;
-			if (editingPlan.stripePriceId) updates.stripePriceId = editingPlan.stripePriceId;
-			if (editingPlan.trialDays !== undefined) updates.trialDays = editingPlan.trialDays;
+			if (editingPlan.name) updates.name = editingPlan.name;
+			if (editingPlan.trialDays !== undefined) updates.trial_days = editingPlan.trialDays;
 
-			const response = await fetch(`/api/admin/plans/${encodeURIComponent(editingPlan.name)}`, {
+			const response = await fetch(`/api/admin/plans/${editingPlan.id}`, {
 				method: "PATCH",
 				headers: {
 					"Content-Type": "application/json",
@@ -119,10 +119,10 @@ export function PlansManagement() {
 				body: JSON.stringify(updates),
 			});
 
-			const data = await response.json() as { success?: boolean; error?: string; plan?: Plan };
+			const data = await response.json() as { success?: boolean; error?: string; plan?: Plan; message?: string };
 
 			if (response.ok && data.success) {
-				toast.success(`${editingPlan.name} plan updated successfully`);
+				toast.success(data.message || `${editingPlan.name} plan updated successfully`);
 				setEditDialogOpen(false);
 				setEditingPlan(null);
 				fetchPlans(); // Refresh plans
@@ -302,7 +302,7 @@ export function PlansManagement() {
 					<DialogHeader>
 						<DialogTitle>Edit {editingPlan?.name} Plan</DialogTitle>
 						<DialogDescription>
-							Update plan details, pricing, features, and Stripe integration
+							Update plan details and pricing. Changing the price will automatically create a new Stripe Price and archive the old one.
 						</DialogDescription>
 					</DialogHeader>
 
@@ -389,47 +389,9 @@ export function PlansManagement() {
 
 							{/* Divider */}
 							<div className="border-t pt-4">
-								<h4 className="text-sm font-medium mb-4">Stripe Integration</h4>
+								<h4 className="text-sm font-medium mb-4">Additional Settings</h4>
 
 								<div className="space-y-4">
-									{/* Stripe Product ID */}
-									<div className="space-y-2">
-										<Label htmlFor="stripeProductId">
-											Stripe Product ID{" "}
-											<span className="text-muted-foreground font-normal">(optional)</span>
-										</Label>
-										<Input
-											id="stripeProductId"
-											placeholder="prod_xxxxx"
-											value={editingPlan.stripeProductId}
-											onChange={(e) =>
-												setEditingPlan({
-													...editingPlan,
-													stripeProductId: e.target.value,
-												})
-											}
-										/>
-									</div>
-
-									{/* Stripe Price ID */}
-									<div className="space-y-2">
-										<Label htmlFor="stripePriceId">
-											Stripe Price ID{" "}
-											<span className="text-muted-foreground font-normal">(optional)</span>
-										</Label>
-										<Input
-											id="stripePriceId"
-											placeholder="price_xxxxx"
-											value={editingPlan.stripePriceId}
-											onChange={(e) =>
-												setEditingPlan({
-													...editingPlan,
-													stripePriceId: e.target.value,
-												})
-											}
-										/>
-									</div>
-
 									{/* Trial Days */}
 									<div className="space-y-2">
 										<Label htmlFor="trialDays">Trial Days</Label>
@@ -446,6 +408,29 @@ export function PlansManagement() {
 											}
 										/>
 									</div>
+
+									{/* Stripe Integration Info (Read-only) */}
+									{(editingPlan.stripeProductId || editingPlan.stripePriceId) && (
+										<div className="space-y-2 rounded-lg bg-muted p-4">
+											<div className="text-sm font-medium mb-2">Stripe Integration (Read-only)</div>
+											{editingPlan.stripeProductId && (
+												<div className="space-y-1">
+													<Label className="text-xs text-muted-foreground">Product ID</Label>
+													<div className="font-mono text-xs text-muted-foreground break-all">
+														{editingPlan.stripeProductId}
+													</div>
+												</div>
+											)}
+											{editingPlan.stripePriceId && (
+												<div className="space-y-1">
+													<Label className="text-xs text-muted-foreground">Price ID (automatically updated on price change)</Label>
+													<div className="font-mono text-xs text-muted-foreground break-all">
+														{editingPlan.stripePriceId}
+													</div>
+												</div>
+											)}
+										</div>
+									)}
 								</div>
 							</div>
 						</div>
