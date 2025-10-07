@@ -47,12 +47,6 @@ interface DashboardLayoutProps {
 
 const navigationItems = [
   {
-    title: "Profile",
-    href: "/profile",
-    icon: User,
-    badge: null,
-  },
-  {
     title: "Dashboard",
     href: "/admindashboard",
     icon: LayoutDashboard,
@@ -90,12 +84,20 @@ const navigationItems = [
   },
 ];
 
-const bottomNavigationItems = [
+const settingsMenuItems = [
   {
-    title: "Settings",
-    href: "/admindashboard/settings",
-    icon: Settings,
+    title: "Profile",
+    href: "/profile",
+    icon: User,
   },
+  {
+    title: "Subscription",
+    href: "/admindashboard/subscription",
+    icon: CreditCard,
+  },
+];
+
+const bottomNavigationItems = [
   {
     title: "Help & Support",
     href: "/admindashboard/support",
@@ -204,6 +206,38 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
 
           {/* Bottom Navigation */}
           <div className="border-t p-2">
+            {/* Settings Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                    sidebarCollapsed && "justify-center px-2"
+                  )}
+                >
+                  <Settings className="h-5 w-5 flex-shrink-0" />
+                  {!sidebarCollapsed && <span>Settings</span>}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                side="top"
+                className="w-56 mb-2"
+                sideOffset={8}
+              >
+                {settingsMenuItems.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link href={item.href} className="flex items-center gap-2 cursor-pointer">
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Other Bottom Navigation Items */}
             {bottomNavigationItems.map((item) => {
               const isActive = pathname === item.href;
               return (
