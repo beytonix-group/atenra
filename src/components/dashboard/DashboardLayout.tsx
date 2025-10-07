@@ -20,6 +20,7 @@ import {
   Activity,
   CreditCard,
   FileText,
+  Package,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -73,6 +74,12 @@ const navigationItems = [
     title: "Billing",
     href: "/admindashboard/billing",
     icon: CreditCard,
+    badge: null,
+  },
+  {
+    title: "Plans",
+    href: "/admindashboard/plans",
+    icon: Package,
     badge: null,
   },
   {
