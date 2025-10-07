@@ -173,6 +173,7 @@ export function AdminDashboard() {
 		if (users.length > 0) {
 			fetchUsersWithActivity();
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [users]);
 
 

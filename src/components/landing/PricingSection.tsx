@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Check, Star, Zap, Shield, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -20,8 +21,52 @@ interface PricingTier {
 	buttonVariant?: "default" | "outline" | "ghost";
 }
 
+interface PlanFromDB {
+	id: number;
+	name: string;
+	description: string;
+	price: number;
+	currency: string;
+	billing_period: string;
+	features: string[];
+	trial_days: number;
+}
+
 export function PricingSection() {
 	const { t } = useLanguage();
+	const [plansFromDB, setPlansFromDB] = useState<PlanFromDB[]>([]);
+	const [loading, setLoading] = useState(true);
+
+	// Fetch plans from database on mount
+	useEffect(() => {
+		const fetchPlans = async () => {
+			try {
+				const response = await fetch("/api/plans");
+				const data = await response.json() as { success?: boolean; plans?: PlanFromDB[] };
+
+				if (data.success && data.plans) {
+					setPlansFromDB(data.plans);
+				}
+			} catch (error) {
+				console.error("Error fetching plans:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchPlans();
+	}, []);
+
+	// Helper function to get price from database or fallback to hardcoded
+	const getPlanPrice = (planName: string, fallbackPrice: string): string => {
+		if (loading) return fallbackPrice;
+
+		const dbPlan = plansFromDB.find(
+			p => p.name.toLowerCase() === planName.toLowerCase()
+		);
+
+		return dbPlan ? dbPlan.price.toString() : fallbackPrice;
+	};
 	
 	const pricingTiers: PricingTier[] = [
 		{
@@ -39,7 +84,7 @@ export function PricingSection() {
 			name: t.pricing.tiers.essentials.name,
 			tier: "TIER 3",
 			description: t.pricing.tiers.essentials.description,
-			price: "49",
+			price: getPlanPrice("Essentials", "49"),
 			period: t.pricing.perMonth,
 			icon: Zap,
 			features: t.pricing.tiers.essentials.features,
@@ -52,7 +97,7 @@ export function PricingSection() {
 			name: t.pricing.tiers.premium.name,
 			tier: "TIER 2",
 			description: t.pricing.tiers.premium.description,
-			price: "99",
+			price: getPlanPrice("Premium", "99"),
 			period: t.pricing.perMonth,
 			icon: Shield,
 			features: t.pricing.tiers.premium.features,
@@ -63,7 +108,7 @@ export function PricingSection() {
 			name: t.pricing.tiers.executive.name,
 			tier: "TIER 1",
 			description: t.pricing.tiers.executive.description,
-			price: "199",
+			price: getPlanPrice("Executive", "199"),
 			period: t.pricing.perMonth,
 			icon: Crown,
 			features: t.pricing.tiers.executive.features,
