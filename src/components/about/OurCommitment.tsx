@@ -27,8 +27,6 @@ export function OurCommitment() {
 
 	return (
 		<section ref={sectionRef} className="py-12 md:py-16 relative">
-			{/* Decorative element */}
-			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-transparent via-border to-transparent" />
 
 			<div className="max-w-6xl mx-auto px-4">
 				<div className={`text-center mb-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -41,9 +39,6 @@ export function OurCommitment() {
 					</p>
 				</div>
 			</div>
-
-			{/* Bottom decorative element */}
-			<div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 		</section>
 	);
 }

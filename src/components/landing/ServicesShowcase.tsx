@@ -96,8 +96,6 @@ export function ServicesShowcase() {
 
 	return (
 		<section ref={sectionRef} className="py-20 bg-muted/20 relative">
-			{/* Decorative element */}
-			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-transparent via-border to-transparent" />
 
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className={`text-center mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -152,9 +150,8 @@ export function ServicesShowcase() {
 
 										{/* Expanded Services List */}
 										<div
-											className={`overflow-hidden transition-all duration-500 ease-in-out ${
-												isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-											}`}
+											className={`overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+												}`}
 										>
 											<div className="bg-card p-6 border-t">
 												<ul className="space-y-3">
@@ -189,7 +186,7 @@ export function ServicesShowcase() {
 			</div>
 
 			{/* Decorative element */}
-			<div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-border via-transparent to-transparent" />
+
 		</section>
 	);
 }
