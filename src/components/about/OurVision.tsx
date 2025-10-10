@@ -32,9 +32,6 @@ export function OurVision() {
 			<div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
 			<div className="absolute top-1/3 right-1/4 translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl" />
 
-			{/* Decorative element */}
-			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-transparent via-border to-transparent" />
-
 			<div className="max-w-6xl mx-auto px-4 relative">
 				<div className={`text-center mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 					<h2 className="text-3xl md:text-4xl font-light mb-4">{nt.about.vision.title}</h2>
@@ -68,7 +65,7 @@ export function OurVision() {
 			</div>
 
 			{/* Decorative element */}
-			<div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-border via-transparent to-transparent" />
+
 		</section>
 	);
 }

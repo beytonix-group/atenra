@@ -130,8 +130,6 @@ export function PricingSection() {
 
 	return (
 		<section ref={sectionRef} className="py-12 md:py-16 relative">
-			{/* Decorative element */}
-			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-transparent via-border to-transparent" />
 
 			<div>
 				{/* Header */}
@@ -195,9 +193,9 @@ export function PricingSection() {
 					<div className={cn(
 						"grid gap-8",
 						filteredPlans.length === 1 ? "max-w-md mx-auto" :
-						filteredPlans.length === 2 ? "md:grid-cols-2 max-w-4xl mx-auto" :
-						filteredPlans.length === 3 ? "md:grid-cols-3 max-w-5xl mx-auto" :
-						"md:grid-cols-2 lg:grid-cols-4"
+							filteredPlans.length === 2 ? "md:grid-cols-2 max-w-4xl mx-auto" :
+								filteredPlans.length === 3 ? "md:grid-cols-3 max-w-5xl mx-auto" :
+									"md:grid-cols-2 lg:grid-cols-4"
 					)}>
 						{filteredPlans.map((plan) => {
 							const Icon = getPlanIcon(plan);
@@ -303,7 +301,7 @@ export function PricingSection() {
 			</div>
 
 			{/* Decorative element */}
-			<div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-border via-transparent to-transparent" />
+
 		</section>
 	);
 }

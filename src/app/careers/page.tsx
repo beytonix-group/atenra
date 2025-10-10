@@ -86,7 +86,7 @@ export default function CareersPage() {
 						{nt.careers.hero.subtitle}
 					</p>
 				</div>
-				<div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-border via-transparent to-transparent" />
+
 			</div>
 
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -117,8 +117,6 @@ export default function CareersPage() {
 
 				{/* Explore Opportunities */}
 				<div ref={section3Ref} className="mb-20 bg-muted/20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-16 relative">
-					<div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-transparent via-border to-transparent" />
-
 					<div className={`text-center mb-12 transition-all duration-700 ${isVisible3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 						<h2 className="text-4xl font-light mb-4">{nt.careers.opportunities.title}</h2>
 						<p className="text-lg text-muted-foreground leading-loose max-w-2xl mx-auto">
@@ -148,7 +146,7 @@ export default function CareersPage() {
 						</Button>
 					</div>
 
-					<div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-border via-transparent to-transparent" />
+
 				</div>
 
 				{/* Team Culture Section */}
