@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "sonner";
 import { DynamicFavicon } from "@/components/ui/dynamic-favicon";
+import { SplashScreen } from "@/components/ui/SplashScreen";
 
 export const runtime = 'edge';
 
@@ -24,9 +25,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <DynamicFavicon />
-          {children}
-          <Toaster 
-            richColors 
+          <SplashScreen>
+            {children}
+          </SplashScreen>
+          <Toaster
+            richColors
             position="top-right"
             toastOptions={{
               style: {

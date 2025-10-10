@@ -1,19 +1,39 @@
 "use client";
 
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+
 interface LogoProps {
   className?: string;
   size?: number;
 }
 
-export function Logo({ className = "h-10 w-10", size = 40 }: LogoProps) {
-  // Simple img tag that uses CSS classes for theme handling
+export function Logo({ className = "h-10 w-auto", size = 40 }: LogoProps) {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return <div className={className} style={{ height: size }} />;
+  }
+
+  const logoSrc = resolvedTheme === "dark"
+    ? "/logos/Icon_Shadow_White.png"
+    : "/logos/Icon_Shadow_Blue.png";
+
   return (
-    <img
-      src="/logos/tiered_crest_black.svg"
+    <Image
+      src={logoSrc}
       alt="Atenra Logo"
       width={size}
       height={size}
-      className={`dark:invert ${className}`}
+      className={`${className} object-contain`}
+      priority
     />
   );
 }

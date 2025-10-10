@@ -25,7 +25,7 @@ export function CTASection() {
 							variant="secondary"
 							className="text-lg px-8 py-6 font-light hover:scale-105 transition-transform"
 						>
-							{t.hero.getStartedFree}
+							{t.hero.getStarted}
 							<ArrowRight className="ml-2 h-5 w-5" />
 						</Button>
 					</Link>

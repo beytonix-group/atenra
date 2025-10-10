@@ -1,69 +1,48 @@
 "use client";
 
-import Link from "next/link";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { Twitter, Instagram, Linkedin } from "lucide-react";
 
 const socialLinks = [
-	{ name: "X", href: "https://x.com/atenra" },
-	{ name: "TikTok", href: "https://tiktok.com/@atenra" },
-	{ name: "Instagram", href: "https://instagram.com/atenra" },
-	{ name: "LinkedIn", href: "https://linkedin.com/company/atenra" },
-	{ name: "Facebook", href: "https://facebook.com/atenra" }
-];
-
-const contactInfo = [
-	{ label: "General", email: "info@atenra.com" },
-	{ label: "Support", email: "support@atenra.com" },
-	{ label: "Media", email: "media@atenra.com" }
+	{ name: "X", href: "https://x.com/atenra", icon: Twitter },
+	{ name: "TikTok", href: "https://tiktok.com/@atenra", icon: null },
+	{ name: "Instagram", href: "https://instagram.com/atenra", icon: Instagram },
+	{ name: "LinkedIn", href: "https://linkedin.com/company/atenra", icon: Linkedin },
 ];
 
 export function FooterSection() {
-	const { t } = useLanguage();
 	return (
-		<footer className="py-20 border-t">
-			<div className="max-w-4xl mx-auto">
-				<div className="w-full h-px bg-border/20 mb-16" />
-				
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
-					<div className="space-y-6">
-						<h4 className="text-xl font-light">{t.footer.contact}</h4>
-						<div className="space-y-3 text-muted-foreground font-light">
-							{contactInfo.map((item) => (
-								<div key={item.label} className="transition-opacity hover:opacity-80">
-									{item.label}:{" "}
-									<a
-										href={`mailto:${item.email}`}
-										className="text-primary hover:opacity-70 transition-opacity"
+		<footer className="py-16 border-t">
+			<div className="max-w-4xl mx-auto px-4">
+				<div className="text-center space-y-6">
+					<p className="text-sm text-muted-foreground font-light">
+						© 2025 Atenra — Built for transparency.
+					</p>
+
+					<div className="flex justify-center items-center gap-6">
+						{socialLinks.map((link) => (
+							<a
+								key={link.name}
+								href={link.href}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-muted-foreground hover:text-primary transition-colors"
+								aria-label={link.name}
+							>
+								{link.icon ? (
+									<link.icon className="h-5 w-5" />
+								) : (
+									<svg
+										className="h-5 w-5"
+										viewBox="0 0 24 24"
+										fill="currentColor"
+										xmlns="http://www.w3.org/2000/svg"
 									>
-										{item.email}
-									</a>
-								</div>
-							))}
-						</div>
+										<path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" />
+									</svg>
+								)}
+							</a>
+						))}
 					</div>
-
-					<div className="space-y-6 text-center md:text-right">
-						<h4 className="text-xl font-light">{t.footer.connect}</h4>
-						<div className="flex flex-wrap justify-center md:justify-end gap-6">
-							{socialLinks.map((link) => (
-								<a
-									key={link.name}
-									href={link.href}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="text-muted-foreground hover:text-primary transition-colors font-light hover:scale-105"
-								>
-									{link.name}
-								</a>
-							))}
-						</div>
-					</div>
-				</div>
-
-				<div className="w-full h-px bg-border/20 mb-8" />
-
-				<div className="text-center text-sm text-muted-foreground">
-					<p className="font-light opacity-70">{t.footer.copyright}</p>
 				</div>
 			</div>
 		</footer>

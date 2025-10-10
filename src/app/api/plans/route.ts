@@ -21,29 +21,42 @@ export async function GET() {
 			);
 		}
 
-		// Fetch all active plans, ordered by price
+		// Fetch all active plans, ordered by plan_type and price
 		const result = await d1Database
 			.prepare(`
 				SELECT
 					id,
 					name,
+					plan_type,
+					tagline,
 					description,
+					detailed_description,
 					price,
 					currency,
 					billing_period,
+					quick_view_json,
+					industries_json,
 					features,
-					trial_days
+					trial_days,
+					is_invite_only,
+					has_promotion,
+					promotion_percent_off,
+					promotion_months,
+					has_refund_guarantee
 				FROM plans
 				WHERE is_active = 1
-				ORDER BY price ASC;
+				ORDER BY
+					CASE plan_type
+						WHEN 'student' THEN 1
+						WHEN 'regular' THEN 2
+						WHEN 'business' THEN 3
+					END,
+					price ASC;
 			`)
 			.all();
 
-		// Parse features JSON for each plan
-		const plans = result.results.map((plan: any) => ({
-			...plan,
-			features: plan.features ? JSON.parse(plan.features) : []
-		}));
+		// Return plans as-is (JSON parsing handled on frontend)
+		const plans = result.results;
 
 		return NextResponse.json({
 			success: true,

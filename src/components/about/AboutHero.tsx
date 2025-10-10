@@ -3,17 +3,17 @@
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function AboutHero() {
-	const { t } = useLanguage();
-	
+	const { nt } = useLanguage();
+
 	return (
-		<section className="py-12 md:py-16 text-center">
+		<section className="py-8 md:py-12 text-center">
 			<div className="max-w-4xl mx-auto px-4">
-				<h1 className="text-5xl md:text-6xl lg:text-7xl font-light mb-8">
-					{t.about.title}
+				<h1 className="text-4xl md:text-5xl lg:text-6xl font-light mb-4">
+					{nt.about.hero.title}
 				</h1>
-				
-				<p className="text-xl md:text-2xl text-muted-foreground font-light leading-relaxed max-w-3xl mx-auto">
-					{t.about.mission}
+
+				<p className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-3xl mx-auto">
+					{nt.about.hero.subtitle}
 				</p>
 			</div>
 		</section>
