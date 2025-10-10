@@ -40,6 +40,10 @@ export function PricingSection() {
 				const response = await fetch("/api/plans");
 				const data = await response.json() as { success?: boolean; plans?: PlanFromDB[] };
 
+				console.log("API Response:", data);
+				console.log("Plans data:", data.plans);
+				console.log("Plans count:", data.plans?.length);
+
 				if (data.success && data.plans) {
 					setPlans(data.plans);
 				}
@@ -53,8 +57,12 @@ export function PricingSection() {
 		fetchPlans();
 	}, []);
 
-	// Filter plans by selected type
-	const filteredPlans = plans.filter(plan => plan.plan_type === selectedType && !plan.is_invite_only);
+	// Filter plans by selected type (include invite-only plans)
+	const filteredPlans = plans.filter(plan => plan.plan_type === selectedType);
+
+	console.log("Selected Type:", selectedType);
+	console.log("Filtered Plans:", filteredPlans);
+	console.log("Filtered Plans count:", filteredPlans.length);
 
 	// Parse JSON fields
 	const parseQuickView = (plan: PlanFromDB): string[] => {
@@ -235,7 +243,7 @@ export function PricingSection() {
 										</Button>
 									</Link>
 
-									{plan.is_invite_only && (
+									{plan.is_invite_only === 1 && (
 										<p className="text-xs text-center text-muted-foreground mt-3">
 											Invite only
 										</p>
