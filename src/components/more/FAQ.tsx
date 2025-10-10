@@ -6,31 +6,8 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import Link from "next/link";
 
-const faqs = [
-	{
-		question: "How does Atenra's matching process work?",
-		answer: "We analyze your request, verify professionals in real time, then combine human insight and AI to find the ideal match."
-	},
-	{
-		question: "How quickly will I be matched?",
-		answer: "Usually within minutes, depending on service type and location."
-	},
-	{
-		question: "What makes Atenra different?",
-		answer: "Every match is human-reviewed, privacy-protected, and focused on long-term trust."
-	},
-	{
-		question: "What if I'm not satisfied?",
-		answer: "We'll reassess, reassign, or refund — depending on your plan."
-	},
-	{
-		question: "Is my personal information secure?",
-		answer: "Yes — we use full encryption, internal-only handling, and never sell data."
-	}
-];
-
 export function FAQ() {
-	const { t } = useLanguage();
+	const { nt } = useLanguage();
 	const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
 	const [isVisible, setIsVisible] = useState(false);
 	const sectionRef = useRef<HTMLDivElement>(null);
@@ -67,7 +44,7 @@ export function FAQ() {
 			{/* Main FAQ Section */}
 			<div className="lg:col-span-2">
 				<div className="space-y-4">
-					{faqs.map((faq, index) => {
+					{nt.faq.questions.map((faq, index) => {
 						const isExpanded = expandedItems.has(index);
 						return (
 							<div
@@ -107,48 +84,31 @@ export function FAQ() {
 			<div className={`space-y-6 transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 				{/* Legal & Privacy */}
 				<div className="rounded-lg border bg-card p-6">
-					<h3 className="text-lg font-semibold mb-4">Legal & Privacy</h3>
+					<h3 className="text-lg font-semibold mb-4">{nt.faq.sidebar.legal.title}</h3>
 					<div className="space-y-3">
-						<Link href="/terms" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-							→ Terms of Service
-						</Link>
-						<Link href="/privacy" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-							→ Privacy Policy
-						</Link>
-						<Link href="/refund" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-							→ Refund / Guarantee Policy
-						</Link>
-						<Link href="/business-agreement" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-							→ Business Agreement
-						</Link>
+						{nt.faq.sidebar.legal.links.map((link) => (
+							<Link key={link.href} href={link.href} className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+								→ {link.label}
+							</Link>
+						))}
 					</div>
 				</div>
 
 				{/* Features */}
 				<div className="rounded-lg border bg-gradient-to-br from-primary/5 to-background p-6">
-					<h3 className="text-lg font-semibold mb-4">Features</h3>
+					<h3 className="text-lg font-semibold mb-4">{nt.faq.sidebar.features.title}</h3>
 					<div className="space-y-3">
-						<div className="flex items-start gap-3">
-							<MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-							<div className="text-sm">
-								<span className="font-medium">UAE HQ</span>
-								<p className="text-muted-foreground">for maximum privacy</p>
+						{nt.faq.sidebar.features.items.map((feature, index) => (
+							<div key={index} className="flex items-start gap-3">
+								{index === 0 && <MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />}
+								{index === 1 && <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />}
+								{index === 2 && <Lock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />}
+								<div className="text-sm">
+									<span className="font-medium">{feature.title}</span>
+									<p className="text-muted-foreground">{feature.description}</p>
+								</div>
 							</div>
-						</div>
-						<div className="flex items-start gap-3">
-							<Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-							<div className="text-sm">
-								<span className="font-medium">Zero data trading/selling</span>
-								<p className="text-muted-foreground">Your data stays yours</p>
-							</div>
-						</div>
-						<div className="flex items-start gap-3">
-							<Lock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-							<div className="text-sm">
-								<span className="font-medium">Secure global 2FA</span>
-								<p className="text-muted-foreground">Multi-layer protection</p>
-							</div>
-						</div>
+						))}
 					</div>
 				</div>
 			</div>

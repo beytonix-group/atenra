@@ -8,6 +8,8 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
 export function HeroSection() {
+	const { nt } = useLanguage();
+
 	return (
 		<div className="relative min-h-screen flex items-center justify-center overflow-hidden">
 			{/* Adaptive Background */}
@@ -27,17 +29,17 @@ export function HeroSection() {
 					{/* Headline */}
 					<div className="space-y-4">
 						<h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extralight tracking-tight">
-							Atenra
+							{nt.hero.title}
 						</h1>
 
 						{/* Tagline */}
 						<p className="text-xl md:text-2xl lg:text-3xl text-foreground font-light mt-4 max-w-3xl mx-auto">
-							Your Personal & Business Assistant, On Demand
+							{nt.hero.tagline}
 						</p>
 
 						{/* Subheadline */}
 						<p className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-3xl mx-auto">
-							Discover trusted professionals through intelligent matching — where technology meets genuine human insight.
+							{nt.hero.subheadline}
 						</p>
 					</div>
 				</div>
@@ -45,9 +47,8 @@ export function HeroSection() {
 				{/* Body Copy */}
 				<div className="space-y-6 animate-fade-in-up animation-delay-200 max-w-4xl mx-auto">
 					<p className="text-lg md:text-xl text-muted-foreground font-light leading-loose">
-						At Atenra, every connection is <span className="text-foreground font-medium">hand-verified, thoughtfully matched, and designed to make your life easier</span>.
-						Whether it&apos;s managing your business, your home, or your next big project — we connect you with professionals
-						who deliver results.
+						{nt.hero.bodyText} <span className="text-foreground font-medium">{nt.hero.bodyHighlight}</span>.
+						{nt.hero.bodyText2}
 					</p>
 				</div>
 
@@ -55,13 +56,13 @@ export function HeroSection() {
 				<div className="flex flex-col sm:flex-row gap-4 justify-center pt-8 animate-fade-in-up animation-delay-400">
 					<Link href="/pricing?type=regular">
 						<Button size="lg" className="text-lg px-8 py-6 font-light hover:scale-105 transition-all shadow-lg hover:shadow-xl">
-							Get Started
+							{nt.hero.ctaPrimary}
 							<ArrowRight className="ml-2 h-5 w-5" />
 						</Button>
 					</Link>
 					<Link href="/pricing?type=business">
 						<Button size="lg" variant="outline" className="text-lg px-8 py-6 font-light hover:scale-105 transition-all">
-							Partner With Us
+							{nt.hero.ctaSecondary}
 						</Button>
 					</Link>
 				</div>
@@ -70,11 +71,11 @@ export function HeroSection() {
 				<div className="pt-12 flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
 					<div className="flex items-center gap-2">
 						<div className="h-2 w-2 rounded-full bg-green-500" />
-						<span>1000+ Verified Professionals</span>
+						<span>{nt.hero.trustBadge1}</span>
 					</div>
 					<div className="flex items-center gap-2">
 						<div className="h-2 w-2 rounded-full bg-blue-500" />
-						<span>20+ Service Categories</span>
+						<span>{nt.hero.trustBadge2}</span>
 					</div>
 				</div>
 			</div>

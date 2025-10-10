@@ -13,10 +13,15 @@ export interface Translations {
   hero: {
     title: string;
     subtitle: string;
-    description: string;
-    mainDescription: string;
-    getStartedFree: string;
+    tagline: string;
+    subheadline: string;
+    bodyText: string;
+    getStarted: string;
     partnerWithUs: string;
+    trustIndicators: {
+      professionals: string;
+      categories: string;
+    };
   };
   pricing: {
     title: string;
@@ -59,32 +64,101 @@ export interface Translations {
     };
   };
   about: {
-    title: string;
-    mission: string;
-    ourStory: string;
-    foundedOnTrust: {
+    hero: {
       title: string;
-      description: string;
+      subtitle: string;
     };
-    humanFirst: {
+    story: {
       title: string;
-      description: string;
+      content: string;
+      highlight: string;
     };
-    ourValues: string;
     values: {
-      privacy: { title: string; description: string };
-      human: { title: string; description: string };
-      efficiency: { title: string; description: string };
-      reliability: { title: string; description: string };
+      title: string;
+      items: {
+        privacy: { title: string; description: string };
+        human: { title: string; description: string };
+        reliability: { title: string; description: string };
+        efficiency: { title: string; description: string };
+        growth: { title: string; description: string };
+      };
     };
-    supportedServices: string;
-    services: {
-      home: { title: string; description: string };
-      logistics: { title: string; description: string };
-      wellness: { title: string; description: string };
-      vehicle: { title: string; description: string };
-      professional: { title: string; description: string };
-      more: { title: string; description: string };
+    mission: {
+      title: string;
+      content: string;
+      highlight: string;
+    };
+    vision: {
+      title: string;
+      principle: string;
+      principleHighlight: string;
+      belief: string;
+      worldTitle: string;
+      points: string[];
+    };
+    commitment: {
+      title: string;
+      content: string;
+      highlight: string;
+    };
+  };
+  industries: {
+    title: string;
+    subtitle: string;
+    subtitleHighlight: string;
+    viewAll: string;
+    categories: {
+      home: { title: string; services: string[] };
+      logistics: { title: string; services: string[] };
+      wellness: { title: string; services: string[] };
+      professional: { title: string; services: string[] };
+      tech: { title: string; services: string[] };
+    };
+    servicesCount: string;
+  };
+  careers: {
+    hero: {
+      title: string;
+      subtitle: string;
+      subtitleHighlight: string;
+    };
+    about: {
+      title: string;
+      content: string;
+      highlight: string;
+    };
+    offer: {
+      title: string;
+      benefits: string[];
+    };
+    opportunities: {
+      title: string;
+      subtitle: string;
+      subtitleHighlight: string;
+      cta: string;
+      departments: string[];
+    };
+    culture: {
+      title: string;
+      quote: string;
+      quoteHighlight: string;
+    };
+  };
+  faq: {
+    title: string;
+    subtitle: string;
+    subtitleHighlight: string;
+    questions: Array<{ q: string; a: string }>;
+    sidebar: {
+      legalTitle: string;
+      terms: string;
+      privacy: string;
+      refund: string;
+      business: string;
+      featuresTitle: string;
+      uae: { title: string; desc: string };
+      noSelling: { title: string; desc: string };
+      twoFa: { title: string; desc: string };
     };
   };
   contact: {
@@ -223,11 +297,16 @@ export const translations: Record<string, Translations> = {
     },
     hero: {
       title: "Atenra",
-      subtitle: "Begin Your Referral Journey",
-      description: "Exceptional service matching powered by intelligent technology and genuine human expertise.",
-      mainDescription: "Our human-guided platform transforms how you discover trusted businesses. Every connection is thoughtfully curated, professionally verified, and personally endorsed to ensure your complete satisfaction.",
-      getStartedFree: "Get Started Free",
-      partnerWithUs: "Partner With Us"
+      subtitle: "Atenra",
+      tagline: "Your Personal & Business Assistant, On Demand",
+      subheadline: "Discover trusted professionals through intelligent matching — where technology meets genuine human insight.",
+      bodyText: "At Atenra, every connection is hand-verified, thoughtfully matched, and designed to make your life easier. Whether it's managing your business, your home, or your next big project — we connect you with professionals who deliver results.",
+      getStarted: "Get Started",
+      partnerWithUs: "Partner With Us",
+      trustIndicators: {
+        professionals: "1000+ Verified Professionals",
+        categories: "20+ Service Categories"
+      }
     },
     pricing: {
       title: "Simple, transparent pricing",

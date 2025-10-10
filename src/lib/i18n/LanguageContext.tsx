@@ -2,11 +2,13 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { translations, Translations, LanguageCode } from "./translations";
+import { newTranslations, NewTranslations } from "./new-translations";
 
 interface LanguageContextType {
   language: LanguageCode;
   setLanguage: (lang: LanguageCode) => void;
   t: Translations;
+  nt: NewTranslations;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -38,7 +40,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const value = {
     language,
     setLanguage,
-    t: translations[language]
+    t: translations[language],
+    nt: newTranslations[language]
   };
 
   return (

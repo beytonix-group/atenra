@@ -2,44 +2,46 @@
 
 import { Shield, Users, CheckCircle, Zap, TrendingUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function OurValues() {
+	const { nt } = useLanguage();
 	const [isVisible, setIsVisible] = useState(false);
 	const sectionRef = useRef<HTMLElement>(null);
 
 	const values = [
 		{
 			icon: Shield,
-			title: "Privacy First",
-			description: "Your data stays yours. Always.",
+			title: nt.about.values.items[0].title,
+			description: nt.about.values.items[0].description,
 			color: "from-blue-500/10 to-blue-600/10",
 			iconColor: "text-blue-600 dark:text-blue-400"
 		},
 		{
 			icon: Users,
-			title: "Human Insight",
-			description: "Real people guiding every match.",
+			title: nt.about.values.items[1].title,
+			description: nt.about.values.items[1].description,
 			color: "from-purple-500/10 to-purple-600/10",
 			iconColor: "text-purple-600 dark:text-purple-400"
 		},
 		{
 			icon: CheckCircle,
-			title: "Reliability",
-			description: "Consistent quality you can depend on.",
+			title: nt.about.values.items[2].title,
+			description: nt.about.values.items[2].description,
 			color: "from-green-500/10 to-green-600/10",
 			iconColor: "text-green-600 dark:text-green-400"
 		},
 		{
 			icon: Zap,
-			title: "Efficiency",
-			description: "Results delivered in minutes, not days.",
+			title: nt.about.values.items[3].title,
+			description: nt.about.values.items[3].description,
 			color: "from-yellow-500/10 to-yellow-600/10",
 			iconColor: "text-yellow-600 dark:text-yellow-400"
 		},
 		{
 			icon: TrendingUp,
-			title: "Growth",
-			description: "Your success unlocks ours.",
+			title: nt.about.values.items[4].title,
+			description: nt.about.values.items[4].description,
 			color: "from-orange-500/10 to-orange-600/10",
 			iconColor: "text-orange-600 dark:text-orange-400"
 		}
@@ -69,7 +71,7 @@ export function OurValues() {
 
 			<div className="max-w-6xl mx-auto px-4">
 				<div className={`text-center mb-10 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<h2 className="text-3xl md:text-4xl font-light mb-4">What We Stand For</h2>
+					<h2 className="text-3xl md:text-4xl font-light mb-4">{nt.about.values.title}</h2>
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface PlanFromDB {
 	id: number;
@@ -30,6 +31,7 @@ interface PlanFromDB {
 type PlanType = 'student' | 'regular' | 'business';
 
 export function PricingSection() {
+	const { nt } = useLanguage();
 	const searchParams = useSearchParams();
 	const typeParam = searchParams.get('type') as PlanType | null;
 	const [selectedType, setSelectedType] = useState<PlanType>(typeParam || 'regular');
@@ -135,51 +137,51 @@ export function PricingSection() {
 				{/* Header */}
 				<div className={`text-center mb-12 space-y-4 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 					<h2 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight">
-						Choose Your Plan
+						{nt.pricing.title}
 					</h2>
 					<p className="text-lg text-muted-foreground leading-loose max-w-2xl mx-auto">
-						<span className="text-foreground font-medium">Transparent pricing</span> for everyone
+						{nt.pricing.subtitle}
 					</p>
 				</div>
 
 				{/* Plan Type Toggle */}
 				<div className={`flex justify-center mb-12 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<div className="inline-flex items-center gap-1 p-1 bg-muted/50 rounded-lg">
+					<div className="inline-flex items-center gap-2 p-2 bg-muted/50 rounded-xl">
 						<button
 							onClick={() => setSelectedType('student')}
 							className={cn(
-								"flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium transition-all",
+								"flex items-center gap-3 px-8 py-3 rounded-lg text-base font-medium transition-all",
 								selectedType === 'student'
 									? "bg-background shadow-sm"
 									: "text-muted-foreground hover:text-foreground"
 							)}
 						>
-							<GraduationCap className="h-4 w-4" />
-							Student
+							<GraduationCap className="h-5 w-5" />
+							{nt.pricing.planTypes.student}
 						</button>
 						<button
 							onClick={() => setSelectedType('regular')}
 							className={cn(
-								"flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium transition-all",
+								"flex items-center gap-3 px-8 py-3 rounded-lg text-base font-medium transition-all",
 								selectedType === 'regular'
 									? "bg-background shadow-sm"
 									: "text-muted-foreground hover:text-foreground"
 							)}
 						>
-							<Users className="h-4 w-4" />
-							Personal
+							<Users className="h-5 w-5" />
+							{nt.pricing.planTypes.personal}
 						</button>
 						<button
 							onClick={() => setSelectedType('business')}
 							className={cn(
-								"flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium transition-all",
+								"flex items-center gap-3 px-8 py-3 rounded-lg text-base font-medium transition-all",
 								selectedType === 'business'
 									? "bg-background shadow-sm"
 									: "text-muted-foreground hover:text-foreground"
 							)}
 						>
-							<Briefcase className="h-4 w-4" />
-							Business
+							<Briefcase className="h-5 w-5" />
+							{nt.pricing.planTypes.business}
 						</button>
 					</div>
 				</div>

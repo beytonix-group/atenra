@@ -2,17 +2,12 @@
 
 import { Check } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function OurVision() {
+	const { nt } = useLanguage();
 	const [isVisible, setIsVisible] = useState(false);
 	const sectionRef = useRef<HTMLElement>(null);
-
-	const visionPoints = [
-		"Finding help is effortless — Powered by smart tools and human guidance",
-		"Privacy is standard, not optional",
-		"Every interaction builds confidence, not confusion",
-		"Growth is mutual — When our users succeed, so do we"
-	];
 
 	useEffect(() => {
 		const observer = new IntersectionObserver(
@@ -42,24 +37,22 @@ export function OurVision() {
 
 			<div className="max-w-6xl mx-auto px-4 relative">
 				<div className={`text-center mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<h2 className="text-3xl md:text-4xl font-light mb-4">Our Vision</h2>
+					<h2 className="text-3xl md:text-4xl font-light mb-4">{nt.about.vision.title}</h2>
 				</div>
 
 				<div className="max-w-4xl mx-auto space-y-6">
 					<p className={`text-base md:text-lg text-muted-foreground leading-loose transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-						Atenra was built on one principle — that <span className="text-foreground font-medium">real connection creates better outcomes</span>. Our vision is to redefine how
-						people and businesses find reliable help by blending intelligent systems with genuine human understanding.
+						{nt.about.vision.text1} <span className="text-foreground font-medium">{nt.about.vision.highlight}</span>. {nt.about.vision.text2}
 					</p>
 
 					<p className={`text-base md:text-lg text-muted-foreground leading-loose transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-						We believe technology should simplify decisions, not replace trust. Every service, every match, and every
-						partnership is built around transparency, efficiency, and measurable results.
+						{nt.about.vision.text3}
 					</p>
 
 					<div className={`pt-4 transition-all duration-700 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-						<h3 className="text-lg font-semibold mb-4">We&apos;re creating a world where:</h3>
+						<h3 className="text-lg font-semibold mb-4">{nt.about.vision.listTitle}</h3>
 						<ul className="space-y-3">
-							{visionPoints.map((point, index) => (
+							{nt.about.vision.points.map((point, index) => (
 								<li
 									key={index}
 									className={`flex items-start gap-3 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}

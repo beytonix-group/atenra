@@ -5,39 +5,10 @@ import { FooterSection } from "@/components/landing/FooterSection";
 import { Globe, TrendingUp, Users, Award, Code, Palette, Megaphone, Scale, Headphones, ExternalLink, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
-
-const benefits = [
-	"Remote-first flexibility",
-	"Transparent growth paths",
-	"Inclusive and collaborative culture",
-	"Technology-driven learning environment",
-	"Competitive pay and benefits",
-];
-
-const departments = [
-	{
-		icon: Headphones,
-		name: "Operations & Client Support",
-	},
-	{
-		icon: Megaphone,
-		name: "Marketing & Partnerships",
-	},
-	{
-		icon: Code,
-		name: "Engineering & AI Development",
-	},
-	{
-		icon: Palette,
-		name: "Product & UX Design",
-	},
-	{
-		icon: Scale,
-		name: "Legal & Compliance",
-	},
-];
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function CareersPage() {
+	const { nt } = useLanguage();
 	const [isVisible1, setIsVisible1] = useState(false);
 	const [isVisible2, setIsVisible2] = useState(false);
 	const [isVisible3, setIsVisible3] = useState(false);
@@ -46,6 +17,29 @@ export default function CareersPage() {
 	const section2Ref = useRef<HTMLDivElement>(null);
 	const section3Ref = useRef<HTMLDivElement>(null);
 	const section4Ref = useRef<HTMLDivElement>(null);
+
+	const departments = [
+		{
+			icon: Headphones,
+			name: nt.careers.opportunities.departments[0],
+		},
+		{
+			icon: Megaphone,
+			name: nt.careers.opportunities.departments[1],
+		},
+		{
+			icon: Code,
+			name: nt.careers.opportunities.departments[2],
+		},
+		{
+			icon: Palette,
+			name: nt.careers.opportunities.departments[3],
+		},
+		{
+			icon: Scale,
+			name: nt.careers.opportunities.departments[4],
+		},
+	];
 
 	useEffect(() => {
 		const createObserver = (ref: React.RefObject<HTMLDivElement>, setter: (value: boolean) => void) => {
@@ -87,9 +81,9 @@ export default function CareersPage() {
 				<div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
 				<div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent blur-3xl" />
 				<div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center text-center">
-					<h1 className="text-5xl md:text-6xl font-light mb-6">Join Our Team</h1>
+					<h1 className="text-5xl md:text-6xl font-light mb-6">{nt.careers.hero.title}</h1>
 					<p className="text-xl md:text-2xl text-muted-foreground font-light leading-loose max-w-3xl">
-						Grow with a company built on <span className="text-foreground font-medium">trust, technology, and people</span>.
+						{nt.careers.hero.subtitle}
 					</p>
 				</div>
 				<div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-border via-transparent to-transparent" />
@@ -98,19 +92,17 @@ export default function CareersPage() {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 				{/* About Working at Atenra */}
 				<div ref={section1Ref} className={`mb-20 transition-all duration-700 ${isVisible1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<h2 className="text-4xl font-light mb-6">About Working at Atenra</h2>
+					<h2 className="text-4xl font-light mb-6">{nt.careers.about.title}</h2>
 					<p className="text-lg text-muted-foreground leading-loose max-w-4xl">
-						Atenra is redefining how people connect with professionals — and that starts with the team behind it.
-						We believe in <span className="text-foreground font-medium">growth, inclusion, and meaningful work</span> that empowers people globally. Whether you&apos;re into
-						operations, design, marketing, or client success — there&apos;s a place for you here.
+						{nt.careers.about.text1} <span className="text-foreground font-medium">{nt.careers.about.highlight}</span> {nt.careers.about.text2}
 					</p>
 				</div>
 
 				{/* What We Offer */}
 				<div ref={section2Ref} className="mb-20">
-					<h2 className={`text-4xl font-light mb-8 transition-all duration-700 ${isVisible2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>What We Offer</h2>
+					<h2 className={`text-4xl font-light mb-8 transition-all duration-700 ${isVisible2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{nt.careers.benefits.title}</h2>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{benefits.map((benefit, index) => (
+						{nt.careers.benefits.list.map((benefit, index) => (
 							<div
 								key={benefit}
 								className={`flex items-start gap-3 p-4 rounded-lg border bg-card/50 hover:bg-card transition-all duration-700 ${isVisible2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
@@ -128,9 +120,9 @@ export default function CareersPage() {
 					<div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-transparent via-border to-transparent" />
 
 					<div className={`text-center mb-12 transition-all duration-700 ${isVisible3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-						<h2 className="text-4xl font-light mb-4">Explore Opportunities</h2>
+						<h2 className="text-4xl font-light mb-4">{nt.careers.opportunities.title}</h2>
 						<p className="text-lg text-muted-foreground leading-loose max-w-2xl mx-auto">
-							Join a <span className="text-foreground font-medium">mission-driven team</span> that&apos;s modernizing service connections worldwide.
+							{nt.careers.opportunities.subtitle}
 						</p>
 					</div>
 
@@ -150,7 +142,7 @@ export default function CareersPage() {
 					<div className={`text-center transition-all duration-700 delay-700 ${isVisible3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 						<Button size="lg" className="gap-2" asChild>
 							<a href="mailto:careers@atenra.com" target="_blank" rel="noopener noreferrer">
-								Explore Career Opportunities
+								{nt.careers.opportunities.cta}
 								<ExternalLink className="h-4 w-4" />
 							</a>
 						</Button>
@@ -162,11 +154,11 @@ export default function CareersPage() {
 				{/* Team Culture Section */}
 				<div ref={section4Ref} className={`rounded-2xl border bg-gradient-to-br from-primary/5 to-background p-12 text-center relative transition-all duration-700 ${isVisible4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 					<div className="max-w-3xl mx-auto">
-						<h2 className="text-3xl font-light mb-6">Team Culture</h2>
+						<h2 className="text-3xl font-light mb-6">{nt.careers.culture.title}</h2>
 						<div className="relative">
 							<div className="absolute -left-4 top-0 text-primary/20 text-6xl font-serif">&ldquo;</div>
 							<p className="text-xl text-muted-foreground leading-loose px-8">
-								We don&apos;t just offer jobs — we create careers that empower <span className="text-foreground font-medium">autonomy, purpose, and innovation</span>.
+								{nt.careers.culture.quote}
 							</p>
 							<div className="absolute -right-4 bottom-0 text-primary/20 text-6xl font-serif">&rdquo;</div>
 						</div>

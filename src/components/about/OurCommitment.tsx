@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function OurCommitment() {
+	const { nt } = useLanguage();
 	const [isVisible, setIsVisible] = useState(false);
 	const sectionRef = useRef<HTMLElement>(null);
 
@@ -30,14 +32,12 @@ export function OurCommitment() {
 
 			<div className="max-w-6xl mx-auto px-4">
 				<div className={`text-center mb-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<h2 className="text-3xl md:text-4xl font-light mb-4">Our Commitment</h2>
+					<h2 className="text-3xl md:text-4xl font-light mb-4">{nt.about.commitment.title}</h2>
 				</div>
 
 				<div className={`max-w-4xl mx-auto transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 					<p className="text-base md:text-lg text-muted-foreground leading-loose text-center">
-						We&apos;re not just developing tools; we&apos;re building frameworks that evolve with you. As we grow, Atenra&apos;s
-						commitment remains the same — to keep <span className="text-foreground font-medium">every connection meaningful, every process transparent, and every
-						result measurable</span>.
+						{nt.about.commitment.text1} <span className="text-foreground font-medium">{nt.about.commitment.highlight}</span>.
 					</p>
 				</div>
 			</div>

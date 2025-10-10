@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function OurMission() {
+	const { nt } = useLanguage();
 	const [isVisible, setIsVisible] = useState(false);
 	const sectionRef = useRef<HTMLElement>(null);
 
@@ -30,7 +32,7 @@ export function OurMission() {
 
 			<div className="max-w-6xl mx-auto px-4">
 				<div className={`text-center mb-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<h2 className="text-3xl md:text-4xl font-light mb-4">Our Mission</h2>
+					<h2 className="text-3xl md:text-4xl font-light mb-4">{nt.about.mission.title}</h2>
 				</div>
 
 				<div className={`max-w-4xl mx-auto transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -38,8 +40,7 @@ export function OurMission() {
 						{/* Decorative quote marks or bridge icon */}
 						<div className="absolute -left-4 top-0 text-primary/20 text-6xl font-serif">&ldquo;</div>
 						<p className="text-base md:text-lg text-muted-foreground leading-loose text-center px-8">
-							Atenra exists to bridge people with professionals they can trust. We combine <span className="text-foreground font-medium">cutting-edge technology with
-							genuine human judgment</span> to create meaningful matches — guided by privacy, integrity, and results.
+							{nt.about.mission.text1} <span className="text-foreground font-medium">{nt.about.mission.highlight}</span> {nt.about.mission.text2}
 						</p>
 						<div className="absolute -right-4 bottom-0 text-primary/20 text-6xl font-serif">&rdquo;</div>
 					</div>

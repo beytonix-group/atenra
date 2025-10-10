@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function OurStory() {
+	const { nt } = useLanguage();
 	const [isVisible, setIsVisible] = useState(false);
 	const sectionRef = useRef<HTMLElement>(null);
 
@@ -30,14 +32,12 @@ export function OurStory() {
 
 			<div className="max-w-6xl mx-auto px-4">
 				<div className={`text-center mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<h2 className="text-3xl md:text-4xl font-light mb-4">Our Story</h2>
+					<h2 className="text-3xl md:text-4xl font-light mb-4">{nt.about.story.title}</h2>
 				</div>
 
 				<div className={`max-w-4xl mx-auto transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 					<p className="text-base md:text-lg text-muted-foreground leading-loose">
-						Atenra was born from the frustration of endless searching and uncertainty when finding reliable help. We set out
-						to simplify that — creating a platform where <span className="text-foreground font-medium">technology enhances, not replaces, human connection</span>. Today,
-						we&apos;re redefining how people and businesses find trusted professionals, one curated match at a time.
+						{nt.about.story.text1} <span className="text-foreground font-medium">{nt.about.story.highlight}</span>. {nt.about.story.text2}
 					</p>
 				</div>
 			</div>
