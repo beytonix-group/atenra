@@ -12,36 +12,36 @@ export function OurValues() {
 	const values = [
 		{
 			icon: Shield,
-			title: nt.about.values.items[0].title,
-			description: nt.about.values.items[0].description,
+			title: nt.about.values.items.privacy.title,
+			description: nt.about.values.items.privacy.description,
 			color: "from-blue-500/10 to-blue-600/10",
 			iconColor: "text-blue-600 dark:text-blue-400"
 		},
 		{
 			icon: Users,
-			title: nt.about.values.items[1].title,
-			description: nt.about.values.items[1].description,
+			title: nt.about.values.items.human.title,
+			description: nt.about.values.items.human.description,
 			color: "from-purple-500/10 to-purple-600/10",
 			iconColor: "text-purple-600 dark:text-purple-400"
 		},
 		{
 			icon: CheckCircle,
-			title: nt.about.values.items[2].title,
-			description: nt.about.values.items[2].description,
+			title: nt.about.values.items.reliability.title,
+			description: nt.about.values.items.reliability.description,
 			color: "from-green-500/10 to-green-600/10",
 			iconColor: "text-green-600 dark:text-green-400"
 		},
 		{
 			icon: Zap,
-			title: nt.about.values.items[3].title,
-			description: nt.about.values.items[3].description,
+			title: nt.about.values.items.efficiency.title,
+			description: nt.about.values.items.efficiency.description,
 			color: "from-yellow-500/10 to-yellow-600/10",
 			iconColor: "text-yellow-600 dark:text-yellow-400"
 		},
 		{
 			icon: TrendingUp,
-			title: nt.about.values.items[4].title,
-			description: nt.about.values.items[4].description,
+			title: nt.about.values.items.growth.title,
+			description: nt.about.values.items.growth.description,
 			color: "from-orange-500/10 to-orange-600/10",
 			iconColor: "text-orange-600 dark:text-orange-400"
 		}

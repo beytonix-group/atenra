@@ -64,45 +64,35 @@ export interface Translations {
     };
   };
   about: {
-    hero: {
+    title: string;
+    mission: string;
+    ourStory: string;
+    foundedOnTrust: {
       title: string;
-      subtitle: string;
+      description: string;
     };
-    story: {
+    humanFirst: {
       title: string;
-      content: string;
-      highlight: string;
+      description: string;
     };
+    ourValues: string;
     values: {
-      title: string;
-      items: {
-        privacy: { title: string; description: string };
-        human: { title: string; description: string };
-        reliability: { title: string; description: string };
-        efficiency: { title: string; description: string };
-        growth: { title: string; description: string };
-      };
+      privacy: { title: string; description: string };
+      human: { title: string; description: string };
+      efficiency: { title: string; description: string };
+      reliability: { title: string; description: string };
     };
-    mission: {
-      title: string;
-      content: string;
-      highlight: string;
-    };
-    vision: {
-      title: string;
-      principle: string;
-      principleHighlight: string;
-      belief: string;
-      worldTitle: string;
-      points: string[];
-    };
-    commitment: {
-      title: string;
-      content: string;
-      highlight: string;
+    supportedServices: string;
+    services: {
+      home: { title: string; description: string };
+      logistics: { title: string; description: string };
+      wellness: { title: string; description: string };
+      vehicle: { title: string; description: string };
+      professional: { title: string; description: string };
+      more: { title: string; description: string };
     };
   };
-  industries: {
+  industries?: {
     title: string;
     subtitle: string;
     subtitleHighlight: string;
@@ -116,7 +106,7 @@ export interface Translations {
     };
     servicesCount: string;
   };
-  careers: {
+  careers?: {
     hero: {
       title: string;
       subtitle: string;
@@ -144,7 +134,7 @@ export interface Translations {
       quoteHighlight: string;
     };
   };
-  faq: {
+  faq?: {
     title: string;
     subtitle: string;
     subtitleHighlight: string;
@@ -541,11 +531,16 @@ export const translations: Record<string, Translations> = {
     },
     hero: {
       title: "Atenra",
-      subtitle: "Comienza Tu Viaje de Referencias",
-      description: "Coincidencia de servicios excepcional impulsada por tecnología inteligente y experiencia humana genuina.",
-      mainDescription: "Nuestra plataforma guiada por humanos transforma cómo descubres negocios de confianza. Cada conexión está cuidadosamente curada, verificada profesionalmente y respaldada personalmente para asegurar tu completa satisfacción.",
-      getStartedFree: "Comenzar Gratis",
-      partnerWithUs: "Asóciate Con Nosotros"
+      subtitle: "Atenra",
+      tagline: "Tu Asistente Personal y Empresarial, A Demanda",
+      subheadline: "Descubre profesionales de confianza a través de coincidencias inteligentes — donde la tecnología se encuentra con la perspicacia humana genuina.",
+      bodyText: "En Atenra, cada conexión está verificada a mano, cuidadosamente emparejada y diseñada para facilitar tu vida. Ya sea que estés administrando tu negocio, tu hogar o tu próximo gran proyecto — te conectamos con profesionales que entregan resultados.",
+      getStarted: "Comenzar",
+      partnerWithUs: "Asóciate Con Nosotros",
+      trustIndicators: {
+        professionals: "1000+ Profesionales Verificados",
+        categories: "20+ Categorías de Servicios"
+      }
     },
     pricing: {
       title: "Precios simples y transparentes",
@@ -780,11 +775,16 @@ export const translations: Record<string, Translations> = {
     },
     hero: {
       title: "Atenra",
-      subtitle: "Commencez Votre Parcours de Référencement",
-      description: "Correspondance de services exceptionnelle alimentée par une technologie intelligente et une expertise humaine authentique.",
-      mainDescription: "Notre plateforme guidée par des humains transforme la façon dont vous découvrez des entreprises de confiance. Chaque connexion est soigneusement organisée, vérifiée professionnellement et personnellement approuvée pour assurer votre entière satisfaction.",
-      getStartedFree: "Commencer Gratuitement",
-      partnerWithUs: "Partenaire Avec Nous"
+      subtitle: "Atenra",
+      tagline: "Votre Assistant Personnel et Professionnel, À la Demande",
+      subheadline: "Découvrez des professionnels de confiance grâce à une correspondance intelligente — où la technologie rencontre une véritable perspicacité humaine.",
+      bodyText: "Chez Atenra, chaque connexion est vérifiée manuellement, soigneusement appariée et conçue pour faciliter votre vie. Que ce soit pour gérer votre entreprise, votre maison ou votre prochain grand projet — nous vous connectons avec des professionnels qui livrent des résultats.",
+      getStarted: "Commencer",
+      partnerWithUs: "Partenaire Avec Nous",
+      trustIndicators: {
+        professionals: "1000+ Professionnels Vérifiés",
+        categories: "20+ Catégories de Services"
+      }
     },
     pricing: {
       title: "Tarification simple et transparente",
@@ -1019,11 +1019,16 @@ export const translations: Record<string, Translations> = {
     },
     hero: {
       title: "Atenra",
-      subtitle: "Beginnen Sie Ihre Empfehlungsreise",
-      description: "Außergewöhnliche Service-Vermittlung angetrieben von intelligenter Technologie und echter menschlicher Expertise.",
-      mainDescription: "Unsere menschlich geführte Plattform transformiert, wie Sie vertrauenswürdige Unternehmen entdecken. Jede Verbindung ist sorgfältig kuratiert, professionell verifiziert und persönlich empfohlen, um Ihre vollständige Zufriedenheit zu gewährleisten.",
-      getStartedFree: "Kostenlos Beginnen",
-      partnerWithUs: "Partner Werden"
+      subtitle: "Atenra",
+      tagline: "Ihr Persönlicher und Geschäftlicher Assistent, Auf Abruf",
+      subheadline: "Entdecken Sie vertrauenswürdige Fachleute durch intelligente Vermittlung — wo Technologie auf echte menschliche Einsicht trifft.",
+      bodyText: "Bei Atenra ist jede Verbindung von Hand überprüft, sorgfältig abgestimmt und darauf ausgelegt, Ihr Leben einfacher zu machen. Ob Sie Ihr Unternehmen, Ihr Zuhause oder Ihr nächstes großes Projekt verwalten — wir verbinden Sie mit Fachleuten, die Ergebnisse liefern.",
+      getStarted: "Beginnen",
+      partnerWithUs: "Partner Werden",
+      trustIndicators: {
+        professionals: "1000+ Verifizierte Fachleute",
+        categories: "20+ Service-Kategorien"
+      }
     },
     pricing: {
       title: "Einfache, transparente Preise",
@@ -1258,11 +1263,16 @@ export const translations: Record<string, Translations> = {
     },
     hero: {
       title: "Atenra",
-      subtitle: "开始您的推荐之旅",
-      description: "由智能技术和真正的人类专业知识驱动的卓越服务匹配。",
-      mainDescription: "我们的人工引导平台改变了您发现值得信赖企业的方式。每个连接都经过精心策划、专业验证和个人推荐，以确保您的完全满意。",
-      getStartedFree: "免费开始",
-      partnerWithUs: "与我们合作"
+      subtitle: "Atenra",
+      tagline: "您的个人和商业助手，随需而至",
+      subheadline: "通过智能匹配发现值得信赖的专业人士 —— 技术与真正的人类洞察力相遇。",
+      bodyText: "在Atenra，每个连接都经过人工验证、精心匹配，旨在让您的生活更轻松。无论是管理您的业务、您的家庭还是您的下一个大项目 —— 我们将您与提供成果的专业人士联系起来。",
+      getStarted: "开始使用",
+      partnerWithUs: "与我们合作",
+      trustIndicators: {
+        professionals: "1000+ 认证专业人士",
+        categories: "20+ 服务类别"
+      }
     },
     pricing: {
       title: "简单透明的定价",

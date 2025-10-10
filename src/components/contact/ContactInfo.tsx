@@ -28,7 +28,9 @@ export function ContactInfo() {
 	
 	return (
 		<div ref={sectionRef}>
-			<h2 className={`text-3xl font-light mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>Contact Directory</h2>
+			<h2 className={`text-3xl font-light mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+				{nt.contact.directory.title}
+			</h2>
 
 			<div className={`space-y-8 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 				{/* Contact Directory */}
@@ -36,9 +38,9 @@ export function ContactInfo() {
 					<div className="flex items-start gap-3">
 						<Mail className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
 						<div>
-							<h3 className="font-medium text-sm mb-1">General Inquiries</h3>
-							<a href="mailto:info@atenra.com" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-								info@atenra.com
+							<h3 className="font-medium text-sm mb-1">{nt.contact.directory.generalInquiries.label}</h3>
+							<a href={`mailto:${nt.contact.directory.generalInquiries.email}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								{nt.contact.directory.generalInquiries.email}
 							</a>
 						</div>
 					</div>
@@ -46,9 +48,9 @@ export function ContactInfo() {
 					<div className="flex items-start gap-3">
 						<Mail className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
 						<div>
-							<h3 className="font-medium text-sm mb-1">Support & Technical</h3>
-							<a href="mailto:it@atenra.com" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-								it@atenra.com
+							<h3 className="font-medium text-sm mb-1">{nt.contact.directory.supportTechnical.label}</h3>
+							<a href={`mailto:${nt.contact.directory.supportTechnical.email}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								{nt.contact.directory.supportTechnical.email}
 							</a>
 						</div>
 					</div>
@@ -56,9 +58,9 @@ export function ContactInfo() {
 					<div className="flex items-start gap-3">
 						<Mail className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
 						<div>
-							<h3 className="font-medium text-sm mb-1">Media & Partnerships</h3>
-							<a href="mailto:contact@atenra.com" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-								contact@atenra.com
+							<h3 className="font-medium text-sm mb-1">{nt.contact.directory.mediaPartnerships.label}</h3>
+							<a href={`mailto:${nt.contact.directory.mediaPartnerships.email}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								{nt.contact.directory.mediaPartnerships.email}
 							</a>
 						</div>
 					</div>
@@ -66,9 +68,9 @@ export function ContactInfo() {
 					<div className="flex items-start gap-3">
 						<Mail className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
 						<div>
-							<h3 className="font-medium text-sm mb-1">Legal & Compliance</h3>
-							<a href="mailto:legal@atenra.com" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-								legal@atenra.com
+							<h3 className="font-medium text-sm mb-1">{nt.contact.directory.legalCompliance.label}</h3>
+							<a href={`mailto:${nt.contact.directory.legalCompliance.email}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								{nt.contact.directory.legalCompliance.email}
 							</a>
 						</div>
 					</div>
@@ -76,21 +78,21 @@ export function ContactInfo() {
 
 				{/* Office Locations */}
 				<div className={`pt-6 border-t transition-all duration-700 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<h3 className="font-medium mb-4">Office Locations</h3>
+					<h3 className="font-medium mb-4">{nt.contact.offices.title}</h3>
 					<div className="space-y-4">
 						<div className="flex items-start gap-3">
 							<MapPin className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
 							<div>
-								<h4 className="font-medium text-sm mb-1">Florida</h4>
-								<p className="text-sm text-muted-foreground">8430 Bird Rd, Miami, FL 33155, USA</p>
+								<h4 className="font-medium text-sm mb-1">{nt.contact.offices.florida.label}</h4>
+								<p className="text-sm text-muted-foreground">{nt.contact.offices.florida.address}</p>
 							</div>
 						</div>
 
 						<div className="flex items-start gap-3">
 							<MapPin className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
 							<div>
-								<h4 className="font-medium text-sm mb-1">U.A.E</h4>
-								<p className="text-sm text-muted-foreground">Coming Soon</p>
+								<h4 className="font-medium text-sm mb-1">{nt.contact.offices.uae.label}</h4>
+								<p className="text-sm text-muted-foreground">{nt.contact.offices.uae.address}</p>
 							</div>
 						</div>
 					</div>

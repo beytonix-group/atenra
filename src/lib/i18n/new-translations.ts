@@ -32,8 +32,9 @@ export interface NewTranslations {
     };
     story: {
       title: string;
-      content: string;
+      text1: string;
       highlight: string;
+      text2: string;
     };
     values: {
       title: string;
@@ -47,20 +48,22 @@ export interface NewTranslations {
     };
     mission: {
       title: string;
-      content: string;
+      text1: string;
       highlight: string;
+      text2: string;
     };
     vision: {
       title: string;
-      principle: string;
-      principleHighlight: string;
-      belief: string;
-      worldTitle: string;
+      text1: string;
+      highlight: string;
+      text2: string;
+      text3: string;
+      listTitle: string;
       points: string[];
     };
     commitment: {
       title: string;
-      content: string;
+      text1: string;
       highlight: string;
     };
   };
@@ -72,12 +75,13 @@ export interface NewTranslations {
     };
     about: {
       title: string;
-      content: string;
+      text1: string;
       highlight: string;
+      text2: string;
     };
-    offer: {
+    benefits: {
       title: string;
-      benefits: string[];
+      list: string[];
     };
     opportunities: {
       title: string;
@@ -95,27 +99,26 @@ export interface NewTranslations {
   faq: {
     title: string;
     subtitle: string;
-    subtitleHighlight: string;
-    questions: Array<{ q: string; a: string }>;
+    questions: Array<{ question: string; answer: string }>;
     sidebar: {
-      legalTitle: string;
-      terms: string;
-      privacy: string;
-      refund: string;
-      business: string;
-      featuresTitle: string;
-      uae: { title: string; desc: string };
-      noSelling: { title: string; desc: string };
-      twoFa: { title: string; desc: string };
+      legal: {
+        title: string;
+        links: Array<{ label: string; href: string }>;
+      };
+      features: {
+        title: string;
+        items: Array<{ title: string; description: string }>;
+      };
     };
   };
   pricing: {
     title: string;
     subtitle: string;
-    subtitleHighlight: string;
-    student: string;
-    personal: string;
-    business: string;
+    planTypes: {
+      student: string;
+      personal: string;
+      business: string;
+    };
   };
   contact: {
     directory: {
@@ -183,8 +186,9 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       story: {
         title: "Our Story",
-        content: "Atenra was born from the frustration of endless searching and uncertainty when finding reliable help. We set out to simplify that — creating a platform where technology enhances, not replaces, human connection. Today, we're redefining how people and businesses find trusted professionals, one curated match at a time.",
-        highlight: "technology enhances, not replaces, human connection"
+        text1: "Atenra was born from the frustration of endless searching and uncertainty when finding reliable help. We set out to simplify that — creating a platform where",
+        highlight: "technology enhances, not replaces, human connection",
+        text2: "Today, we're redefining how people and businesses find trusted professionals, one curated match at a time."
       },
       values: {
         title: "What We Stand For",
@@ -198,15 +202,17 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       mission: {
         title: "Our Mission",
-        content: "Atenra exists to bridge people with professionals they can trust. We combine cutting-edge technology with genuine human judgment to create meaningful matches — guided by privacy, integrity, and results.",
-        highlight: "cutting-edge technology with genuine human judgment"
+        text1: "Atenra exists to bridge people with professionals they can trust. We combine",
+        highlight: "cutting-edge technology with genuine human judgment",
+        text2: "to create meaningful matches — guided by privacy, integrity, and results."
       },
       vision: {
         title: "Our Vision",
-        principle: "Atenra was built on one principle — that real connection creates better outcomes. Our vision is to redefine how people and businesses find reliable help by blending intelligent systems with genuine human understanding.",
-        principleHighlight: "real connection creates better outcomes",
-        belief: "We believe technology should simplify decisions, not replace trust. Every service, every match, and every partnership is built around transparency, efficiency, and measurable results.",
-        worldTitle: "We're creating a world where:",
+        text1: "Atenra was built on one principle — that",
+        highlight: "real connection creates better outcomes",
+        text2: "Our vision is to redefine how people and businesses find reliable help by blending intelligent systems with genuine human understanding.",
+        text3: "We believe technology should simplify decisions, not replace trust. Every service, every match, and every partnership is built around transparency, efficiency, and measurable results.",
+        listTitle: "We're creating a world where:",
         points: [
           "Finding help is effortless — Powered by smart tools and human guidance",
           "Privacy is standard, not optional",
@@ -216,7 +222,7 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       commitment: {
         title: "Our Commitment",
-        content: "We're not just developing tools; we're building frameworks that evolve with you. As we grow, Atenra's commitment remains the same — to keep every connection meaningful, every process transparent, and every result measurable.",
+        text1: "We're not just developing tools; we're building frameworks that evolve with you. As we grow, Atenra's commitment remains the same — to keep",
         highlight: "every connection meaningful, every process transparent, and every result measurable"
       }
     },
@@ -228,12 +234,13 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       about: {
         title: "About Working at Atenra",
-        content: "Atenra is redefining how people connect with professionals — and that starts with the team behind it. We believe in growth, inclusion, and meaningful work that empowers people globally. Whether you're into operations, design, marketing, or client success — there's a place for you here.",
-        highlight: "growth, inclusion, and meaningful work"
+        text1: "Atenra is redefining how people connect with professionals — and that starts with the team behind it. We believe in",
+        highlight: "growth, inclusion, and meaningful work",
+        text2: "that empowers people globally. Whether you're into operations, design, marketing, or client success — there's a place for you here."
       },
-      offer: {
+      benefits: {
         title: "What We Offer",
-        benefits: [
+        list: [
           "Remote-first flexibility",
           "Transparent growth paths",
           "Inclusive and collaborative culture",
@@ -262,46 +269,52 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "Frequently Asked Questions",
-      subtitle: "Find answers to common questions about Atenra's matching service, pricing, and how we work.",
-      subtitleHighlight: "matching service, pricing, and how we work",
+      subtitle: "Find answers to common questions about Atenra",
       questions: [
         {
-          q: "How does Atenra's matching process work?",
-          a: "We analyze your request, verify professionals in real time, then combine human insight and AI to find the ideal match."
+          question: "How does Atenra's matching process work?",
+          answer: "We analyze your request, verify professionals in real time, then combine human insight and AI to find the ideal match."
         },
         {
-          q: "How quickly will I be matched?",
-          a: "Usually within minutes, depending on service type and location."
+          question: "How quickly will I be matched?",
+          answer: "Usually within minutes, depending on service type and location."
         },
         {
-          q: "What makes Atenra different?",
-          a: "Every match is human-reviewed, privacy-protected, and focused on long-term trust."
+          question: "What makes Atenra different?",
+          answer: "Every match is human-reviewed, privacy-protected, and focused on long-term trust."
         },
         {
-          q: "What if I'm not satisfied?",
-          a: "We'll reassess, reassign, or refund — depending on your plan."
+          question: "What if I'm not satisfied?",
+          answer: "We'll reassess, reassign, or refund — depending on your plan."
         },
         {
-          q: "Is my personal information secure?",
-          a: "Yes — we use full encryption, internal-only handling, and never sell data."
+          question: "Is my personal information secure?",
+          answer: "Yes — we use full encryption, internal-only handling, and never sell data."
         }
       ],
       sidebar: {
-        legalTitle: "Legal & Privacy",
-        terms: "Terms of Service",
-        privacy: "Privacy Policy",
-        refund: "Refund / Guarantee Policy",
-        business: "Business Agreement",
-        featuresTitle: "Features",
-        uae: { title: "UAE HQ", desc: "for maximum privacy" },
-        noSelling: { title: "Zero data trading/selling", desc: "Your data stays yours" },
-        twoFa: { title: "Secure global 2FA", desc: "Multi-layer protection" }
+        legal: {
+          title: "Legal & Privacy",
+          links: [
+            { label: "Terms of Service", href: "/terms" },
+            { label: "Privacy Policy", href: "/privacy" },
+            { label: "Refund / Guarantee Policy", href: "/refund" },
+            { label: "Business Agreement", href: "/business" }
+          ]
+        },
+        features: {
+          title: "Features",
+          items: [
+            { title: "UAE HQ", description: "for maximum privacy" },
+            { title: "Zero data trading/selling", description: "Your data stays yours" },
+            { title: "Secure global 2FA", description: "Multi-layer protection" }
+          ]
+        }
       }
     },
     pricing: {
       title: "Choose Your Plan",
       subtitle: "Transparent pricing for everyone",
-      subtitleHighlight: "Transparent pricing",
       planTypes: {
         student: "Student",
         personal: "Personal",
@@ -372,8 +385,9 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       story: {
         title: "Nuestra Historia",
-        content: "Atenra nació de la frustración de búsquedas interminables e incertidumbre al encontrar ayuda confiable. Nos propusimos simplificar eso — creando una plataforma donde la tecnología mejora, no reemplaza, la conexión humana. Hoy, estamos redefiniendo cómo las personas y empresas encuentran profesionales de confianza, una coincidencia curada a la vez.",
-        highlight: "la tecnología mejora, no reemplaza, la conexión humana"
+        text1: "Atenra nació de la frustración de búsquedas interminables e incertidumbre al encontrar ayuda confiable. Nos propusimos simplificar eso — creando una plataforma donde",
+        highlight: "la tecnología mejora, no reemplaza, la conexión humana",
+        text2: "Hoy, estamos redefiniendo cómo las personas y empresas encuentran profesionales de confianza, una coincidencia curada a la vez."
       },
       values: {
         title: "Lo Que Defendemos",
@@ -387,15 +401,17 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       mission: {
         title: "Nuestra Misión",
-        content: "Atenra existe para conectar a las personas con profesionales en los que pueden confiar. Combinamos tecnología de vanguardia con juicio humano genuino para crear coincidencias significativas — guiadas por privacidad, integridad y resultados.",
-        highlight: "tecnología de vanguardia con juicio humano genuino"
+        text1: "Atenra existe para conectar a las personas con profesionales en los que pueden confiar. Combinamos",
+        highlight: "tecnología de vanguardia con juicio humano genuino",
+        text2: "para crear coincidencias significativas — guiadas por privacidad, integridad y resultados."
       },
       vision: {
         title: "Nuestra Visión",
-        principle: "Atenra se construyó sobre un principio — que la conexión real crea mejores resultados. Nuestra visión es redefinir cómo las personas y empresas encuentran ayuda confiable mezclando sistemas inteligentes con comprensión humana genuina.",
-        principleHighlight: "la conexión real crea mejores resultados",
-        belief: "Creemos que la tecnología debe simplificar decisiones, no reemplazar la confianza. Cada servicio, cada coincidencia y cada asociación se construye alrededor de transparencia, eficiencia y resultados medibles.",
-        worldTitle: "Estamos creando un mundo donde:",
+        text1: "Atenra se construyó sobre un principio — que",
+        highlight: "la conexión real crea mejores resultados",
+        text2: "Nuestra visión es redefinir cómo las personas y empresas encuentran ayuda confiable mezclando sistemas inteligentes con comprensión humana genuina.",
+        text3: "Creemos que la tecnología debe simplificar decisiones, no reemplazar la confianza. Cada servicio, cada coincidencia y cada asociación se construye alrededor de transparencia, eficiencia y resultados medibles.",
+        listTitle: "Estamos creando un mundo donde:",
         points: [
           "Encontrar ayuda es sin esfuerzo — Impulsado por herramientas inteligentes y guía humana",
           "La privacidad es estándar, no opcional",
@@ -405,7 +421,7 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       commitment: {
         title: "Nuestro Compromiso",
-        content: "No solo estamos desarrollando herramientas; estamos construyendo marcos que evolucionan contigo. A medida que crecemos, el compromiso de Atenra sigue siendo el mismo — mantener cada conexión significativa, cada proceso transparente y cada resultado medible.",
+        text1: "No solo estamos desarrollando herramientas; estamos construyendo marcos que evolucionan contigo. A medida que crecemos, el compromiso de Atenra sigue siendo el mismo — mantener",
         highlight: "cada conexión significativa, cada proceso transparente y cada resultado medible"
       }
     },
@@ -417,12 +433,13 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       about: {
         title: "Sobre Trabajar en Atenra",
-        content: "Atenra está redefiniendo cómo las personas se conectan con profesionales — y eso comienza con el equipo detrás de ella. Creemos en el crecimiento, la inclusión y el trabajo significativo que empodera a las personas globalmente. Ya sea que te interese operaciones, diseño, marketing o éxito del cliente — hay un lugar para ti aquí.",
-        highlight: "crecimiento, inclusión y trabajo significativo"
+        text1: "Atenra está redefiniendo cómo las personas se conectan con profesionales — y eso comienza con el equipo detrás de ella. Creemos en",
+        highlight: "crecimiento, inclusión y trabajo significativo",
+        text2: "que empodera a las personas globalmente. Ya sea que te interese operaciones, diseño, marketing o éxito del cliente — hay un lugar para ti aquí."
       },
-      offer: {
+      benefits: {
         title: "Lo Que Ofrecemos",
-        benefits: [
+        list: [
           "Flexibilidad remota primero",
           "Caminos de crecimiento transparentes",
           "Cultura inclusiva y colaborativa",
@@ -451,49 +468,71 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "Preguntas Frecuentes",
-      subtitle: "Encuentra respuestas a preguntas comunes sobre el servicio de coincidencia, precios y cómo trabajamos de Atenra.",
-      subtitleHighlight: "servicio de coincidencia, precios y cómo trabajamos",
+      subtitle: "Encuentra respuestas a preguntas comunes sobre Atenra",
       questions: [
         {
-          q: "¿Cómo funciona el proceso de coincidencia de Atenra?",
-          a: "Analizamos tu solicitud, verificamos profesionales en tiempo real, luego combinamos perspicacia humana e IA para encontrar la coincidencia ideal."
+          question: "¿Cómo funciona el proceso de coincidencia de Atenra?",
+          answer: "Analizamos tu solicitud, verificamos profesionales en tiempo real, luego combinamos perspicacia humana e IA para encontrar la coincidencia ideal."
         },
         {
-          q: "¿Qué tan rápido seré emparejado?",
-          a: "Generalmente en minutos, dependiendo del tipo de servicio y ubicación."
+          question: "¿Qué tan rápido seré emparejado?",
+          answer: "Generalmente en minutos, dependiendo del tipo de servicio y ubicación."
         },
         {
-          q: "¿Qué hace diferente a Atenra?",
-          a: "Cada coincidencia es revisada por humanos, protegida por privacidad y enfocada en confianza a largo plazo."
+          question: "¿Qué hace diferente a Atenra?",
+          answer: "Cada coincidencia es revisada por humanos, protegida por privacidad y enfocada en confianza a largo plazo."
         },
         {
-          q: "¿Qué pasa si no estoy satisfecho?",
-          a: "Reevaluaremos, reasignaremos o reembolsaremos — dependiendo de tu plan."
+          question: "¿Qué pasa si no estoy satisfecho?",
+          answer: "Reevaluaremos, reasignaremos o reembolsaremos — dependiendo de tu plan."
         },
         {
-          q: "¿Mi información personal está segura?",
-          a: "Sí — usamos encriptación completa, manejo solo interno y nunca vendemos datos."
+          question: "¿Mi información personal está segura?",
+          answer: "Sí — usamos encriptación completa, manejo solo interno y nunca vendemos datos."
         }
       ],
       sidebar: {
-        legalTitle: "Legal y Privacidad",
-        terms: "Términos de Servicio",
-        privacy: "Política de Privacidad",
-        refund: "Política de Reembolso / Garantía",
-        business: "Acuerdo Empresarial",
-        featuresTitle: "Características",
-        uae: { title: "Sede en EAU", desc: "para máxima privacidad" },
-        noSelling: { title: "Cero comercio/venta de datos", desc: "Tus datos son tuyos" },
-        twoFa: { title: "2FA global seguro", desc: "Protección multicapa" }
+        legal: {
+          title: "Legal y Privacidad",
+          links: [
+            { label: "Términos de Servicio", href: "/terms" },
+            { label: "Política de Privacidad", href: "/privacy" },
+            { label: "Política de Reembolso / Garantía", href: "/refund" },
+            { label: "Acuerdo Empresarial", href: "/business" }
+          ]
+        },
+        features: {
+          title: "Características",
+          items: [
+            { title: "Sede en EAU", description: "para máxima privacidad" },
+            { title: "Cero comercio/venta de datos", description: "Tus datos son tuyos" },
+            { title: "2FA global seguro", description: "Protección multicapa" }
+          ]
+        }
       }
     },
     pricing: {
       title: "Elige Tu Plan",
       subtitle: "Precios transparentes para todos",
-      subtitleHighlight: "Precios transparentes",
-      student: "Estudiante",
-      personal: "Personal",
-      business: "Empresarial"
+      planTypes: {
+        student: "Estudiante",
+        personal: "Personal",
+        business: "Empresarial"
+      }
+    },
+    contact: {
+      directory: {
+        title: "Directorio de Contacto",
+        generalInquiries: { label: "Consultas Generales", email: "info@atenra.com" },
+        supportTechnical: { label: "Soporte y Técnico", email: "it@atenra.com" },
+        mediaPartnerships: { label: "Medios y Asociaciones", email: "contact@atenra.com" },
+        legalCompliance: { label: "Legal y Cumplimiento", email: "legal@atenra.com" }
+      },
+      offices: {
+        title: "Ubicaciones de Oficinas",
+        florida: { label: "Florida", address: "8430 Bird Rd, Miami, FL 33155, USA" },
+        uae: { label: "E.A.U", address: "Próximamente" }
+      }
     }
   },
   fr: {
@@ -545,8 +584,9 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       story: {
         title: "Notre Histoire",
-        content: "Atenra est né de la frustration des recherches interminables et de l'incertitude lors de la recherche d'aide fiable. Nous nous sommes efforcés de simplifier cela — en créant une plateforme où la technologie améliore, ne remplace pas, la connexion humaine. Aujourd'hui, nous redéfinissons comment les personnes et les entreprises trouvent des professionnels de confiance, une correspondance organisée à la fois.",
-        highlight: "la technologie améliore, ne remplace pas, la connexion humaine"
+        text1: "Atenra est né de la frustration des recherches interminables et de l'incertitude lors de la recherche d'aide fiable. Nous nous sommes efforcés de simplifier cela — en créant une plateforme où",
+        highlight: "la technologie améliore, ne remplace pas, la connexion humaine",
+        text2: "Aujourd'hui, nous redéfinissons comment les personnes et les entreprises trouvent des professionnels de confiance, une correspondance organisée à la fois."
       },
       values: {
         title: "Ce Pour Quoi Nous Nous Battons",
@@ -560,15 +600,17 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       mission: {
         title: "Notre Mission",
-        content: "Atenra existe pour relier les personnes avec des professionnels en qui elles peuvent avoir confiance. Nous combinons une technologie de pointe avec un jugement humain authentique pour créer des correspondances significatives — guidées par la confidentialité, l'intégrité et les résultats.",
-        highlight: "technologie de pointe avec un jugement humain authentique"
+        text1: "Atenra existe pour relier les personnes avec des professionnels en qui elles peuvent avoir confiance. Nous combinons",
+        highlight: "technologie de pointe avec un jugement humain authentique",
+        text2: "pour créer des correspondances significatives — guidées par la confidentialité, l'intégrité et les résultats."
       },
       vision: {
         title: "Notre Vision",
-        principle: "Atenra a été construit sur un principe — que la vraie connexion crée de meilleurs résultats. Notre vision est de redéfinir comment les personnes et les entreprises trouvent une aide fiable en mélangeant des systèmes intelligents avec une compréhension humaine authentique.",
-        principleHighlight: "la vraie connexion crée de meilleurs résultats",
-        belief: "Nous croyons que la technologie devrait simplifier les décisions, pas remplacer la confiance. Chaque service, chaque correspondance et chaque partenariat est construit autour de la transparence, l'efficacité et des résultats mesurables.",
-        worldTitle: "Nous créons un monde où:",
+        text1: "Atenra a été construit sur un principe — que",
+        highlight: "la vraie connexion crée de meilleurs résultats",
+        text2: "Notre vision est de redéfinir comment les personnes et les entreprises trouvent une aide fiable en mélangeant des systèmes intelligents avec une compréhension humaine authentique.",
+        text3: "Nous croyons que la technologie devrait simplifier les décisions, pas remplacer la confiance. Chaque service, chaque correspondance et chaque partenariat est construit autour de la transparence, l'efficacité et des résultats mesurables.",
+        listTitle: "Nous créons un monde où:",
         points: [
           "Trouver de l'aide est sans effort — Alimenté par des outils intelligents et des conseils humains",
           "La confidentialité est standard, pas optionnelle",
@@ -578,7 +620,7 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       commitment: {
         title: "Notre Engagement",
-        content: "Nous ne développons pas seulement des outils; nous construisons des cadres qui évoluent avec vous. Au fur et à mesure que nous grandissons, l'engagement d'Atenra reste le même — garder chaque connexion significative, chaque processus transparent et chaque résultat mesurable.",
+        text1: "Nous ne développons pas seulement des outils; nous construisons des cadres qui évoluent avec vous. Au fur et à mesure que nous grandissons, l'engagement d'Atenra reste le même — garder",
         highlight: "chaque connexion significative, chaque processus transparent et chaque résultat mesurable"
       }
     },
@@ -590,12 +632,13 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       about: {
         title: "À Propos de Travailler chez Atenra",
-        content: "Atenra redéfinit comment les personnes se connectent avec des professionnels — et cela commence avec l'équipe derrière. Nous croyons en la croissance, l'inclusion et un travail significatif qui responsabilise les personnes dans le monde entier. Que vous soyez dans les opérations, le design, le marketing ou le succès client — il y a une place pour vous ici.",
-        highlight: "croissance, inclusion et travail significatif"
+        text1: "Atenra redéfinit comment les personnes se connectent avec des professionnels — et cela commence avec l'équipe derrière. Nous croyons en",
+        highlight: "croissance, inclusion et travail significatif",
+        text2: "qui responsabilise les personnes dans le monde entier. Que vous soyez dans les opérations, le design, le marketing ou le succès client — il y a une place pour vous ici."
       },
-      offer: {
+      benefits: {
         title: "Ce Que Nous Offrons",
-        benefits: [
+        list: [
           "Flexibilité à distance en premier",
           "Chemins de croissance transparents",
           "Culture inclusive et collaborative",
@@ -624,49 +667,71 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "Questions Fréquemment Posées",
-      subtitle: "Trouvez des réponses aux questions courantes sur le service de correspondance, les tarifs et notre fonctionnement d'Atenra.",
-      subtitleHighlight: "service de correspondance, tarifs et notre fonctionnement",
+      subtitle: "Trouvez des réponses aux questions courantes sur Atenra",
       questions: [
         {
-          q: "Comment fonctionne le processus de correspondance d'Atenra?",
-          a: "Nous analysons votre demande, vérifions les professionnels en temps réel, puis combinons perspicacité humaine et IA pour trouver la correspondance idéale."
+          question: "Comment fonctionne le processus de correspondance d'Atenra?",
+          answer: "Nous analysons votre demande, vérifions les professionnels en temps réel, puis combinons perspicacité humaine et IA pour trouver la correspondance idéale."
         },
         {
-          q: "Combien de temps faudra-t-il pour être mis en correspondance?",
-          a: "Généralement en quelques minutes, selon le type de service et l'emplacement."
+          question: "Combien de temps faudra-t-il pour être mis en correspondance?",
+          answer: "Généralement en quelques minutes, selon le type de service et l'emplacement."
         },
         {
-          q: "Qu'est-ce qui rend Atenra différent?",
-          a: "Chaque correspondance est examinée par des humains, protégée par la confidentialité et axée sur la confiance à long terme."
+          question: "Qu'est-ce qui rend Atenra différent?",
+          answer: "Chaque correspondance est examinée par des humains, protégée par la confidentialité et axée sur la confiance à long terme."
         },
         {
-          q: "Que se passe-t-il si je ne suis pas satisfait?",
-          a: "Nous réévaluerons, réassignerons ou rembourserons — selon votre plan."
+          question: "Que se passe-t-il si je ne suis pas satisfait?",
+          answer: "Nous réévaluerons, réassignerons ou rembourserons — selon votre plan."
         },
         {
-          q: "Mes informations personnelles sont-elles sécurisées?",
-          a: "Oui — nous utilisons un cryptage complet, une gestion interne uniquement et ne vendons jamais de données."
+          question: "Mes informations personnelles sont-elles sécurisées?",
+          answer: "Oui — nous utilisons un cryptage complet, une gestion interne uniquement et ne vendons jamais de données."
         }
       ],
       sidebar: {
-        legalTitle: "Juridique et Confidentialité",
-        terms: "Conditions d'Utilisation",
-        privacy: "Politique de Confidentialité",
-        refund: "Politique de Remboursement / Garantie",
-        business: "Accord Commercial",
-        featuresTitle: "Fonctionnalités",
-        uae: { title: "Siège aux EAU", desc: "pour une confidentialité maximale" },
-        noSelling: { title: "Zéro commerce/vente de données", desc: "Vos données restent les vôtres" },
-        twoFa: { title: "2FA mondial sécurisé", desc: "Protection multicouche" }
+        legal: {
+          title: "Juridique et Confidentialité",
+          links: [
+            { label: "Conditions d'Utilisation", href: "/terms" },
+            { label: "Politique de Confidentialité", href: "/privacy" },
+            { label: "Politique de Remboursement / Garantie", href: "/refund" },
+            { label: "Accord Commercial", href: "/business" }
+          ]
+        },
+        features: {
+          title: "Fonctionnalités",
+          items: [
+            { title: "Siège aux EAU", description: "pour une confidentialité maximale" },
+            { title: "Zéro commerce/vente de données", description: "Vos données restent les vôtres" },
+            { title: "2FA mondial sécurisé", description: "Protection multicouche" }
+          ]
+        }
       }
     },
     pricing: {
       title: "Choisissez Votre Plan",
       subtitle: "Tarification transparente pour tous",
-      subtitleHighlight: "Tarification transparente",
-      student: "Étudiant",
-      personal: "Personnel",
-      business: "Entreprise"
+      planTypes: {
+        student: "Étudiant",
+        personal: "Personnel",
+        business: "Entreprise"
+      }
+    },
+    contact: {
+      directory: {
+        title: "Annuaire de Contact",
+        generalInquiries: { label: "Demandes Générales", email: "info@atenra.com" },
+        supportTechnical: { label: "Support et Technique", email: "it@atenra.com" },
+        mediaPartnerships: { label: "Médias et Partenariats", email: "contact@atenra.com" },
+        legalCompliance: { label: "Juridique et Conformité", email: "legal@atenra.com" }
+      },
+      offices: {
+        title: "Emplacements des Bureaux",
+        florida: { label: "Floride", address: "8430 Bird Rd, Miami, FL 33155, USA" },
+        uae: { label: "É.A.U", address: "Bientôt disponible" }
+      }
     }
   },
   de: {
@@ -718,8 +783,9 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       story: {
         title: "Unsere Geschichte",
-        content: "Atenra entstand aus der Frustration endloser Suchen und Unsicherheit bei der Suche nach zuverlässiger Hilfe. Wir haben uns vorgenommen, das zu vereinfachen — eine Plattform zu schaffen, auf der Technologie die menschliche Verbindung verbessert, nicht ersetzt. Heute definieren wir neu, wie Menschen und Unternehmen vertrauenswürdige Fachleute finden, eine kuratierte Übereinstimmung nach der anderen.",
-        highlight: "Technologie die menschliche Verbindung verbessert, nicht ersetzt"
+        text1: "Atenra entstand aus der Frustration endloser Suchen und Unsicherheit bei der Suche nach zuverlässiger Hilfe. Wir haben uns vorgenommen, das zu vereinfachen — eine Plattform zu schaffen, auf der",
+        highlight: "Technologie die menschliche Verbindung verbessert, nicht ersetzt",
+        text2: "Heute definieren wir neu, wie Menschen und Unternehmen vertrauenswürdige Fachleute finden, eine kuratierte Übereinstimmung nach der anderen."
       },
       values: {
         title: "Wofür Wir Stehen",
@@ -733,15 +799,17 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       mission: {
         title: "Unsere Mission",
-        content: "Atenra existiert, um Menschen mit Fachleuten zu verbinden, denen sie vertrauen können. Wir kombinieren modernste Technologie mit echtem menschlichem Urteilsvermögen, um bedeutungsvolle Übereinstimmungen zu schaffen — geleitet von Datenschutz, Integrität und Ergebnissen.",
-        highlight: "modernste Technologie mit echtem menschlichem Urteilsvermögen"
+        text1: "Atenra existiert, um Menschen mit Fachleuten zu verbinden, denen sie vertrauen können. Wir kombinieren",
+        highlight: "modernste Technologie mit echtem menschlichem Urteilsvermögen",
+        text2: "um bedeutungsvolle Übereinstimmungen zu schaffen — geleitet von Datenschutz, Integrität und Ergebnissen."
       },
       vision: {
         title: "Unsere Vision",
-        principle: "Atenra wurde auf einem Prinzip aufgebaut — dass echte Verbindung bessere Ergebnisse schafft. Unsere Vision ist es, neu zu definieren, wie Menschen und Unternehmen zuverlässige Hilfe finden, indem wir intelligente Systeme mit echtem menschlichem Verständnis verbinden.",
-        principleHighlight: "echte Verbindung bessere Ergebnisse schafft",
-        belief: "Wir glauben, dass Technologie Entscheidungen vereinfachen sollte, nicht Vertrauen ersetzen. Jeder Service, jede Übereinstimmung und jede Partnerschaft basiert auf Transparenz, Effizienz und messbaren Ergebnissen.",
-        worldTitle: "Wir schaffen eine Welt, in der:",
+        text1: "Atenra wurde auf einem Prinzip aufgebaut — dass",
+        highlight: "echte Verbindung bessere Ergebnisse schafft",
+        text2: "Unsere Vision ist es, neu zu definieren, wie Menschen und Unternehmen zuverlässige Hilfe finden, indem wir intelligente Systeme mit echtem menschlichem Verständnis verbinden.",
+        text3: "Wir glauben, dass Technologie Entscheidungen vereinfachen sollte, nicht Vertrauen ersetzen. Jeder Service, jede Übereinstimmung und jede Partnerschaft basiert auf Transparenz, Effizienz und messbaren Ergebnissen.",
+        listTitle: "Wir schaffen eine Welt, in der:",
         points: [
           "Hilfe finden mühelos ist — Angetrieben von intelligenten Tools und menschlicher Führung",
           "Datenschutz Standard ist, nicht optional",
@@ -751,7 +819,7 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       commitment: {
         title: "Unser Engagement",
-        content: "Wir entwickeln nicht nur Tools; wir bauen Frameworks, die sich mit Ihnen weiterentwickeln. Während wir wachsen, bleibt Atenras Engagement gleich — jede Verbindung bedeutungsvoll, jeden Prozess transparent und jedes Ergebnis messbar zu halten.",
+        text1: "Wir entwickeln nicht nur Tools; wir bauen Frameworks, die sich mit Ihnen weiterentwickeln. Während wir wachsen, bleibt Atenras Engagement gleich — zu halten",
         highlight: "jede Verbindung bedeutungsvoll, jeden Prozess transparent und jedes Ergebnis messbar"
       }
     },
@@ -763,12 +831,13 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       about: {
         title: "Über die Arbeit bei Atenra",
-        content: "Atenra definiert neu, wie Menschen sich mit Fachleuten verbinden — und das beginnt mit dem Team dahinter. Wir glauben an Wachstum, Inklusion und bedeutungsvolle Arbeit, die Menschen weltweit befähigt. Ob Sie sich für Betrieb, Design, Marketing oder Kundenerfolg interessieren — es gibt einen Platz für Sie hier.",
-        highlight: "Wachstum, Inklusion und bedeutungsvolle Arbeit"
+        text1: "Atenra definiert neu, wie Menschen sich mit Fachleuten verbinden — und das beginnt mit dem Team dahinter. Wir glauben an",
+        highlight: "Wachstum, Inklusion und bedeutungsvolle Arbeit",
+        text2: "die Menschen weltweit befähigt. Ob Sie sich für Betrieb, Design, Marketing oder Kundenerfolg interessieren — es gibt einen Platz für Sie hier."
       },
-      offer: {
+      benefits: {
         title: "Was Wir Anbieten",
-        benefits: [
+        list: [
           "Remote-First-Flexibilität",
           "Transparente Wachstumspfade",
           "Inklusive und kollaborative Kultur",
@@ -797,49 +866,71 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "Häufig Gestellte Fragen",
-      subtitle: "Finden Sie Antworten auf häufige Fragen zu Atenras Matching-Service, Preisen und unserer Arbeitsweise.",
-      subtitleHighlight: "Matching-Service, Preisen und unserer Arbeitsweise",
+      subtitle: "Finden Sie Antworten auf häufige Fragen zu Atenra",
       questions: [
         {
-          q: "Wie funktioniert Atenras Matching-Prozess?",
-          a: "Wir analysieren Ihre Anfrage, verifizieren Fachleute in Echtzeit und kombinieren dann menschliche Einsicht und KI, um die ideale Übereinstimmung zu finden."
+          question: "Wie funktioniert Atenras Matching-Prozess?",
+          answer: "Wir analysieren Ihre Anfrage, verifizieren Fachleute in Echtzeit und kombinieren dann menschliche Einsicht und KI, um die ideale Übereinstimmung zu finden."
         },
         {
-          q: "Wie schnell werde ich vermittelt?",
-          a: "Normalerweise innerhalb von Minuten, abhängig von Service-Typ und Standort."
+          question: "Wie schnell werde ich vermittelt?",
+          answer: "Normalerweise innerhalb von Minuten, abhängig von Service-Typ und Standort."
         },
         {
-          q: "Was macht Atenra anders?",
-          a: "Jede Übereinstimmung wird von Menschen überprüft, durch Datenschutz geschützt und auf langfristiges Vertrauen ausgerichtet."
+          question: "Was macht Atenra anders?",
+          answer: "Jede Übereinstimmung wird von Menschen überprüft, durch Datenschutz geschützt und auf langfristiges Vertrauen ausgerichtet."
         },
         {
-          q: "Was ist, wenn ich nicht zufrieden bin?",
-          a: "Wir bewerten neu, weisen neu zu oder erstatten zurück — abhängig von Ihrem Plan."
+          question: "Was ist, wenn ich nicht zufrieden bin?",
+          answer: "Wir bewerten neu, weisen neu zu oder erstatten zurück — abhängig von Ihrem Plan."
         },
         {
-          q: "Sind meine persönlichen Informationen sicher?",
-          a: "Ja — wir verwenden vollständige Verschlüsselung, nur interne Handhabung und verkaufen niemals Daten."
+          question: "Sind meine persönlichen Informationen sicher?",
+          answer: "Ja — wir verwenden vollständige Verschlüsselung, nur interne Handhabung und verkaufen niemals Daten."
         }
       ],
       sidebar: {
-        legalTitle: "Rechtliches & Datenschutz",
-        terms: "Nutzungsbedingungen",
-        privacy: "Datenschutzrichtlinie",
-        refund: "Rückerstattungs-/Garantierichtlinie",
-        business: "Geschäftsvereinbarung",
-        featuresTitle: "Funktionen",
-        uae: { title: "VAE-Hauptsitz", desc: "für maximalen Datenschutz" },
-        noSelling: { title: "Null Datenhandel/-verkauf", desc: "Ihre Daten bleiben Ihre" },
-        twoFa: { title: "Sichere globale 2FA", desc: "Mehrschichtiger Schutz" }
+        legal: {
+          title: "Rechtliches & Datenschutz",
+          links: [
+            { label: "Nutzungsbedingungen", href: "/terms" },
+            { label: "Datenschutzrichtlinie", href: "/privacy" },
+            { label: "Rückerstattungs-/Garantierichtlinie", href: "/refund" },
+            { label: "Geschäftsvereinbarung", href: "/business" }
+          ]
+        },
+        features: {
+          title: "Funktionen",
+          items: [
+            { title: "VAE-Hauptsitz", description: "für maximalen Datenschutz" },
+            { title: "Null Datenhandel/-verkauf", description: "Ihre Daten bleiben Ihre" },
+            { title: "Sichere globale 2FA", description: "Mehrschichtiger Schutz" }
+          ]
+        }
       }
     },
     pricing: {
       title: "Wählen Sie Ihren Plan",
       subtitle: "Transparente Preise für alle",
-      subtitleHighlight: "Transparente Preise",
-      student: "Student",
-      personal: "Persönlich",
-      business: "Geschäftlich"
+      planTypes: {
+        student: "Student",
+        personal: "Persönlich",
+        business: "Geschäftlich"
+      }
+    },
+    contact: {
+      directory: {
+        title: "Kontaktverzeichnis",
+        generalInquiries: { label: "Allgemeine Anfragen", email: "info@atenra.com" },
+        supportTechnical: { label: "Support & Technik", email: "it@atenra.com" },
+        mediaPartnerships: { label: "Medien & Partnerschaften", email: "contact@atenra.com" },
+        legalCompliance: { label: "Rechtliches & Compliance", email: "legal@atenra.com" }
+      },
+      offices: {
+        title: "Bürostandorte",
+        florida: { label: "Florida", address: "8430 Bird Rd, Miami, FL 33155, USA" },
+        uae: { label: "V.A.E", address: "Demnächst" }
+      }
     }
   },
   zh: {
@@ -891,8 +982,9 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       story: {
         title: "我们的故事",
-        content: "Atenra诞生于在寻找可靠帮助时无休止的搜索和不确定性的挫折感。我们着手简化这一点 —— 创建一个技术增强而非取代人际联系的平台。今天，我们正在重新定义人们和企业如何找到值得信赖的专业人士，一次精心策划的匹配。",
-        highlight: "技术增强而非取代人际联系"
+        text1: "Atenra诞生于在寻找可靠帮助时无休止的搜索和不确定性的挫折感。我们着手简化这一点 —— 创建一个",
+        highlight: "技术增强而非取代人际联系",
+        text2: "的平台。今天，我们正在重新定义人们和企业如何找到值得信赖的专业人士，一次精心策划的匹配。"
       },
       values: {
         title: "我们的立场",
@@ -906,15 +998,17 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       mission: {
         title: "我们的使命",
-        content: "Atenra的存在是为了将人们与他们可以信任的专业人士联系起来。我们将尖端技术与真正的人类判断相结合，创造有意义的匹配 —— 以隐私、诚信和成果为指导。",
-        highlight: "尖端技术与真正的人类判断"
+        text1: "Atenra的存在是为了将人们与他们可以信任的专业人士联系起来。我们将",
+        highlight: "尖端技术与真正的人类判断",
+        text2: "相结合，创造有意义的匹配 —— 以隐私、诚信和成果为指导。"
       },
       vision: {
         title: "我们的愿景",
-        principle: "Atenra建立在一个原则上 —— 真正的联系创造更好的结果。我们的愿景是重新定义人们和企业如何通过将智能系统与真正的人类理解相结合来找到可靠的帮助。",
-        principleHighlight: "真正的联系创造更好的结果",
-        belief: "我们相信技术应该简化决策，而不是取代信任。每项服务、每次匹配和每个合作伙伴关系都是围绕透明度、效率和可衡量的结果构建的。",
-        worldTitle: "我们正在创造一个世界，其中：",
+        text1: "Atenra建立在一个原则上 —— ",
+        highlight: "真正的联系创造更好的结果",
+        text2: "我们的愿景是重新定义人们和企业如何通过将智能系统与真正的人类理解相结合来找到可靠的帮助。",
+        text3: "我们相信技术应该简化决策，而不是取代信任。每项服务、每次匹配和每个合作伙伴关系都是围绕透明度、效率和可衡量的结果构建的。",
+        listTitle: "我们正在创造一个世界，其中：",
         points: [
           "寻找帮助毫不费力 —— 由智能工具和人类指导驱动",
           "隐私是标准，而非可选",
@@ -924,7 +1018,7 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       commitment: {
         title: "我们的承诺",
-        content: "我们不仅仅是在开发工具；我们正在构建与您一起发展的框架。随着我们的成长，Atenra的承诺保持不变 —— 保持每个连接有意义、每个过程透明、每个结果可衡量。",
+        text1: "我们不仅仅是在开发工具；我们正在构建与您一起发展的框架。随着我们的成长，Atenra的承诺保持不变 —— 保持",
         highlight: "每个连接有意义、每个过程透明、每个结果可衡量"
       }
     },
@@ -936,12 +1030,13 @@ export const newTranslations: Record<string, NewTranslations> = {
       },
       about: {
         title: "关于在Atenra工作",
-        content: "Atenra正在重新定义人们如何与专业人士联系 —— 这始于背后的团队。我们相信增长、包容和赋予全球人民权力的有意义的工作。无论您从事运营、设计、营销还是客户成功 —— 这里都有您的位置。",
-        highlight: "增长、包容和有意义的工作"
+        text1: "Atenra正在重新定义人们如何与专业人士联系 —— 这始于背后的团队。我们相信",
+        highlight: "增长、包容和有意义的工作",
+        text2: "赋予全球人民权力。无论您从事运营、设计、营销还是客户成功 —— 这里都有您的位置。"
       },
-      offer: {
+      benefits: {
         title: "我们提供什么",
-        benefits: [
+        list: [
           "远程优先的灵活性",
           "透明的成长路径",
           "包容和协作的文化",
@@ -970,49 +1065,71 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "常见问题",
-      subtitle: "查找有关Atenra匹配服务、定价和我们如何工作的常见问题的答案。",
-      subtitleHighlight: "匹配服务、定价和我们如何工作",
+      subtitle: "查找有关Atenra的常见问题的答案",
       questions: [
         {
-          q: "Atenra的匹配过程如何工作？",
-          a: "我们分析您的请求，实时验证专业人士，然后结合人类洞察和AI找到理想的匹配。"
+          question: "Atenra的匹配过程如何工作？",
+          answer: "我们分析您的请求，实时验证专业人士，然后结合人类洞察和AI找到理想的匹配。"
         },
         {
-          q: "我多快会被匹配？",
-          a: "通常在几分钟内，取决于服务类型和位置。"
+          question: "我多快会被匹配？",
+          answer: "通常在几分钟内，取决于服务类型和位置。"
         },
         {
-          q: "Atenra有什么不同？",
-          a: "每个匹配都经过人工审核、隐私保护，并专注于长期信任。"
+          question: "Atenra有什么不同？",
+          answer: "每个匹配都经过人工审核、隐私保护，并专注于长期信任。"
         },
         {
-          q: "如果我不满意怎么办？",
-          a: "我们将重新评估、重新分配或退款 —— 取决于您的计划。"
+          question: "如果我不满意怎么办？",
+          answer: "我们将重新评估、重新分配或退款 —— 取决于您的计划。"
         },
         {
-          q: "我的个人信息安全吗？",
-          a: "是的 —— 我们使用完全加密、仅内部处理，永不出售数据。"
+          question: "我的个人信息安全吗？",
+          answer: "是的 —— 我们使用完全加密、仅内部处理，永不出售数据。"
         }
       ],
       sidebar: {
-        legalTitle: "法律与隐私",
-        terms: "服务条款",
-        privacy: "隐私政策",
-        refund: "退款/保证政策",
-        business: "商业协议",
-        featuresTitle: "特点",
-        uae: { title: "阿联酋总部", desc: "最大限度的隐私" },
-        noSelling: { title: "零数据交易/销售", desc: "您的数据属于您" },
-        twoFa: { title: "安全的全球2FA", desc: "多层保护" }
+        legal: {
+          title: "法律与隐私",
+          links: [
+            { label: "服务条款", href: "/terms" },
+            { label: "隐私政策", href: "/privacy" },
+            { label: "退款/保证政策", href: "/refund" },
+            { label: "商业协议", href: "/business" }
+          ]
+        },
+        features: {
+          title: "特点",
+          items: [
+            { title: "阿联酋总部", description: "最大限度的隐私" },
+            { title: "零数据交易/销售", description: "您的数据属于您" },
+            { title: "安全的全球2FA", description: "多层保护" }
+          ]
+        }
       }
     },
     pricing: {
       title: "选择您的计划",
       subtitle: "为每个人提供透明定价",
-      subtitleHighlight: "透明定价",
-      student: "学生",
-      personal: "个人",
-      business: "企业"
+      planTypes: {
+        student: "学生",
+        personal: "个人",
+        business: "企业"
+      }
+    },
+    contact: {
+      directory: {
+        title: "联系目录",
+        generalInquiries: { label: "一般咨询", email: "info@atenra.com" },
+        supportTechnical: { label: "支持与技术", email: "it@atenra.com" },
+        mediaPartnerships: { label: "媒体与合作", email: "contact@atenra.com" },
+        legalCompliance: { label: "法律与合规", email: "legal@atenra.com" }
+      },
+      offices: {
+        title: "办公地点",
+        florida: { label: "佛罗里达", address: "8430 Bird Rd, Miami, FL 33155, USA" },
+        uae: { label: "阿联酋", address: "即将推出" }
+      }
     }
   }
 };
