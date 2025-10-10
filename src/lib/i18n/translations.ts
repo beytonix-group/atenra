@@ -3,8 +3,9 @@ export interface Translations {
     home: string;
     pricing: string;
     about: string;
-    social: string;
     more: string;
+    faq: string;
+    careers: string;
     contact: string;
     signIn: string;
     getStarted: string;
@@ -211,10 +212,11 @@ export const translations: Record<string, Translations> = {
   en: {
     navigation: {
       home: "Home",
-      pricing: "Pricing", 
+      pricing: "Pricing",
       about: "About",
-      social: "Social",
       more: "More",
+      faq: "FAQ's",
+      careers: "Careers",
       contact: "Contact",
       signIn: "Sign In",
       getStarted: "Get Started"
@@ -451,8 +453,9 @@ export const translations: Record<string, Translations> = {
       home: "Inicio",
       pricing: "Precios",
       about: "Acerca de",
-      social: "Social", 
       more: "Más",
+      faq: "Preguntas Frecuentes",
+      careers: "Carreras",
       contact: "Contacto",
       signIn: "Iniciar Sesión",
       getStarted: "Comenzar"
@@ -688,9 +691,10 @@ export const translations: Record<string, Translations> = {
     navigation: {
       home: "Accueil",
       pricing: "Tarifs",
-      about: "À propos", 
-      social: "Social",
+      about: "À propos",
       more: "Plus",
+      faq: "FAQ",
+      careers: "Carrières",
       contact: "Contact",
       signIn: "Se connecter",
       getStarted: "Commencer"
@@ -927,8 +931,9 @@ export const translations: Record<string, Translations> = {
       home: "Startseite",
       pricing: "Preise",
       about: "Über uns",
-      social: "Sozial",
-      more: "Mehr", 
+      more: "Mehr",
+      faq: "FAQ",
+      careers: "Karriere",
       contact: "Kontakt",
       signIn: "Anmelden",
       getStarted: "Loslegen"
@@ -1165,9 +1170,10 @@ export const translations: Record<string, Translations> = {
       home: "首页",
       pricing: "价格",
       about: "关于我们",
-      social: "社交",
       more: "更多",
-      contact: "联系我们", 
+      faq: "常见问题",
+      careers: "职业",
+      contact: "联系我们",
       signIn: "登录",
       getStarted: "开始使用"
     },

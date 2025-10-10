@@ -48,8 +48,9 @@ export function Navigation() {
 		{ name: t.navigation.home, href: "/" },
 		{ name: t.navigation.pricing, href: "/pricing" },
 		{ name: t.navigation.about, href: "/about" },
-		{ name: t.navigation.social, href: "/social" },
 		{ name: t.navigation.more, href: "/more" },
+		{ name: t.navigation.faq, href: "/faq" },
+		{ name: t.navigation.careers, href: "/careers" },
 		{ name: t.navigation.contact, href: "/contact" }
 	];
 

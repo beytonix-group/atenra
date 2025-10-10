@@ -1,40 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, Star, Zap, Shield, Crown } from "lucide-react";
+import { Check, GraduationCap, Users, Briefcase, Crown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
-
-interface PricingTier {
-	name: string;
-	tier: string;
-	description: string;
-	price: string;
-	period: string;
-	icon: React.ElementType;
-	features: string[];
-	highlighted?: boolean;
-	popular?: boolean;
-	buttonText: string;
-	buttonVariant?: "default" | "outline" | "ghost";
-}
 
 interface PlanFromDB {
 	id: number;
 	name: string;
-	description: string;
+	plan_type: 'student' | 'regular' | 'business';
+	tagline: string | null;
+	description: string | null;
+	detailed_description: string | null;
 	price: number;
 	currency: string;
 	billing_period: string;
-	features: string[];
+	quick_view_json: string | null;
+	industries_json: string | null;
 	trial_days: number;
+	has_promotion: number;
+	promotion_percent_off: number | null;
+	promotion_months: number | null;
+	is_invite_only: number;
+	has_refund_guarantee: number;
 }
 
+type PlanType = 'student' | 'regular' | 'business';
+
 export function PricingSection() {
-	const { t } = useLanguage();
-	const [plansFromDB, setPlansFromDB] = useState<PlanFromDB[]>([]);
+	const [selectedType, setSelectedType] = useState<PlanType>('regular');
+	const [plans, setPlans] = useState<PlanFromDB[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	// Fetch plans from database on mount
@@ -45,7 +41,7 @@ export function PricingSection() {
 				const data = await response.json() as { success?: boolean; plans?: PlanFromDB[] };
 
 				if (data.success && data.plans) {
-					setPlansFromDB(data.plans);
+					setPlans(data.plans);
 				}
 			} catch (error) {
 				console.error("Error fetching plans:", error);
@@ -57,181 +53,198 @@ export function PricingSection() {
 		fetchPlans();
 	}, []);
 
-	// Helper function to get price from database or fallback to hardcoded
-	const getPlanPrice = (planName: string, fallbackPrice: string): string => {
-		if (loading) return fallbackPrice;
+	// Filter plans by selected type
+	const filteredPlans = plans.filter(plan => plan.plan_type === selectedType && !plan.is_invite_only);
 
-		const dbPlan = plansFromDB.find(
-			p => p.name.toLowerCase() === planName.toLowerCase()
-		);
-
-		return dbPlan ? dbPlan.price.toString() : fallbackPrice;
-	};
-	
-	const pricingTiers: PricingTier[] = [
-		{
-			name: t.pricing.tiers.guest.name,
-			tier: "TIER 4",
-			description: t.pricing.tiers.guest.description,
-			price: "0",
-			period: t.pricing.freeForever,
-			icon: Star,
-			features: t.pricing.tiers.guest.features,
-			buttonText: t.pricing.tiers.guest.button,
-			buttonVariant: "outline"
-		},
-		{
-			name: t.pricing.tiers.essentials.name,
-			tier: "TIER 3",
-			description: t.pricing.tiers.essentials.description,
-			price: getPlanPrice("Essentials", "49"),
-			period: t.pricing.perMonth,
-			icon: Zap,
-			features: t.pricing.tiers.essentials.features,
-			highlighted: true,
-			popular: true,
-			buttonText: t.pricing.tiers.essentials.button,
-			buttonVariant: "default"
-		},
-		{
-			name: t.pricing.tiers.premium.name,
-			tier: "TIER 2",
-			description: t.pricing.tiers.premium.description,
-			price: getPlanPrice("Premium", "99"),
-			period: t.pricing.perMonth,
-			icon: Shield,
-			features: t.pricing.tiers.premium.features,
-			buttonText: t.pricing.tiers.premium.button,
-			buttonVariant: "outline"
-		},
-		{
-			name: t.pricing.tiers.executive.name,
-			tier: "TIER 1",
-			description: t.pricing.tiers.executive.description,
-			price: getPlanPrice("Executive", "199"),
-			period: t.pricing.perMonth,
-			icon: Crown,
-			features: t.pricing.tiers.executive.features,
-			buttonText: t.pricing.tiers.executive.button,
-			buttonVariant: "outline"
+	// Parse JSON fields
+	const parseQuickView = (plan: PlanFromDB): string[] => {
+		if (!plan.quick_view_json) return [];
+		try {
+			return JSON.parse(plan.quick_view_json);
+		} catch {
+			return [];
 		}
-	];
+	};
+
+	const getIcon = (planType: PlanType) => {
+		switch (planType) {
+			case 'student': return GraduationCap;
+			case 'business': return Briefcase;
+			default: return Users;
+		}
+	};
+
+	const getPlanIcon = (plan: PlanFromDB) => {
+		if (plan.is_invite_only) return Sparkles;
+		if (plan.price >= 200) return Crown;
+		return getIcon(plan.plan_type);
+	};
 
 	return (
 		<section className="py-12 md:py-16">
 			<div>
-				<div className="text-center mb-20 space-y-4">
+				{/* Header */}
+				<div className="text-center mb-12 space-y-4">
 					<h2 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight">
-						{t.pricing.title}
+						Choose Your Plan
 					</h2>
 					<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-						{t.pricing.subtitle}
+						Transparent pricing for everyone
 					</p>
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12 lg:gap-x-12">
-					{pricingTiers.map((tier, index) => {
-						const Icon = tier.icon;
-						return (
-							<div
-								key={index}
-								className="relative flex flex-col h-full"
-							>
-								<div className="h-5 mb-4">
-									{tier.popular && (
-										<span className="text-xs font-medium text-primary uppercase tracking-wider">
-											{t.pricing.mostPopular}
-										</span>
-									)}
-								</div>
-								
-								<div className="flex flex-col h-full">
-									<div className="flex items-center gap-3 mb-4">
-										<Icon className="h-5 w-5 text-muted-foreground" />
-										<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-											{tier.tier}
-										</span>
-									</div>
-									
-									<h3 className="text-2xl font-medium mb-3">{tier.name}</h3>
-									<p className="text-sm text-muted-foreground mb-8 leading-relaxed">{tier.description}</p>
-									
-									<div className="mb-8">
-										<div className="flex items-baseline gap-1">
-											<span className="text-4xl font-light">${tier.price}</span>
-											{tier.price !== "0" && (
-												<span className="text-sm text-muted-foreground">/mo</span>
-											)}
-										</div>
-										<span className="text-xs text-muted-foreground">{tier.period}</span>
-									</div>
-									
-									<ul className="space-y-3 mb-10 flex-grow">
-										{tier.features.map((feature, featureIndex) => (
-											<li key={featureIndex} className="flex items-start gap-3">
-												<Check className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-												<span className="text-sm text-foreground leading-relaxed">
-													{feature}
-												</span>
-											</li>
-										))}
-									</ul>
-									
-									<Link href="/register" className="w-full">
-										<Button
-											variant="outline"
-											className="w-full font-medium h-11 border-foreground/20 hover:bg-foreground hover:text-background hover:border-foreground transition-colors"
-											size="lg"
-										>
-											{tier.buttonText}
-										</Button>
-									</Link>
-								</div>
-							</div>
-						);
-					})}
-				</div>
-
-				<div className="mt-32">
-					<div className="bg-muted/30 p-12 md:p-16 max-w-4xl mx-auto">
-						<div className="grid md:grid-cols-2 gap-12 items-center">
-							<div>
-								<h3 className="text-3xl font-light mb-4">
-									{t.pricing.business.title}
-								</h3>
-								<p className="text-muted-foreground mb-8 leading-relaxed">
-									{t.pricing.business.description}
-								</p>
-								<ul className="space-y-3">
-									{t.pricing.business.features.map((feature, i) => (
-										<li key={i} className="flex items-start gap-3 text-sm">
-											<Check className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-											<span className="leading-relaxed">{feature}</span>
-										</li>
-									))}
-								</ul>
-							</div>
-							<div className="text-center md:text-right">
-								<div className="mb-8">
-									<span className="text-4xl font-light">$180</span>
-									<span className="text-sm text-muted-foreground ml-2">{t.pricing.perMonth}</span>
-								</div>
-								<Link href="/business-registration">
-									<Button 
-										variant="outline" 
-										size="lg" 
-										className="font-medium h-11 px-8 border-foreground/20 hover:bg-foreground hover:text-background hover:border-foreground transition-colors"
-									>
-										{t.pricing.business.button}
-									</Button>
-								</Link>
-								<p className="text-xs text-muted-foreground mt-6">
-									{t.pricing.business.disclaimer}
-								</p>
-							</div>
-						</div>
+				{/* Plan Type Toggle */}
+				<div className="flex justify-center mb-12">
+					<div className="inline-flex items-center gap-1 p-1 bg-muted/50 rounded-lg">
+						<button
+							onClick={() => setSelectedType('student')}
+							className={cn(
+								"flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium transition-all",
+								selectedType === 'student'
+									? "bg-background shadow-sm"
+									: "text-muted-foreground hover:text-foreground"
+							)}
+						>
+							<GraduationCap className="h-4 w-4" />
+							Student
+						</button>
+						<button
+							onClick={() => setSelectedType('regular')}
+							className={cn(
+								"flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium transition-all",
+								selectedType === 'regular'
+									? "bg-background shadow-sm"
+									: "text-muted-foreground hover:text-foreground"
+							)}
+						>
+							<Users className="h-4 w-4" />
+							Personal
+						</button>
+						<button
+							onClick={() => setSelectedType('business')}
+							className={cn(
+								"flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium transition-all",
+								selectedType === 'business'
+									? "bg-background shadow-sm"
+									: "text-muted-foreground hover:text-foreground"
+							)}
+						>
+							<Briefcase className="h-4 w-4" />
+							Business
+						</button>
 					</div>
 				</div>
+
+				{/* Plans Grid */}
+				{loading ? (
+					<div className="text-center py-12">
+						<p className="text-muted-foreground">Loading plans...</p>
+					</div>
+				) : (
+					<div className={cn(
+						"grid gap-8",
+						filteredPlans.length === 1 ? "max-w-md mx-auto" :
+						filteredPlans.length === 2 ? "md:grid-cols-2 max-w-4xl mx-auto" :
+						filteredPlans.length === 3 ? "md:grid-cols-3 max-w-5xl mx-auto" :
+						"md:grid-cols-2 lg:grid-cols-4"
+					)}>
+						{filteredPlans.map((plan) => {
+							const Icon = getPlanIcon(plan);
+							const quickView = parseQuickView(plan);
+							const hasPromotion = plan.has_promotion === 1;
+							const originalPrice = hasPromotion && plan.promotion_percent_off
+								? plan.price / (1 - plan.promotion_percent_off / 100)
+								: plan.price;
+
+							return (
+								<div
+									key={plan.id}
+									className={cn(
+										"relative flex flex-col rounded-xl border bg-card p-8 shadow-sm transition-all hover:shadow-md",
+										plan.price >= 100 && "border-primary/20"
+									)}
+								>
+									{/* Icon & Name */}
+									<div className="mb-6">
+										<Icon className="h-8 w-8 text-primary mb-4" />
+										<h3 className="text-2xl font-semibold mb-2">{plan.name}</h3>
+										{plan.tagline && (
+											<p className="text-sm text-muted-foreground">{plan.tagline}</p>
+										)}
+									</div>
+
+									{/* Price */}
+									<div className="mb-6">
+										<div className="flex items-baseline gap-2">
+											<span className="text-4xl font-bold">
+												${plan.price === 0 ? 'Custom' : plan.price}
+											</span>
+											{plan.price > 0 && (
+												<span className="text-muted-foreground">/month</span>
+											)}
+										</div>
+										{hasPromotion && plan.promotion_percent_off && (
+											<div className="mt-2">
+												<span className="text-sm line-through text-muted-foreground">
+													${originalPrice.toFixed(0)}/mo
+												</span>
+												<span className="ml-2 text-sm font-medium text-primary">
+													{plan.promotion_percent_off}% off first {plan.promotion_months} months
+												</span>
+											</div>
+										)}
+										{plan.trial_days > 0 && (
+											<p className="text-sm text-muted-foreground mt-2">
+												{plan.trial_days}-day trial
+											</p>
+										)}
+										{plan.has_refund_guarantee === 1 && (
+											<p className="text-sm text-green-600 dark:text-green-400 mt-2">
+												Pro-rata refund guarantee
+											</p>
+										)}
+									</div>
+
+									{/* Description */}
+									{plan.description && (
+										<p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+											{plan.description}
+										</p>
+									)}
+
+									{/* Quick View Features */}
+									{quickView.length > 0 && (
+										<ul className="space-y-3 mb-8 flex-grow">
+											{quickView.map((feature, idx) => (
+												<li key={idx} className="flex items-start gap-3">
+													<Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+													<span className="text-sm leading-relaxed">{feature}</span>
+												</li>
+											))}
+										</ul>
+									)}
+
+									{/* CTA Button */}
+									<Link href={plan.is_invite_only ? "/contact" : "/register"} className="w-full">
+										<Button
+											variant={plan.price >= 100 ? "default" : "outline"}
+											className="w-full"
+											size="lg"
+										>
+											{plan.is_invite_only ? "Contact Us" : "Get Started"}
+										</Button>
+									</Link>
+
+									{plan.is_invite_only && (
+										<p className="text-xs text-center text-muted-foreground mt-3">
+											Invite only
+										</p>
+									)}
+								</div>
+							);
+						})}
+					</div>
+				)}
 			</div>
 		</section>
 	);
