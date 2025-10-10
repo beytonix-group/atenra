@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Check, GraduationCap, Users, Briefcase, Crown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 interface PlanFromDB {
 	id: number;
@@ -29,9 +30,37 @@ interface PlanFromDB {
 type PlanType = 'student' | 'regular' | 'business';
 
 export function PricingSection() {
-	const [selectedType, setSelectedType] = useState<PlanType>('regular');
+	const searchParams = useSearchParams();
+	const typeParam = searchParams.get('type') as PlanType | null;
+	const [selectedType, setSelectedType] = useState<PlanType>(typeParam || 'regular');
 	const [plans, setPlans] = useState<PlanFromDB[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [isVisible, setIsVisible] = useState(false);
+	const sectionRef = useRef<HTMLElement>(null);
+
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					setIsVisible(true);
+				}
+			},
+			{ threshold: 0.1 }
+		);
+
+		if (sectionRef.current) {
+			observer.observe(sectionRef.current);
+		}
+
+		return () => observer.disconnect();
+	}, []);
+
+	// Update selected type when URL parameter changes
+	useEffect(() => {
+		if (typeParam && ['student', 'regular', 'business'].includes(typeParam)) {
+			setSelectedType(typeParam);
+		}
+	}, [typeParam]);
 
 	// Fetch plans from database on mount
 	useEffect(() => {
@@ -58,7 +87,16 @@ export function PricingSection() {
 	}, []);
 
 	// Filter plans by selected type (include invite-only plans)
-	const filteredPlans = plans.filter(plan => plan.plan_type === selectedType);
+	// Sort plans: ☐☐☐ Plan (price = 0) should be at the end
+	const filteredPlans = plans
+		.filter(plan => plan.plan_type === selectedType)
+		.sort((a, b) => {
+			// Move plans with price = 0 to the end
+			if (a.price === 0 && b.price !== 0) return 1;
+			if (a.price !== 0 && b.price === 0) return -1;
+			// Otherwise, sort by price ascending
+			return a.price - b.price;
+		});
 
 	console.log("Selected Type:", selectedType);
 	console.log("Filtered Plans:", filteredPlans);
@@ -89,20 +127,23 @@ export function PricingSection() {
 	};
 
 	return (
-		<section className="py-12 md:py-16">
+		<section ref={sectionRef} className="py-12 md:py-16 relative">
+			{/* Decorative element */}
+			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-transparent via-border to-transparent" />
+
 			<div>
 				{/* Header */}
-				<div className="text-center mb-12 space-y-4">
+				<div className={`text-center mb-12 space-y-4 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 					<h2 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight">
 						Choose Your Plan
 					</h2>
-					<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-						Transparent pricing for everyone
+					<p className="text-lg text-muted-foreground leading-loose max-w-2xl mx-auto">
+						<span className="text-foreground font-medium">Transparent pricing</span> for everyone
 					</p>
 				</div>
 
 				{/* Plan Type Toggle */}
-				<div className="flex justify-center mb-12">
+				<div className={`flex justify-center mb-12 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 					<div className="inline-flex items-center gap-1 p-1 bg-muted/50 rounded-lg">
 						<button
 							onClick={() => setSelectedType('student')}
@@ -168,12 +209,16 @@ export function PricingSection() {
 								<div
 									key={plan.id}
 									className={cn(
-										"relative flex flex-col rounded-xl border bg-card p-8 shadow-sm transition-all hover:shadow-md",
-										plan.price >= 100 && "border-primary/20"
+										"relative flex flex-col rounded-xl border bg-card p-8 shadow-sm transition-all duration-700",
+										"hover:shadow-xl hover:scale-[1.02] hover:border-primary/50",
+										"before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br before:from-primary/10 before:to-transparent before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100",
+										plan.price >= 100 && "border-primary/20",
+										isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
 									)}
+									style={{ transitionDelay: `${filteredPlans.indexOf(plan) * 100 + 400}ms` }}
 								>
 									{/* Icon & Name */}
-									<div className="mb-6">
+									<div className="relative z-10 mb-6">
 										<Icon className="h-8 w-8 text-primary mb-4" />
 										<h3 className="text-2xl font-semibold mb-2">{plan.name}</h3>
 										{plan.tagline && (
@@ -182,7 +227,7 @@ export function PricingSection() {
 									</div>
 
 									{/* Price */}
-									<div className="mb-6">
+									<div className="relative z-10 mb-6">
 										<div className="flex items-baseline gap-2">
 											<span className="text-4xl font-bold">
 												${plan.price === 0 ? 'Custom' : plan.price}
@@ -215,14 +260,14 @@ export function PricingSection() {
 
 									{/* Description */}
 									{plan.description && (
-										<p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+										<p className="relative z-10 text-sm text-muted-foreground mb-6 leading-relaxed">
 											{plan.description}
 										</p>
 									)}
 
 									{/* Quick View Features */}
 									{quickView.length > 0 && (
-										<ul className="space-y-3 mb-8 flex-grow">
+										<ul className="relative z-10 space-y-3 mb-8 flex-grow">
 											{quickView.map((feature, idx) => (
 												<li key={idx} className="flex items-start gap-3">
 													<Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
@@ -233,7 +278,7 @@ export function PricingSection() {
 									)}
 
 									{/* CTA Button */}
-									<Link href={plan.is_invite_only ? "/contact" : "/register"} className="w-full">
+									<Link href={plan.is_invite_only ? "/contact" : "/register"} className="relative z-10 w-full">
 										<Button
 											variant={plan.price >= 100 ? "default" : "outline"}
 											className="w-full"
@@ -244,7 +289,7 @@ export function PricingSection() {
 									</Link>
 
 									{plan.is_invite_only === 1 && (
-										<p className="text-xs text-center text-muted-foreground mt-3">
+										<p className="relative z-10 text-xs text-center text-muted-foreground mt-3">
 											Invite only
 										</p>
 									)}
@@ -254,6 +299,9 @@ export function PricingSection() {
 					</div>
 				)}
 			</div>
+
+			{/* Decorative element */}
+			<div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-border via-transparent to-transparent" />
 		</section>
 	);
 }

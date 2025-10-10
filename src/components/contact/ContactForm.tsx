@@ -2,13 +2,32 @@
 
 import { Button } from "@/components/ui/button";
 import { Mail, User, MessageCircle, Send } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function ContactForm() {
 	const { t } = useLanguage();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitted, setSubmitted] = useState(false);
+	const [isVisible, setIsVisible] = useState(false);
+	const sectionRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					setIsVisible(true);
+				}
+			},
+			{ threshold: 0.1 }
+		);
+
+		if (sectionRef.current) {
+			observer.observe(sectionRef.current);
+		}
+
+		return () => observer.disconnect();
+	}, []);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -18,7 +37,6 @@ export function ContactForm() {
 		const data = {
 			name: formData.get('name'),
 			email: formData.get('email'),
-			subject: formData.get('subject'),
 			message: formData.get('message')
 		};
 
@@ -54,10 +72,10 @@ export function ContactForm() {
 	}
 
 	return (
-		<div>
-			<h2 className="text-3xl font-light mb-8">{t.contact.form.title}</h2>
-			
-			<form onSubmit={handleSubmit} className="space-y-6">
+		<div ref={sectionRef}>
+			<h2 className={`text-3xl font-light mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{t.contact.form.title}</h2>
+
+			<form onSubmit={handleSubmit} className={`space-y-6 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<div>
 						<label htmlFor="name" className="block text-sm font-medium mb-2">
@@ -88,27 +106,6 @@ export function ContactForm() {
 							placeholder="your.email@example.com"
 						/>
 					</div>
-				</div>
-
-				<div>
-					<label htmlFor="subject" className="block text-sm font-medium mb-2">
-						<MessageCircle className="inline h-4 w-4 mr-2" />
-						{t.contact.form.subject}
-					</label>
-					<select
-						id="subject"
-						name="subject"
-						required
-						className="w-full px-4 py-3 rounded-lg border bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-					>
-						<option value="">Select a topic</option>
-						<option value="general">{t.contact.form.subjects.general}</option>
-						<option value="support">{t.contact.form.subjects.support}</option>
-						<option value="billing">{t.contact.form.subjects.billing}</option>
-						<option value="partnership">{t.contact.form.subjects.partnership}</option>
-						<option value="feedback">{t.contact.form.subjects.feedback}</option>
-						<option value="media">{t.contact.form.subjects.media}</option>
-					</select>
 				</div>
 
 				<div>

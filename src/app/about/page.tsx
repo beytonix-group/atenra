@@ -2,14 +2,16 @@ import { Navigation } from "@/components/landing/Navigation";
 import { AboutHero } from "@/components/about/AboutHero";
 import { OurStory } from "@/components/about/OurStory";
 import { OurValues } from "@/components/about/OurValues";
-import { SupportedServices } from "@/components/about/SupportedServices";
+import { OurMission } from "@/components/about/OurMission";
+import { OurVision } from "@/components/about/OurVision";
+import { OurCommitment } from "@/components/about/OurCommitment";
 import { FooterSection } from "@/components/landing/FooterSection";
 
 export const runtime = "edge";
 
 export const metadata = {
 	title: "About - Atenra",
-	description: "Learn about Atenra's mission to revolutionize service provider connections through human-first matching.",
+	description: "The human-first platform for trusted service discovery.",
 };
 
 export default function AboutPage() {
@@ -20,7 +22,9 @@ export default function AboutPage() {
 				<AboutHero />
 				<OurStory />
 				<OurValues />
-				<SupportedServices />
+				<OurMission />
+				<OurVision />
+				<OurCommitment />
 				<FooterSection />
 			</div>
 		</main>

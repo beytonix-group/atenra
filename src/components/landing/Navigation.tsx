@@ -46,8 +46,8 @@ export function Navigation() {
 
 	const navItems = [
 		{ name: t.navigation.home, href: "/" },
-		{ name: t.navigation.pricing, href: "/pricing" },
 		{ name: t.navigation.about, href: "/about" },
+		{ name: t.navigation.pricing, href: "/pricing" },
 		{ name: t.navigation.more, href: "/more" },
 		{ name: t.navigation.faq, href: "/faq" },
 		{ name: t.navigation.careers, href: "/careers" },
@@ -70,7 +70,7 @@ export function Navigation() {
 								key={item.name}
 								href={item.href}
 								className={cn(
-									"text-sm font-medium transition-colors hover:text-primary",
+									"text-base font-medium transition-colors hover:text-primary",
 									pathname === item.href
 										? "text-foreground"
 										: "text-muted-foreground"

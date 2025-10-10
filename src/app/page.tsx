@@ -1,8 +1,5 @@
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ServicesShowcase } from "@/components/landing/ServicesShowcase";
-import { FeaturesSection } from "@/components/landing/FeaturesSection";
-import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
-import { CTASection } from "@/components/landing/CTASection";
 import { FooterSection } from "@/components/landing/FooterSection";
 import { Navigation } from "@/components/landing/Navigation";
 
@@ -19,9 +16,6 @@ export default async function Page() {
 			<Navigation />
 			<HeroSection />
 			<ServicesShowcase />
-			<FeaturesSection />
-			<HowItWorksSection />
-			<CTASection />
 			<FooterSection />
 		</main>
 	);
