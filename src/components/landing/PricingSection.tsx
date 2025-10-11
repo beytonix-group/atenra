@@ -211,7 +211,7 @@ export function PricingSection() {
 									<div
 										key={plan.id}
 										className={cn(
-											"relative flex flex-col rounded-xl border bg-card p-8 shadow-sm transition-all duration-700",
+											"group relative flex flex-col rounded-xl border bg-card p-8 shadow-sm transition-all duration-700",
 											"hover:shadow-xl hover:scale-[1.02] hover:border-primary/50",
 											"before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br before:from-primary/10 before:to-transparent before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100",
 											plan.price >= 100 && "border-primary/20",
@@ -264,16 +264,9 @@ export function PricingSection() {
 											)}
 										</div>
 
-										{/* Description */}
-										{plan.description && (
-											<p className="relative z-10 text-sm text-muted-foreground mb-6 leading-relaxed">
-												{nt.pricing.descriptions[plan.description] || plan.description}
-											</p>
-										)}
-
 										{/* Quick View Features */}
 										{quickView.length > 0 && (
-											<ul className="relative z-10 space-y-3 mb-8 flex-grow">
+											<ul className="relative z-10 space-y-3 mb-6 flex-grow">
 												{quickView.map((feature, idx) => (
 													<li key={idx} className="flex items-start gap-3">
 														<Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
@@ -283,11 +276,20 @@ export function PricingSection() {
 											</ul>
 										)}
 
+										{/* Detailed Description - In Detail Section */}
+										{plan.detailed_description && (
+											<div className="relative z-10 mb-6 p-4 bg-muted/30 rounded-lg border border-border/50">
+												<p className="text-sm text-muted-foreground leading-relaxed">
+													{plan.detailed_description}
+												</p>
+											</div>
+										)}
+
 										{/* CTA Button */}
 										<Link href={plan.is_invite_only ? "/contact" : "/register"} className="relative z-10 w-full">
 											<Button
-												variant={plan.price >= 100 ? "default" : "outline"}
-												className="w-full"
+												variant="outline"
+												className="w-full bg-background text-foreground border-2 transition-all duration-300 group-hover:bg-foreground group-hover:text-background group-hover:border-foreground"
 												size="lg"
 											>
 												{plan.is_invite_only ? nt.pricing.contactUs : nt.pricing.getStarted}
@@ -304,8 +306,8 @@ export function PricingSection() {
 							})}
 						</div>
 
-						{/* Invite-Only Plans Section */}
-						{inviteOnlyPlans.length > 0 && (
+						{/* Invite-Only Plans Section - Only show under Personal tab */}
+						{selectedType === 'regular' && inviteOnlyPlans.length > 0 && (
 							<div className="mt-16">
 								<div className={cn(
 									"grid gap-8 max-w-md mx-auto",
@@ -319,7 +321,7 @@ export function PricingSection() {
 											<div
 												key={plan.id}
 												className={cn(
-													"relative flex flex-col rounded-xl border bg-card p-8 shadow-sm transition-all duration-700",
+													"group relative flex flex-col rounded-xl border bg-card p-8 shadow-sm transition-all duration-700",
 													"hover:shadow-xl hover:scale-[1.02] hover:border-primary/50",
 													"before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br before:from-primary/10 before:to-transparent before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100",
 													"border-primary/30 bg-gradient-to-br from-primary/5 to-transparent",
@@ -358,16 +360,9 @@ export function PricingSection() {
 													</p>
 												</div>
 
-												{/* Description */}
-												{plan.description && (
-													<p className="relative z-10 text-sm text-muted-foreground mb-6 leading-relaxed">
-														{nt.pricing.descriptions[plan.description] || plan.description}
-													</p>
-												)}
-
 												{/* Quick View Features */}
 												{quickView.length > 0 && (
-													<ul className="relative z-10 space-y-3 mb-8 flex-grow">
+													<ul className="relative z-10 space-y-3 mb-6 flex-grow">
 														{quickView.map((feature, idx) => (
 															<li key={idx} className="flex items-start gap-3">
 																<Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
@@ -377,11 +372,20 @@ export function PricingSection() {
 													</ul>
 												)}
 
+												{/* Detailed Description - In Detail Section */}
+												{plan.detailed_description && (
+													<div className="relative z-10 mb-6 p-4 bg-muted/30 rounded-lg border border-border/50">
+														<p className="text-sm text-muted-foreground leading-relaxed">
+															{plan.detailed_description}
+														</p>
+													</div>
+												)}
+
 												{/* CTA Button */}
 												<Link href="/contact" className="relative z-10 w-full">
 													<Button
-														variant="default"
-														className="w-full"
+														variant="outline"
+														className="w-full bg-background text-foreground border-2 transition-all duration-300 group-hover:bg-foreground group-hover:text-background group-hover:border-foreground"
 														size="lg"
 													>
 														{nt.pricing.contactUs}
