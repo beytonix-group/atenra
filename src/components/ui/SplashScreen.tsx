@@ -13,32 +13,37 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
 	const { status } = useSession();
 
 	useEffect(() => {
+		// Check if splash has already been shown in this session
+		const splashShown = sessionStorage.getItem('splashShown');
+
 		// Check if user is logged in or on dashboard pages
 		const isDashboardPage = pathname?.startsWith("/dashboard") ||
 			pathname?.startsWith("/admindashboard") ||
 			pathname?.startsWith("/profile");
 		const isLoggedIn = status === "authenticated";
 
-		// Don't show splash screen on dashboard pages or when logged in
-		if (isDashboardPage || isLoggedIn) {
+		// Don't show splash screen if already shown, on dashboard pages, or when logged in
+		if (splashShown || isDashboardPage || isLoggedIn) {
 			setShowSplash(false);
 			setShowContent(true);
 			return;
 		}
 
-		// Show splash screen for 1 second on all other pages
+		// Show splash screen for 1.5 seconds on first page load
 		setShowSplash(true);
 		setFadeOut(false);
 		setShowContent(false);
 
 		const fadeTimer = setTimeout(() => {
 			setFadeOut(true);
-		}, 1000);
+		}, 1500);
 
 		const hideTimer = setTimeout(() => {
 			setShowSplash(false);
 			setShowContent(true);
-		}, 1300); // 1s display + 300ms fade
+			// Mark splash as shown for this session
+			sessionStorage.setItem('splashShown', 'true');
+		}, 1800); // 1.5s display + 300ms fade
 
 		return () => {
 			clearTimeout(fadeTimer);
@@ -49,7 +54,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
 	if (showSplash) {
 		return (
 			<div
-				className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#FF9100] transition-opacity duration-300 ${
+				className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#7C8EA3] transition-opacity duration-300 ${
 					fadeOut ? "opacity-0" : "opacity-100"
 				}`}
 			>

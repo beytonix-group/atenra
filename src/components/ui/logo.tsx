@@ -23,8 +23,8 @@ export function Logo({ className = "h-10 w-auto", size = 40 }: LogoProps) {
   }
 
   const logoSrc = resolvedTheme === "dark"
-    ? "/logos/Icon_Shadow_White.png"
-    : "/logos/Icon_Shadow_Blue.png";
+    ? "/logos/Icon_White.png"
+    : "/logos/Icon_Black.png";
 
   return (
     <Image
