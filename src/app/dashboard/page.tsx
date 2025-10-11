@@ -35,16 +35,16 @@ export default async function DashboardPage() {
 
   return (
     <DashboardLayout user={session.user}>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {/* Welcome Header */}
         <div>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base md:text-lg text-muted-foreground">
             Welcome back, {session.user.name?.split(' ')[0] || 'User'}! Here&apos;s an overview of your account.
           </p>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -105,8 +105,8 @@ export default async function DashboardPage() {
 
         {/* Quick Actions */}
         <div>
-          <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Quick Actions</h3>
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow">
               <CardHeader>
                 <Package className="h-8 w-8 mb-2 text-primary" />
@@ -157,40 +157,40 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="space-y-4">
               {[
-                { 
-                  title: "Payment processed", 
+                {
+                  title: "Payment processed",
                   description: "Monthly subscription payment of $89.99",
                   time: "2 hours ago",
                   icon: CreditCard
                 },
-                { 
-                  title: "Service upgraded", 
+                {
+                  title: "Service upgraded",
                   description: "Analytics Pro plan activated",
                   time: "1 day ago",
                   icon: TrendingUp
                 },
-                { 
-                  title: "Report generated", 
+                {
+                  title: "Report generated",
                   description: "Monthly usage report is ready",
                   time: "3 days ago",
                   icon: FileText
                 },
-                { 
-                  title: "Profile updated", 
+                {
+                  title: "Profile updated",
                   description: "Account settings were modified",
                   time: "1 week ago",
                   icon: Settings
                 }
               ].map((item, i) => (
-                <div key={i} className="flex items-start space-x-4">
-                  <div className="rounded-full bg-muted p-2">
+                <div key={i} className="flex items-start space-x-3 md:space-x-4">
+                  <div className="rounded-full bg-muted p-2 flex-shrink-0">
                     <item.icon className="h-4 w-4" />
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="flex-1 space-y-1 min-w-0">
                     <p className="text-sm font-medium">{item.title}</p>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground truncate">{item.description}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">{item.time}</p>
+                  <p className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">{item.time}</p>
                 </div>
               ))}
             </div>
@@ -216,15 +216,15 @@ export default async function DashboardPage() {
                 { date: "Dec 20", event: "Service renewal", type: "renewal" },
                 { date: "Dec 31", event: "Usage quota resets", type: "reset" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">{item.event}</p>
+                <div key={i} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{item.event}</p>
                       <p className="text-xs text-muted-foreground">{item.date}</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="flex-shrink-0">
                     View
                   </Button>
                 </div>

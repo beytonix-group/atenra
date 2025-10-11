@@ -173,7 +173,55 @@ export function ActivityTable({ users, searchTerm = "" }: ActivityTableProps) {
 
 	return (
 		<>
-			<Table>
+			{/* Mobile Card View */}
+			<div className="lg:hidden divide-y">
+				{filteredUsers.length === 0 ? (
+					<div className="text-center py-8 text-muted-foreground text-sm">
+						{searchTerm ? "No users found matching your search" : "No user data available"}
+					</div>
+				) : (
+					filteredUsers.map((user) => (
+						<div key={user.id} className="p-4 space-y-3">
+							<div className="flex items-center justify-between">
+								<div className="flex-1 min-w-0">
+									<div className="font-medium text-sm truncate">
+										{getUserDisplayName(user)}
+									</div>
+									<div className="text-xs text-muted-foreground truncate">
+										{user.email}
+									</div>
+								</div>
+							</div>
+							<div className="flex items-center justify-between pt-2">
+								<div>
+									<div className="text-xs text-muted-foreground mb-1">Last Activity</div>
+									{user.lastActivity ? (
+										<div className="flex items-center gap-1 text-xs">
+											<Calendar className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+											<span>{formatDistanceToNow(user.lastActivity)}</span>
+										</div>
+									) : (
+										<span className="text-xs text-muted-foreground">No activity</span>
+									)}
+								</div>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handleViewActivities(user)}
+									className="text-xs"
+								>
+									<Eye className="h-3 w-3 mr-1" />
+									View
+								</Button>
+							</div>
+						</div>
+					))
+				)}
+			</div>
+
+			{/* Desktop Table View */}
+			<div className="hidden lg:block">
+				<Table>
 					<TableHeader>
 						<TableRow>
 							<TableHead>User</TableHead>
@@ -193,16 +241,19 @@ export function ActivityTable({ users, searchTerm = "" }: ActivityTableProps) {
 								<TableRow key={user.id}>
 									<TableCell>
 										<div>
-											<div className="font-medium">
+											<div className="font-medium text-sm">
 												{getUserDisplayName(user)}
+											</div>
+											<div className="text-xs text-muted-foreground">
+												{user.email}
 											</div>
 										</div>
 									</TableCell>
 									<TableCell>
 										{user.lastActivity ? (
 											<div className="flex items-center gap-2 text-sm">
-												<Calendar className="h-4 w-4 text-muted-foreground" />
-												{formatDistanceToNow(user.lastActivity)}
+												<Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+												<span>{formatDistanceToNow(user.lastActivity)}</span>
 											</div>
 										) : (
 											<span className="text-sm text-muted-foreground">No activity</span>
@@ -223,13 +274,14 @@ export function ActivityTable({ users, searchTerm = "" }: ActivityTableProps) {
 						)}
 					</TableBody>
 				</Table>
+			</div>
 
 			{/* Activity Details Modal */}
 			<Dialog open={modalOpen} onOpenChange={setModalOpen}>
-				<DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+				<DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto w-[95vw] sm:w-full">
 					<DialogHeader>
-						<DialogTitle>
-							<span>User Activities - {selectedUser ? getUserDisplayName(selectedUser) : ''}</span>
+						<DialogTitle className="text-base md:text-lg">
+							<span className="truncate">User Activities - {selectedUser ? getUserDisplayName(selectedUser) : ''}</span>
 						</DialogTitle>
 					</DialogHeader>
 					
@@ -238,25 +290,27 @@ export function ActivityTable({ users, searchTerm = "" }: ActivityTableProps) {
 							<div className="flex items-center justify-center py-8">
 								<div className="text-center">
 									<Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-									<p className="text-sm text-muted-foreground">Loading activities...</p>
+									<p className="text-xs md:text-sm text-muted-foreground">Loading activities...</p>
 								</div>
 							</div>
 						) : activities.length === 0 ? (
 							<div className="flex items-center justify-center py-8">
 								<div className="text-center">
 									<Activity className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-									<p className="text-sm text-muted-foreground">No activities recorded</p>
+									<p className="text-xs md:text-sm text-muted-foreground">No activities recorded</p>
 								</div>
 							</div>
 						) : (
-							<Table className="table-fixed">
-								<TableHeader>
-									<TableRow className="h-10">
-										<TableHead className="w-[160px] py-2">Action</TableHead>
-										<TableHead className="py-2">Description</TableHead>
-										<TableHead className="w-[180px] py-2">Date</TableHead>
-									</TableRow>
-								</TableHeader>
+							<div className="overflow-x-auto">
+								<div className="min-w-[600px]">
+									<Table className="table-fixed">
+										<TableHeader>
+											<TableRow className="h-10">
+												<TableHead className="w-[140px] md:w-[160px] py-2 text-xs md:text-sm">Action</TableHead>
+												<TableHead className="py-2 text-xs md:text-sm">Description</TableHead>
+												<TableHead className="w-[140px] md:w-[180px] py-2 text-xs md:text-sm">Date</TableHead>
+											</TableRow>
+										</TableHeader>
 								<TableBody>
 									{activities.map((activity) => {
 										// Build description from activity info
@@ -277,22 +331,22 @@ export function ActivityTable({ users, searchTerm = "" }: ActivityTableProps) {
 										return (
 											<TableRow key={activity.id} className="h-10">
 												<TableCell className="py-2">
-													<div className="flex items-center gap-1.5">
+													<div className="flex items-center gap-1 md:gap-1.5">
 														<span className={getActivityColor(activity.action)}>
 															{getActivityIcon(activity.action)}
 														</span>
-														<span className="text-xs font-medium">
+														<span className="text-[10px] md:text-xs font-medium truncate">
 															{formatActivityAction(activity.action)}
 														</span>
 													</div>
 												</TableCell>
 												<TableCell className="py-2">
-													<span className="text-xs text-muted-foreground truncate block" title={description}>
+													<span className="text-[10px] md:text-xs text-muted-foreground truncate block" title={description}>
 														{description || '-'}
 													</span>
 												</TableCell>
 												<TableCell className="py-2">
-													<span className="text-xs text-muted-foreground">
+													<span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
 														{formatDate(activity.timestamp)}
 													</span>
 												</TableCell>
@@ -301,27 +355,30 @@ export function ActivityTable({ users, searchTerm = "" }: ActivityTableProps) {
 									})}
 								</TableBody>
 							</Table>
+								</div>
+							</div>
 						)}
 					</div>
 					
 					{/* Pagination Controls */}
 					{totalCount > 0 && (
-						<div className="flex items-center justify-between border-t pt-4">
-							<div className="text-sm text-muted-foreground">
+						<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-t pt-4">
+							<div className="text-xs md:text-sm text-muted-foreground">
 								Showing {startItem}-{endItem} of {totalCount} activities
 							</div>
 							{totalCount > ITEMS_PER_PAGE && (
-								<div className="flex items-center gap-2">
+								<div className="flex items-center gap-1 md:gap-2 w-full sm:w-auto justify-center sm:justify-end">
 								<Button
 									variant="outline"
 									size="sm"
 									onClick={() => handlePageChange(currentPage - 1)}
 									disabled={currentPage === 1 || loading}
+									className="text-xs"
 								>
-									<ChevronLeft className="h-4 w-4" />
-									Previous
+									<ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
+									<span className="hidden sm:inline ml-1">Previous</span>
 								</Button>
-								
+
 								{/* Page number buttons */}
 								<div className="flex items-center gap-1">
 									{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -340,7 +397,7 @@ export function ActivityTable({ users, searchTerm = "" }: ActivityTableProps) {
 												key={pageNum}
 												variant={currentPage === pageNum ? "default" : "outline"}
 												size="sm"
-												className="w-10"
+												className="w-8 md:w-10 text-xs"
 												onClick={() => handlePageChange(pageNum)}
 												disabled={loading}
 											>
@@ -349,15 +406,16 @@ export function ActivityTable({ users, searchTerm = "" }: ActivityTableProps) {
 										);
 									})}
 								</div>
-								
+
 								<Button
 									variant="outline"
 									size="sm"
 									onClick={() => handlePageChange(currentPage + 1)}
 									disabled={!hasMore || loading}
+									className="text-xs"
 								>
-									Next
-									<ChevronRight className="h-4 w-4" />
+									<span className="hidden sm:inline mr-1">Next</span>
+									<ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
 								</Button>
 							</div>
 							)}

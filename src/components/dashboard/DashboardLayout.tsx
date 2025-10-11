@@ -146,17 +146,17 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col overflow-hidden">
           {/* Logo Section */}
-          <div className="flex h-16 items-center justify-between border-b px-4">
+          <div className="flex h-14 lg:h-16 items-center justify-between border-b px-4 flex-shrink-0">
             <Link href="/admindashboard" className="flex items-center gap-2">
               {!sidebarCollapsed ? (
                 <>
-                  <Logo className="h-8 w-auto" />
-                  <span className="text-xl font-semibold">Atenra</span>
+                  <Logo className="h-6 lg:h-8 w-auto" />
+                  <span className="text-lg lg:text-xl font-semibold">Atenra</span>
                 </>
               ) : (
-                <Logo className="h-8 w-8" />
+                <Logo className="h-6 lg:h-8 w-6 lg:w-8" />
               )}
             </Link>
             <Button
@@ -175,13 +175,14 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           </div>
 
           {/* Navigation Items */}
-          <nav className="flex-1 space-y-1 p-2">
+          <nav className="space-y-1 p-2">
             {navigationItems.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
                     isActive && "bg-accent text-accent-foreground",
@@ -204,8 +205,11 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
             })}
           </nav>
 
-          {/* Bottom Navigation */}
-          <div className="border-t p-2">
+          {/* Spacer to push bottom items down - Desktop only */}
+          <div className="hidden lg:flex lg:flex-1"></div>
+
+          {/* Bottom Navigation - Always Visible */}
+          <div className="border-t p-2 flex-shrink-0 space-y-1">
             {/* Settings Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -228,7 +232,11 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
               >
                 {settingsMenuItems.map((item) => (
                   <DropdownMenuItem key={item.href} asChild>
-                    <Link href={item.href} className="flex items-center gap-2 cursor-pointer">
+                    <Link
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>
@@ -244,6 +252,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
                     isActive && "bg-accent text-accent-foreground",

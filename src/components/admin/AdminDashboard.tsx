@@ -377,53 +377,54 @@ export function AdminDashboard() {
 	}
 
 	return (
-		<div className="space-y-6">
-			{/* Stats Overview */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-				<StatCard 
-					icon={Users} 
-					label="Total Users" 
-					value={stats.totalUsers} 
+		<div className="space-y-4 md:space-y-6">
+			{/* Stats Overview - Desktop Only */}
+			<div className="hidden lg:grid gap-3 grid-cols-4">
+				<StatCard
+					icon={Users}
+					label="Total Users"
+					value={stats.totalUsers}
 					growth={stats.userGrowth}
-					description="from last month" 
+					description="from last month"
 				/>
-				<StatCard 
-					icon={UserCheck} 
-					label="Active Users" 
-					value={stats.activeUsers} 
+				<StatCard
+					icon={UserCheck}
+					label="Active Users"
+					value={stats.activeUsers}
 					growth={stats.activeGrowth}
-					description="from last month" 
+					description="from last month"
 				/>
-				<StatCard 
-					icon={Shield} 
-					label="Super Admins" 
-					value={stats.superAdmins} 
+				<StatCard
+					icon={Shield}
+					label="Super Admins"
+					value={stats.superAdmins}
 					growth={stats.adminGrowth}
-					description="total admins" 
+					description="total admins"
 				/>
-				<StatCard 
-					icon={UserPlus} 
-					label="New Today" 
-					value={0} 
+				<StatCard
+					icon={UserPlus}
+					label="New Today"
+					value={0}
 					growth={0}
-					description="registrations" 
+					description="registrations"
 				/>
 			</div>
 
 			{/* Tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-				<TabsList className="grid w-full grid-cols-2 mb-4">
-					<TabsTrigger value="users">User Management</TabsTrigger>
-					<TabsTrigger value="activity">Activity</TabsTrigger>
+				<TabsList className="grid w-full grid-cols-2 mb-3 md:mb-4">
+					<TabsTrigger value="users" className="text-xs sm:text-sm">User Management</TabsTrigger>
+					<TabsTrigger value="activity" className="text-xs sm:text-sm">Activity</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="users" className="space-y-4">
 					<Card>
 						<CardHeader>
-							<div className="flex items-center justify-between">
+							{/* Desktop Header */}
+							<div className="hidden lg:flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 								<div>
-									<CardTitle>User Management</CardTitle>
-									<CardDescription>
+									<CardTitle className="text-lg">User Management</CardTitle>
+									<CardDescription className="text-sm">
 										Manage user accounts, roles, and permissions
 									</CardDescription>
 								</div>
@@ -443,108 +444,217 @@ export function AdminDashboard() {
 									</Button>
 								</div>
 							</div>
+
+							{/* Mobile Header - Search and Create on same line */}
+							<div className="flex lg:hidden items-center gap-2">
+								<div className="relative flex-1">
+									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+									<Input
+										placeholder="Search..."
+										value={searchTerm}
+										onChange={(e) => setSearchTerm(e.target.value)}
+										className="pl-9 w-full text-sm h-9"
+									/>
+								</div>
+								<Button onClick={() => setCreateModalOpen(true)} size="sm" className="flex-shrink-0">
+									<UserPlus className="h-4 w-4" />
+								</Button>
+							</div>
 						</CardHeader>
 						<CardContent className="p-0">
-
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>User</TableHead>
-									<TableHead>Location</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead>Roles</TableHead>
-									<TableHead>Joined</TableHead>
-									<TableHead className="text-right">Actions</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
+							{/* Mobile Card View */}
+							<div className="lg:hidden divide-y">
 								{filteredUsers.length === 0 ? (
-									<TableRow>
-										<TableCell colSpan={6} className="text-center py-8">
-											<div className="text-muted-foreground">
-												{searchTerm ? "No users found matching your search" : "No users found"}
-											</div>
-										</TableCell>
-									</TableRow>
+									<div className="text-center py-8 text-muted-foreground">
+										{searchTerm ? "No users found matching your search" : "No users found"}
+									</div>
 								) : (
 									filteredUsers.map((user) => (
-										<TableRow key={user.id} className="hover:bg-muted/50">
-											<TableCell>
-												<div className="flex items-center gap-3">
-													<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-														<Users className="h-5 w-5 text-primary" />
+										<div key={user.id} className="p-4 space-y-3">
+											{/* User Info */}
+											<div className="flex items-start gap-3">
+												<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+													<Users className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1 min-w-0">
+													<div className="font-medium text-sm">
+														{user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"}
 													</div>
-													<div>
-														<div className="font-medium">
-															{user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"}
-														</div>
-														<div className="flex items-center gap-2 text-sm text-muted-foreground">
-															<Mail className="h-3 w-3" />
-															{user.email}
-															{user.emailVerified && (
-																<Badge variant="secondary" className="text-xs px-1 py-0">
-																	Verified
-																</Badge>
+													<div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+														<Mail className="h-3 w-3 flex-shrink-0" />
+														<span className="truncate">{user.email}</span>
+													</div>
+												</div>
+												<Button
+													variant="ghost"
+													size="icon"
+													onClick={() => handleEditUser(user)}
+													className="flex-shrink-0"
+												>
+													<MoreHorizontal className="h-4 w-4" />
+												</Button>
+											</div>
+
+											{/* Details Grid */}
+											<div className="grid grid-cols-2 gap-3 text-xs">
+												<div>
+													<div className="text-muted-foreground mb-1">Status</div>
+													<Badge variant={getStatusBadgeVariant(user.status) as any} className="text-xs">
+														{formatStatus(user.status)}
+													</Badge>
+												</div>
+												<div>
+													<div className="text-muted-foreground mb-1">Role</div>
+													{user.roles.length > 0 ? (
+														<RoleBadge role={user.roles[0].roleName} />
+													) : (
+														<Badge variant="outline" className="text-xs">No Role</Badge>
+													)}
+												</div>
+												<div>
+													<div className="text-muted-foreground mb-1">Location</div>
+													<div className="flex items-start gap-1">
+														<MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+														<div className="min-w-0">
+															{user.city && user.state ? (
+																<div className="truncate">{user.city}, {user.state}</div>
+															) : (
+																<span className="text-muted-foreground">Not provided</span>
 															)}
 														</div>
 													</div>
 												</div>
-											</TableCell>
-											<TableCell>
-												<div className="flex items-start gap-1 text-sm">
-													<MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
-													<div>
-														{user.city && user.state ? (
-															<>
-																<div>{user.city}, {user.state}</div>
-																<div className="text-xs text-muted-foreground">{user.country || "US"}</div>
-															</>
-														) : (
-															<span className="text-muted-foreground">Not provided</span>
-														)}
+												<div>
+													<div className="text-muted-foreground mb-1">Joined</div>
+													<div className="flex items-center gap-1">
+														<Calendar className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+														<span className="truncate">
+															{user.createdAt && user.createdAt !== 'CURRENT_TIMESTAMP'
+																? new Date(user.createdAt).toLocaleDateString('en-US', {
+																	month: 'short',
+																	day: 'numeric',
+																	year: 'numeric'
+																})
+																: 'N/A'}
+														</span>
 													</div>
 												</div>
-											</TableCell>
-										<TableCell>
-											<Badge variant={getStatusBadgeVariant(user.status) as any}>
-												{formatStatus(user.status)}
-											</Badge>
-										</TableCell>
-										<TableCell>
-											{user.roles.length > 0 ? (
-												<RoleBadge role={user.roles[0].roleName} />
-											) : (
-												<Badge variant="outline">No Role</Badge>
-											)}
-										</TableCell>
-										<TableCell>
-											<div className="flex items-center gap-1 text-sm">
-												<Calendar className="h-3 w-3 text-muted-foreground" />
-												<span>
-													{user.createdAt && user.createdAt !== 'CURRENT_TIMESTAMP' 
-														? new Date(user.createdAt).toLocaleDateString('en-US', { 
-															month: 'short', 
-															day: 'numeric', 
-															year: 'numeric' 
-														}) 
-														: 'N/A'}
-												</span>
 											</div>
-										</TableCell>
-										<TableCell className="text-right">
-											<Button
-												variant="ghost"
-												size="icon"
-												onClick={() => handleEditUser(user)}
-											>
-												<MoreHorizontal className="h-4 w-4" />
-											</Button>
-										</TableCell>
-									</TableRow>
+
+											{/* Email Verified Badge */}
+											{user.emailVerified && (
+												<Badge variant="secondary" className="text-xs">
+													Email Verified
+												</Badge>
+											)}
+										</div>
 									))
 								)}
-							</TableBody>
-						</Table>
+							</div>
+
+							{/* Desktop Table View */}
+							<div className="hidden lg:block">
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>User</TableHead>
+											<TableHead>Location</TableHead>
+											<TableHead>Status</TableHead>
+											<TableHead>Roles</TableHead>
+											<TableHead>Joined</TableHead>
+											<TableHead className="text-right">Actions</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{filteredUsers.length === 0 ? (
+											<TableRow>
+												<TableCell colSpan={6} className="text-center py-8">
+													<div className="text-muted-foreground">
+														{searchTerm ? "No users found matching your search" : "No users found"}
+													</div>
+												</TableCell>
+											</TableRow>
+										) : (
+											filteredUsers.map((user) => (
+												<TableRow key={user.id} className="hover:bg-muted/50">
+													<TableCell>
+														<div className="flex items-center gap-3">
+															<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+																<Users className="h-5 w-5 text-primary" />
+															</div>
+															<div className="min-w-0">
+																<div className="font-medium text-sm">
+																	{user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"}
+																</div>
+																<div className="flex items-center gap-1 text-xs text-muted-foreground">
+																	<Mail className="h-3 w-3 flex-shrink-0" />
+																	<span className="truncate">{user.email}</span>
+																	{user.emailVerified && (
+																		<Badge variant="secondary" className="text-xs px-1 py-0 flex-shrink-0">
+																			Verified
+																		</Badge>
+																	)}
+																</div>
+															</div>
+														</div>
+													</TableCell>
+													<TableCell>
+														<div className="flex items-start gap-1 text-sm">
+															<MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+															<div className="min-w-0">
+																{user.city && user.state ? (
+																	<>
+																		<div className="truncate">{user.city}, {user.state}</div>
+																		<div className="text-xs text-muted-foreground">{user.country || "US"}</div>
+																	</>
+																) : (
+																	<span className="text-muted-foreground">Not provided</span>
+																)}
+															</div>
+														</div>
+													</TableCell>
+													<TableCell>
+														<Badge variant={getStatusBadgeVariant(user.status) as any} className="text-xs whitespace-nowrap">
+															{formatStatus(user.status)}
+														</Badge>
+													</TableCell>
+													<TableCell>
+														{user.roles.length > 0 ? (
+															<RoleBadge role={user.roles[0].roleName} />
+														) : (
+															<Badge variant="outline" className="text-xs">No Role</Badge>
+														)}
+													</TableCell>
+													<TableCell>
+														<div className="flex items-center gap-1 text-sm">
+															<Calendar className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+															<span className="whitespace-nowrap">
+																{user.createdAt && user.createdAt !== 'CURRENT_TIMESTAMP'
+																	? new Date(user.createdAt).toLocaleDateString('en-US', {
+																		month: 'short',
+																		day: 'numeric',
+																		year: 'numeric'
+																	})
+																	: 'N/A'}
+															</span>
+														</div>
+													</TableCell>
+													<TableCell className="text-right">
+														<Button
+															variant="ghost"
+															size="icon"
+															onClick={() => handleEditUser(user)}
+															className="flex-shrink-0"
+														>
+															<MoreHorizontal className="h-4 w-4" />
+														</Button>
+													</TableCell>
+												</TableRow>
+											))
+										)}
+									</TableBody>
+								</Table>
+							</div>
 						</CardContent>
 					</Card>
 				</TabsContent>
@@ -552,10 +662,11 @@ export function AdminDashboard() {
 				<TabsContent value="activity" className="space-y-4">
 					<Card>
 						<CardHeader>
-							<div className="flex items-center justify-between">
+							{/* Desktop Header */}
+							<div className="hidden lg:flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 								<div>
-									<CardTitle>User Activity Tracking</CardTitle>
-									<CardDescription>
+									<CardTitle className="text-lg">User Activity Tracking</CardTitle>
+									<CardDescription className="text-sm">
 										Monitor user interactions and system usage
 									</CardDescription>
 								</div>
@@ -566,6 +677,19 @@ export function AdminDashboard() {
 										value={activitySearchTerm}
 										onChange={(e) => setActivitySearchTerm(e.target.value)}
 										className="pl-9 w-[250px]"
+									/>
+								</div>
+							</div>
+
+							{/* Mobile Header - Compact search */}
+							<div className="flex lg:hidden">
+								<div className="relative flex-1">
+									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+									<Input
+										placeholder="Search..."
+										value={activitySearchTerm}
+										onChange={(e) => setActivitySearchTerm(e.target.value)}
+										className="pl-9 w-full text-sm h-9"
 									/>
 								</div>
 							</div>
@@ -590,14 +714,14 @@ export function AdminDashboard() {
 
 			{/* Edit User Dialog */}
 			<Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-				<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+				<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
 					<DialogHeader>
-						<DialogTitle>Edit User</DialogTitle>
-						<p className="text-sm text-muted-foreground">Update user information and permissions</p>
+						<DialogTitle className="text-base md:text-lg">Edit User</DialogTitle>
+						<p className="text-xs md:text-sm text-muted-foreground">Update user information and permissions</p>
 					</DialogHeader>
 					{selectedUser && (
-						<div className="space-y-4 py-4">
-							<div className="grid grid-cols-2 gap-4">
+						<div className="space-y-3 md:space-y-4 py-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 								<div className="space-y-2">
 									<Label htmlFor="edit-firstName">First Name</Label>
 									<Input
@@ -628,17 +752,18 @@ export function AdminDashboard() {
 								/>
 							</div>
 
-							<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="edit-email">Email</Label>
+									<Label htmlFor="edit-email" className="text-sm">Email</Label>
 									<Input
 										id="edit-email"
 										value={selectedUser.email}
 										onChange={(e) => updateUserField("email", e.target.value)}
+										className="text-sm"
 									/>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="edit-phone">Phone</Label>
+									<Label htmlFor="edit-phone" className="text-sm">Phone</Label>
 									<Input
 										id="edit-phone"
 										value={selectedUser.phone || ""}
@@ -648,54 +773,58 @@ export function AdminDashboard() {
 										}}
 										placeholder="(555) 555-5555"
 										type="tel"
+										className="text-sm"
 									/>
 								</div>
 							</div>
 
-							<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="edit-addressLine1">Address Line 1</Label>
+									<Label htmlFor="edit-addressLine1" className="text-sm">Address Line 1</Label>
 									<Input
 										id="edit-addressLine1"
 										value={selectedUser.addressLine1 || ""}
 										onChange={(e) => updateUserField("addressLine1", e.target.value.slice(0, 50))}
 										placeholder="Street address"
 										maxLength={50}
+										className="text-sm"
 									/>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="edit-addressLine2">Address Line 2</Label>
+									<Label htmlFor="edit-addressLine2" className="text-sm">Address Line 2</Label>
 									<Input
 										id="edit-addressLine2"
 										value={selectedUser.addressLine2 || ""}
 										onChange={(e) => updateUserField("addressLine2", e.target.value.slice(0, 50))}
-										placeholder="Apartment, suite, etc. (optional)"
+										placeholder="Apt, suite, etc."
 										maxLength={50}
+										className="text-sm"
 									/>
 								</div>
 							</div>
 
-							<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="edit-city">City</Label>
+									<Label htmlFor="edit-city" className="text-sm">City</Label>
 									<Input
 										id="edit-city"
 										value={selectedUser.city || ""}
 										onChange={(e) => updateUserField("city", e.target.value)}
+										className="text-sm"
 									/>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="edit-state">State</Label>
+									<Label htmlFor="edit-state" className="text-sm">State</Label>
 									<Select
 										value={selectedUser.state || ""}
 										onValueChange={(value) => updateUserField("state", value)}
 									>
-										<SelectTrigger id="edit-state">
+										<SelectTrigger id="edit-state" className="text-sm">
 											<SelectValue placeholder="Select state" />
 										</SelectTrigger>
 										<SelectContent>
 											{US_STATES.map((state) => (
-												<SelectItem key={state} value={state}>
+												<SelectItem key={state} value={state} className="text-sm">
 													{state}
 												</SelectItem>
 											))}
@@ -704,9 +833,9 @@ export function AdminDashboard() {
 								</div>
 							</div>
 
-							<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="edit-zipCode">ZIP Code</Label>
+									<Label htmlFor="edit-zipCode" className="text-sm">ZIP Code</Label>
 									<Input
 										id="edit-zipCode"
 										value={selectedUser.zipCode || ""}
@@ -717,47 +846,49 @@ export function AdminDashboard() {
 										placeholder="12345"
 										maxLength={5}
 										pattern="[0-9]{5}"
+										className="text-sm"
 									/>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="edit-country">Country</Label>
+									<Label htmlFor="edit-country" className="text-sm">Country</Label>
 									<Input
 										id="edit-country"
 										value={selectedUser.country || "US"}
 										onChange={(e) => updateUserField("country", e.target.value)}
+										className="text-sm"
 									/>
 								</div>
 							</div>
 
-							<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="edit-status">Status</Label>
+									<Label htmlFor="edit-status" className="text-sm">Status</Label>
 									<Select
 										value={selectedUser.status}
 										onValueChange={(value) => updateUserField("status", value)}
 									>
-										<SelectTrigger id="edit-status">
+										<SelectTrigger id="edit-status" className="text-sm">
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="active">{formatStatus("active")}</SelectItem>
-											<SelectItem value="suspended">{formatStatus("suspended")}</SelectItem>
-											<SelectItem value="deleted">{formatStatus("deleted")}</SelectItem>
+											<SelectItem value="active" className="text-sm">{formatStatus("active")}</SelectItem>
+											<SelectItem value="suspended" className="text-sm">{formatStatus("suspended")}</SelectItem>
+											<SelectItem value="deleted" className="text-sm">{formatStatus("deleted")}</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="edit-role">Role</Label>
+									<Label htmlFor="edit-role" className="text-sm">Role</Label>
 									<Select
 										value={selectedUser.roles[0]?.roleId?.toString() || ""}
 										onValueChange={(value) => updateUserRole(parseInt(value))}
 									>
-										<SelectTrigger id="edit-role">
+										<SelectTrigger id="edit-role" className="text-sm">
 											<SelectValue placeholder="Select a role" />
 										</SelectTrigger>
 										<SelectContent>
 											{roles.map((role) => (
-												<SelectItem key={role.id} value={role.id.toString()}>
+												<SelectItem key={role.id} value={role.id.toString()} className="text-sm">
 													{formatRoleName(role.name)}
 												</SelectItem>
 											))}
@@ -792,13 +923,13 @@ export function AdminDashboard() {
 
 			{/* Create User Dialog */}
 			<Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-				<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+				<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
 					<DialogHeader>
-						<DialogTitle>Create User</DialogTitle>
-						<p className="text-sm text-muted-foreground">Add a new user to the system</p>
+						<DialogTitle className="text-base md:text-lg">Create User</DialogTitle>
+						<p className="text-xs md:text-sm text-muted-foreground">Add a new user to the system</p>
 					</DialogHeader>
-					<div className="space-y-4 py-4">
-						<div className="grid grid-cols-2 gap-4">
+					<div className="space-y-3 md:space-y-4 py-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="new-firstName">First Name</Label>
 								<Input
@@ -832,9 +963,9 @@ export function AdminDashboard() {
 							/>
 						</div>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="new-email">Email *</Label>
+								<Label htmlFor="new-email" className="text-sm">Email *</Label>
 								<Input
 									id="new-email"
 									type="email"
@@ -842,10 +973,11 @@ export function AdminDashboard() {
 									onChange={(e) => setNewUser({...newUser, email: e.target.value})}
 									placeholder="user@example.com"
 									required
+									className="text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="new-phone">Phone</Label>
+								<Label htmlFor="new-phone" className="text-sm">Phone</Label>
 								<Input
 									id="new-phone"
 									value={newUser.phone}
@@ -855,59 +987,63 @@ export function AdminDashboard() {
 									}}
 									placeholder="(555) 555-5555"
 									type="tel"
+									className="text-sm"
 								/>
 							</div>
 						</div>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="new-addressLine1">Address Line 1</Label>
+								<Label htmlFor="new-addressLine1" className="text-sm">Address Line 1</Label>
 								<Input
 									id="new-addressLine1"
 									value={newUser.addressLine1}
 									onChange={(e) => setNewUser({...newUser, addressLine1: e.target.value.slice(0, 50)})}
 									placeholder="Street address"
 									maxLength={50}
+									className="text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="new-addressLine2">Address Line 2</Label>
+								<Label htmlFor="new-addressLine2" className="text-sm">Address Line 2</Label>
 								<Input
 									id="new-addressLine2"
 									value={newUser.addressLine2}
 									onChange={(e) => setNewUser({...newUser, addressLine2: e.target.value.slice(0, 50)})}
-									placeholder="Apartment, suite, etc. (optional)"
+									placeholder="Apt, suite, etc."
 									maxLength={50}
+									className="text-sm"
 								/>
 							</div>
 						</div>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="new-city">City</Label>
+								<Label htmlFor="new-city" className="text-sm">City</Label>
 								<Input
 									id="new-city"
 									value={newUser.city}
 									onChange={(e) => setNewUser({...newUser, city: e.target.value})}
 									placeholder="City"
+									className="text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="new-state">State</Label>
+								<Label htmlFor="new-state" className="text-sm">State</Label>
 								<Select
 									value={newUser.state}
 									onValueChange={(value) => setNewUser({...newUser, state: value})}
 								>
-									<SelectTrigger id="new-state">
+									<SelectTrigger id="new-state" className="text-sm">
 										<SelectValue placeholder="Select state" />
 									</SelectTrigger>
 									<SelectContent>
-										<Input 
-											placeholder="Search states..." 
-											className="mx-2 my-2 w-[calc(100%-16px)]"
+										<Input
+											placeholder="Search states..."
+											className="mx-2 my-2 w-[calc(100%-16px)] text-sm"
 										/>
 										{US_STATES.map((state) => (
-											<SelectItem key={state} value={state}>
+											<SelectItem key={state} value={state} className="text-sm">
 												{state}
 											</SelectItem>
 										))}
@@ -916,9 +1052,9 @@ export function AdminDashboard() {
 							</div>
 						</div>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="new-zipCode">ZIP Code</Label>
+								<Label htmlFor="new-zipCode" className="text-sm">ZIP Code</Label>
 								<Input
 									id="new-zipCode"
 									value={newUser.zipCode}
@@ -929,49 +1065,51 @@ export function AdminDashboard() {
 									placeholder="12345"
 									maxLength={5}
 									pattern="[0-9]{5}"
+									className="text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="new-country">Country</Label>
+								<Label htmlFor="new-country" className="text-sm">Country</Label>
 								<Input
 									id="new-country"
 									value={newUser.country}
 									onChange={(e) => setNewUser({...newUser, country: e.target.value})}
 									placeholder="Country"
+									className="text-sm"
 								/>
 							</div>
 						</div>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="new-status">Status</Label>
+								<Label htmlFor="new-status" className="text-sm">Status</Label>
 								<Select
 									value={newUser.status}
-									onValueChange={(value: "active" | "suspended" | "deleted") => 
+									onValueChange={(value: "active" | "suspended" | "deleted") =>
 										setNewUser({...newUser, status: value})
 									}
 								>
-									<SelectTrigger id="new-status">
+									<SelectTrigger id="new-status" className="text-sm">
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="active">{formatStatus("active")}</SelectItem>
-										<SelectItem value="suspended">{formatStatus("suspended")}</SelectItem>
+										<SelectItem value="active" className="text-sm">{formatStatus("active")}</SelectItem>
+										<SelectItem value="suspended" className="text-sm">{formatStatus("suspended")}</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="new-role">Role *</Label>
+								<Label htmlFor="new-role" className="text-sm">Role *</Label>
 								<Select
 									value={newUser.roleId.toString()}
 									onValueChange={(value) => setNewUser({...newUser, roleId: parseInt(value)})}
 								>
-									<SelectTrigger id="new-role">
+									<SelectTrigger id="new-role" className="text-sm">
 										<SelectValue placeholder="Select a role" />
 									</SelectTrigger>
 									<SelectContent>
 										{roles.map((role) => (
-											<SelectItem key={role.id} value={role.id.toString()}>
+											<SelectItem key={role.id} value={role.id.toString()} className="text-sm">
 												{formatRoleName(role.name)}
 											</SelectItem>
 										))}
