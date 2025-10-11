@@ -129,34 +129,34 @@ export function ProfileForm() {
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4 md:space-y-6">
 			{/* Profile Header Card */}
 			<Card>
 				<CardHeader>
-					<div className="flex items-center space-x-4">
-						<Avatar className="h-20 w-20">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+						<Avatar className="h-16 w-16 md:h-20 md:w-20 flex-shrink-0">
 							<AvatarImage src={sanitizeAvatarUrl(session?.user?.image) || ""} alt={session?.user?.name || ""} />
 							<AvatarFallback>
 								{getUserInitials(session?.user?.name || profile.displayName, profile.email)}
 							</AvatarFallback>
 						</Avatar>
-						<div className="flex-1">
-							<CardTitle className="text-2xl">{profile.displayName || session?.user?.name || "User"}</CardTitle>
-							<CardDescription className="mt-1">{profile.email}</CardDescription>
-							<div className="flex items-center gap-2 mt-3">
+						<div className="flex-1 min-w-0 w-full sm:w-auto">
+							<CardTitle className="text-xl md:text-2xl truncate">{profile.displayName || session?.user?.name || "User"}</CardTitle>
+							<CardDescription className="mt-1 text-sm truncate">{profile.email}</CardDescription>
+							<div className="flex flex-wrap items-center gap-1.5 md:gap-2 mt-2 md:mt-3">
 								{profile.roles && profile.roles.length > 0 && (
 									<RoleBadge role={profile.roles[0].roleName} />
 								)}
-								<Badge variant={getStatusBadgeVariant(profile.status) as any}>
+								<Badge variant={getStatusBadgeVariant(profile.status) as any} className="text-xs">
 									{formatStatus(profile.status)}
 								</Badge>
 								{profile.emailVerified ? (
-									<Badge variant="outline" className="gap-1">
+									<Badge variant="outline" className="gap-1 text-xs">
 										<CheckCircle className="h-3 w-3" />
 										Verified
 									</Badge>
 								) : (
-									<Badge variant="outline" className="text-yellow-600">
+									<Badge variant="outline" className="text-yellow-600 text-xs">
 										Unverified
 									</Badge>
 								)}
@@ -168,67 +168,70 @@ export function ProfileForm() {
 			
 			{message && (
 				<Alert className={message.includes('successfully') ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-200' : 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200'}>
-					<AlertDescription>{message}</AlertDescription>
+					<AlertDescription className="text-sm">{message}</AlertDescription>
 				</Alert>
 			)}
-			
+
 			{/* Profile Form */}
 			<Card>
-				<CardContent className="pt-6">
-					<form onSubmit={handleSubmit} className="space-y-6">
+				<CardContent className="pt-4 md:pt-6">
+					<form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
 						{/* Personal Information Section */}
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="firstName">First Name</Label>
+								<Label htmlFor="firstName" className="text-sm">First Name</Label>
 								<Input
 									id="firstName"
 									value={profile.firstName || ""}
 									onChange={(e) => setProfile({...profile, firstName: e.target.value.slice(0, 30)})}
 									placeholder="Enter first name"
 									maxLength={30}
+									className="text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="lastName">Last Name</Label>
+								<Label htmlFor="lastName" className="text-sm">Last Name</Label>
 								<Input
 									id="lastName"
 									value={profile.lastName || ""}
 									onChange={(e) => setProfile({...profile, lastName: e.target.value.slice(0, 30)})}
 									placeholder="Enter last name"
 									maxLength={30}
+									className="text-sm"
 								/>
 							</div>
 						</div>
-						
+
 						<div className="space-y-2">
-							<Label htmlFor="displayName">Display Name</Label>
+							<Label htmlFor="displayName" className="text-sm">Display Name</Label>
 							<Input
 								id="displayName"
 								value={profile.displayName || ""}
 								onChange={(e) => setProfile({...profile, displayName: e.target.value.slice(0, 65)})}
 								placeholder="Enter display name"
 								maxLength={65}
+								className="text-sm"
 							/>
 						</div>
 
 						{/* Contact Information Section */}
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
+								<Label htmlFor="email" className="text-sm">Email</Label>
 								<div className="relative">
-									<Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+									<Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
 									<Input
 										id="email"
 										value={profile.email}
 										disabled
-										className="bg-muted pl-10"
+										className="bg-muted pl-10 text-sm"
 									/>
 								</div>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="phone">Phone</Label>
+								<Label htmlFor="phone" className="text-sm">Phone</Label>
 								<div className="relative">
-									<Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+									<Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
 									<Input
 										id="phone"
 										value={profile.phone || ""}
@@ -238,57 +241,61 @@ export function ProfileForm() {
 										}}
 										placeholder="(555) 555-5555"
 										type="tel"
-										className="pl-10"
+										className="pl-10 text-sm"
 									/>
 								</div>
 							</div>
 						</div>
 
 						{/* Address Information Section */}
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="addressLine1">Address Line 1</Label>
+								<Label htmlFor="addressLine1" className="text-sm">Address Line 1</Label>
 								<Input
 									id="addressLine1"
 									value={profile.addressLine1 || ""}
 									onChange={(e) => setProfile({...profile, addressLine1: e.target.value.slice(0, 50)})}
 									placeholder="Enter street address"
 									maxLength={50}
+									className="text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
+								<Label htmlFor="addressLine2" className="text-sm">Address Line 2 (Optional)</Label>
 								<Input
 									id="addressLine2"
 									value={profile.addressLine2 || ""}
 									onChange={(e) => setProfile({...profile, addressLine2: e.target.value.slice(0, 50)})}
-									placeholder="Apartment, suite, etc."
+									placeholder="Apt, suite, etc."
 									maxLength={50}
+									className="text-sm"
 								/>
 							</div>
 						</div>
-						
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+						<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="city">City</Label>
+								<Label htmlFor="city" className="text-sm">City</Label>
 								<Input
 									id="city"
 									value={profile.city || ""}
 									onChange={(e) => setProfile({...profile, city: e.target.value})}
 									placeholder="Enter city"
+									className="text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="state">State/Province</Label>
+								<Label htmlFor="state" className="text-sm">State/Province</Label>
 								<Input
 									id="state"
 									value={profile.state || ""}
 									onChange={(e) => setProfile({...profile, state: e.target.value})}
 									placeholder="Enter state"
+									className="text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="zipCode">ZIP Code</Label>
+								<Label htmlFor="zipCode" className="text-sm">ZIP Code</Label>
 								<Input
 									id="zipCode"
 									value={profile.zipCode || ""}
@@ -299,36 +306,37 @@ export function ProfileForm() {
 									placeholder="12345"
 									maxLength={5}
 									pattern="[0-9]{5}"
+									className="text-sm"
 								/>
 							</div>
 						</div>
-						
+
 						<div className="space-y-2">
-							<Label htmlFor="country">Country</Label>
+							<Label htmlFor="country" className="text-sm">Country</Label>
 							<div className="relative">
-								<MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+								<MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
 								<Input
 									id="country"
 									value={profile.country || ""}
 									onChange={(e) => setProfile({...profile, country: e.target.value})}
 									placeholder="Enter country"
-									className="pl-10"
+									className="pl-10 text-sm"
 								/>
 							</div>
 						</div>
 
 						{/* Save Button */}
-						<div className="flex justify-end pt-4">
-							<Button type="submit" disabled={isSaving} size="lg">
+						<div className="flex justify-end pt-2 md:pt-4">
+							<Button type="submit" disabled={isSaving} size="lg" className="w-full sm:w-auto">
 								{isSaving ? (
 									<>
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										Saving...
+										<span className="text-sm">Saving...</span>
 									</>
 								) : (
 									<>
 										<Save className="mr-2 h-4 w-4" />
-										Save Changes
+										<span className="text-sm">Save Changes</span>
 									</>
 								)}
 							</Button>
