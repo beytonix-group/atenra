@@ -292,7 +292,7 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "Frequently Asked Questions",
-      subtitle: "Find answers to common questions about Atenra",
+      subtitle: "Find answers to common questions about Atenra's matching service, pricing, and how we work",
       questions: [
         {
           question: "How does Atenra's matching process work?",
@@ -545,7 +545,7 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "Preguntas Frecuentes",
-      subtitle: "Encuentra respuestas a preguntas comunes sobre Atenra",
+      subtitle: "Encuentra respuestas a preguntas comunes sobre el servicio de coincidencia, precios y cómo trabajamos de Atenra",
       questions: [
         {
           question: "¿Cómo funciona el proceso de coincidencia de Atenra?",
@@ -798,7 +798,7 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "Questions Fréquemment Posées",
-      subtitle: "Trouvez des réponses aux questions courantes sur Atenra",
+      subtitle: "Trouvez des réponses aux questions courantes sur le service de correspondance, les prix et notre fonctionnement d'Atenra",
       questions: [
         {
           question: "Comment fonctionne le processus de correspondance d'Atenra?",
@@ -1051,7 +1051,7 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "Häufig Gestellte Fragen",
-      subtitle: "Finden Sie Antworten auf häufige Fragen zu Atenra",
+      subtitle: "Finden Sie Antworten auf häufige Fragen zu Atenras Matching-Service, Preisen und unserer Arbeitsweise",
       questions: [
         {
           question: "Wie funktioniert Atenras Matching-Prozess?",
@@ -1304,7 +1304,7 @@ export const newTranslations: Record<string, NewTranslations> = {
     },
     faq: {
       title: "常见问题",
-      subtitle: "查找有关Atenra的常见问题的答案",
+      subtitle: "查找有关Atenra匹配服务、定价和我们工作方式的常见问题答案",
       questions: [
         {
           question: "Atenra的匹配过程如何工作？",
