@@ -1,39 +1,54 @@
 # Atenra
 
-A comprehensive SaaS platform for service matching and asset management, built on Cloudflare's edge infrastructure.
+A comprehensive SaaS platform for professional service matching, subscription management, and marketplace discovery, built on Cloudflare's edge infrastructure.
 
 ## Tech Stack
 
 - **Next.js 14.2.5** with App Router and Edge Runtime
 - **Cloudflare Pages** for hosting and global deployment
-- **Cloudflare D1** serverless SQLite database
+- **Cloudflare D1** serverless SQLite database (local + production)
 - **Drizzle ORM 0.44.5** for type-safe database operations
-- **NextAuth v5 ** for authentication (Google OAuth + Credentials)
+- **NextAuth v5** for authentication (Google OAuth)
 - **Shadcn UI + Radix UI + Tailwind CSS** for modern component library
 - **TypeScript 5** for type safety
 - **Bun 1.1.0+** for package management and runtime
 
 ## Features
 
-- 🌍 **Multi-language support** (English, Spanish, French, German, Chinese)
-- 🔐 **Authentication system** with NextAuth v5 (Google OAuth + Credentials)
-- 👤 **User profile management** with comprehensive form validation
-- 🎨 **Dark/light theme support** with system preference detection
-- 📱 **Responsive design** with mobile-first approach
-- 🚀 **Edge runtime** optimized for Cloudflare Workers/Pages
-- 🔒 **RBAC system** for role-based access control
-- 💾 **Asset management** with user relationships
-- 📊 **Activity tracking** with user analytics dashboard
-- 🛠️ **Custom D1 adapter** for NextAuth compatibility
+### Core Platform
+
+- 🌍 **Multi-language support** - Fully translated UI (English, Spanish, French, German, Chinese)
+- 🔐 **Authentication system** - NextAuth v5 with Google OAuth
+- 👤 **User profile management** - Comprehensive profile forms with validation
+- 🎨 **Dark/light theme** - System preference detection with manual toggle
+- 📱 **Fully responsive design** - Mobile-first approach for all pages and dashboards
+- 🚀 **Edge runtime optimized** - Built for Cloudflare Workers/Pages
+
+### Business Features
+
+- 💼 **Marketplace** - Browse and filter service providers by category
+- 💳 **Subscription system** - Multi-tier pricing plans (Student, Personal, Business, Custom)
+- 📊 **Activity tracking** - User analytics and activity monitoring dashboard
+- 🔒 **RBAC system** - Role-based access control (Super Admin, Manager, Employee, User)
+- 💾 **Asset management** - User relationship and data management
+- 🎯 **Dynamic pricing** - Support for promotions, trial periods, and refund guarantees
+
+### Technical Features
+
+- 🛠️ **Custom D1 adapter** - NextAuth compatibility with Cloudflare D1
+- 🔄 **Automatic role assignment** - Database triggers for new user onboarding
+- 🌐 **i18n system** - Context-based translations with language switching
+- 🎨 **Dynamic theming** - Separate logos/favicons for light/dark modes
+- 📈 **Admin dashboard** - User management, analytics, and activity monitoring
 
 ## Quick Start (Brand New Setup)
 
 ### Prerequisites
 
 - [Bun 1.1.0+](https://bun.sh/) for package management and runtime
-- [Node.js](https://nodejs.org/) (optional, for compatibility)
-- [Wrangler CLI 4.33.1+](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed
-- Cloudflare account with `wrangler login`
+- [Node.js 18+](https://nodejs.org/) (optional, for compatibility)
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) - Installed via `bunx wrangler`
+- Cloudflare account (sign up at [cloudflare.com](https://www.cloudflare.com/))
 
 ### Local Development
 
@@ -78,20 +93,55 @@ bun run build            # Build Next.js application
 ```bash
 bun run db:generate      # Generate migration files from schema changes
 bun run db:migrate:dev   # Apply migrations to local D1 database
-bun run db:migrate:prod  # Apply migrations to remote D1 database
+bun run db:migrate:prod  # Apply migrations to remote D1 database (requires .env)
 bun run db:studio:dev    # Open Drizzle Studio for local database
-bun run db:studio:prod   # Open Drizzle Studio for remote database
+bun run db:studio:prod   # Open Drizzle Studio for remote database (requires .env)
 bun run db:query         # Execute SQL on local D1 database
-bun run db:query:prod    # Execute SQL on remote D1 database
+bun run db:query:prod    # Execute SQL on remote D1 database (requires .env)
 ```
 
-### Building & Preview
+**Important Notes:**
+
+- The project uses **two migration files** for database setup:
+  - `drizzle/0000_setup.sql` - Used for **local development** (compatible with Drizzle)
+  - `drizzle/0000_setup_remote.sql` - Used for **remote/production** (includes D1-specific indexes)
+- Always use `bunx wrangler` (not just `wrangler`) for D1 operations
+- Remote operations require environment variables in `.env` file
+
+### Building & Deployment
 
 ```bash
 bun run pages:build      # Build for Cloudflare Pages (@cloudflare/next-on-pages)
 bun run preview          # Preview built app locally with Wrangler
+bun run deploy           # Deploy to Cloudflare Pages
 ```
 
+#### Deployment to Cloudflare Pages
+
+1. **Setup database on Cloudflare:**
+
+   ```bash
+   bunx wrangler d1 create atenra-prod-db
+   ```
+
+2. **Update `wrangler.toml`** with the new database ID
+
+3. **Apply migrations to production:**
+
+   ```bash
+   # Set environment variables in .env first
+   bun run db:migrate:prod
+   ```
+
+4. **Configure secrets in Cloudflare Dashboard:**
+
+   - Navigate to Workers & Pages → Your Project → Settings → Environment Variables
+   - Add: `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `SUPER_USER_EMAIL`
+
+5. **Deploy:**
+   ```bash
+   bun run deploy
+   ```
 
 ## Environment Configuration
 
@@ -110,7 +160,7 @@ Required for production database migrations and studio access:
 
 ```bash
 CLOUDFLARE_D1_ACCOUNT_ID=your-cloudflare-account-id  # Your Cloudflare account ID
-DATABASE=7ed327c0-e838-4fd5-8369-a6b5e90dd04d        # D1 database ID from wrangler.toml
+DATABASE=7ed327c0...                                 # D1 database ID from wrangler.toml
 CLOUDFLARE_D1_API_TOKEN=your-api-token               # Cloudflare API token with D1 permissions
 ```
 
@@ -139,22 +189,49 @@ SUPER_USER_EMAIL=admin@example.com                   # Optional: Super admin ema
 
 ```
 src/
-├── app/                 # Next.js App Router pages
-│   ├── api/            # API routes (edge runtime)
-│   ├── auth/           # Authentication pages
-│   └── profile/        # User profile management
-├── components/         # React components
-│   ├── ui/            # Shadcn UI components
-│   ├── auth/          # Authentication forms
-│   ├── landing/       # Landing page components
-│   └── profile/       # Profile management components
-├── lib/               # Utility libraries
-│   ├── i18n/         # Internationalization
-│   ├── utils/        # Helper functions
-│   └── theme/        # Theme management
-└── server/            # Server-side code
-    ├── auth.ts        # NextAuth configuration
-    └── db/            # Database schema and connection
+├── app/                      # Next.js App Router pages
+│   ├── api/                 # API routes (edge runtime)
+│   │   ├── auth/           # NextAuth endpoints
+│   │   ├── plans/          # Subscription plan endpoints
+│   │   ├── profile/        # User profile endpoints
+│   │   └── admin/          # Admin dashboard endpoints
+│   ├── admindashboard/     # Admin dashboard pages
+│   │   ├── analytics/      # Analytics page
+│   │   ├── billing/        # Billing management
+│   │   └── plans/          # Plan management
+│   ├── auth/               # Authentication pages (sign-in/sign-up)
+│   ├── dashboard/          # User dashboard
+│   ├── marketplace/        # Service provider marketplace
+│   ├── profile/            # User profile management
+│   ├── pricing/            # Pricing and subscription plans
+│   └── faq/                # Frequently asked questions
+├── components/              # React components
+│   ├── ui/                 # Shadcn UI components
+│   ├── admin/              # Admin dashboard components
+│   ├── auth/               # Authentication forms
+│   ├── dashboard/          # Dashboard layout and components
+│   ├── landing/            # Landing page sections
+│   ├── marketplace/        # Marketplace components
+│   └── profile/            # Profile management components
+├── lib/                     # Utility libraries
+│   ├── i18n/               # Internationalization system
+│   │   ├── LanguageContext.tsx
+│   │   ├── translations.ts
+│   │   └── new-translations.ts
+│   ├── utils/              # Helper functions
+│   ├── activity-tracker.ts # User activity tracking
+│   └── auth-helpers.ts     # Authentication utilities
+└── server/                  # Server-side code
+    ├── auth.ts             # NextAuth v5 configuration
+    └── db/                 # Database layer
+        ├── index.ts        # D1 connection
+        ├── schema.ts       # Drizzle schema definitions
+        └── auth-adapter.ts # Custom D1 adapter for NextAuth
+
+drizzle/                     # Database migrations
+├── 0000_setup.sql          # Local database setup
+├── 0000_setup_remote.sql   # Production database setup
+└── meta/                   # Migration metadata
 ```
 
 ## Authentication Setup
@@ -170,7 +247,26 @@ src/
      - `https://your-domain.com/api/auth/callback/google`
      - `http://localhost:3000/api/auth/callback/google`
 
-### Super Admin Setup
+## Best Practices
 
-Add admin emails to `SUPER_USER_EMAIL` in env (comma-separated for multiple admins). The accounts will be assigned super admin role upon log in the first time
+### Development Workflow
 
+1. **Always use `bunx wrangler`** instead of global `wrangler` for consistency
+2. **Use `bun run dev:d1`** for local development to access D1 database
+3. **Test locally before deploying** with `bun run preview`
+4. **Run migrations carefully** - Use correct migration files for local vs production
+
+### Code Guidelines
+
+- **TypeScript strict mode** - All code must pass strict type checking
+- **Mobile-first responsive** - Design for mobile, enhance for desktop
+- **Edge runtime compatibility** - Avoid Node.js-specific APIs
+- **Use Shadcn UI components** - Maintain consistent design system
+- **Internationalize all text** - Add translations for new UI text
+
+### Security
+
+- **Never commit secrets** - Use `.dev.vars` for local, Cloudflare Dashboard for production
+- **Protect admin routes** - Use `isSuperAdmin()` helper for access control
+- **Validate all inputs** - Both client and server-side validation
+- **Use RBAC properly** - Check user roles before granting access
