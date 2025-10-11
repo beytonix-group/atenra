@@ -355,9 +355,6 @@ export function PricingSection() {
 													<div className="flex items-baseline gap-2">
 														<span className="text-4xl font-bold">{nt.pricing.custom}</span>
 													</div>
-													<p className="text-sm text-muted-foreground mt-2">
-														{nt.pricing.tailoredPricing}
-													</p>
 												</div>
 
 												{/* Quick View Features */}
