@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Menu, X, Sun, Moon, User, LogOut, Settings, Shield } from "lucide-react";
+import { Menu, X, Sun, Moon, User, LogOut, Settings, Shield, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { LanguageSelector } from "@/components/ui/LanguageSelector";
@@ -17,6 +17,7 @@ export function Navigation() {
 	const pathname = usePathname();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
+	const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 	const [isAdmin, setIsAdmin] = useState(false);
 	const { theme, setTheme, resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
@@ -44,11 +45,29 @@ export function Navigation() {
 		checkAdminStatus();
 	}, [session]);
 
+	// Close dropdowns when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			const target = event.target as HTMLElement;
+			if (!target.closest('.dropdown-container')) {
+				setMoreMenuOpen(false);
+				setUserMenuOpen(false);
+			}
+		};
+
+		if (moreMenuOpen || userMenuOpen) {
+			document.addEventListener('click', handleClickOutside);
+			return () => document.removeEventListener('click', handleClickOutside);
+		}
+	}, [moreMenuOpen, userMenuOpen]);
+
 	const navItems = [
 		{ name: t.navigation.home, href: "/" },
 		{ name: t.navigation.about, href: "/about" },
-		{ name: t.navigation.pricing, href: "/pricing" },
-		{ name: t.navigation.more, href: "/more" },
+		{ name: t.navigation.pricing, href: "/pricing" }
+	];
+
+	const moreItems = [
 		{ name: t.navigation.faq, href: "/faq" },
 		{ name: t.navigation.careers, href: "/careers" },
 		{ name: t.navigation.contact, href: "/contact" }
@@ -79,6 +98,45 @@ export function Navigation() {
 								{item.name}
 							</Link>
 						))}
+
+						{/* More Dropdown */}
+						<div className="relative dropdown-container">
+							<button
+								onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+								className={cn(
+									"flex items-center gap-1 text-base font-medium transition-colors hover:text-primary",
+									moreItems.some(item => pathname === item.href)
+										? "text-foreground"
+										: "text-muted-foreground"
+								)}
+							>
+								{t.navigation.more}
+								<ChevronDown className={cn(
+									"h-4 w-4 transition-transform",
+									moreMenuOpen && "rotate-180"
+								)} />
+							</button>
+
+							{moreMenuOpen && (
+								<div className="absolute right-0 top-full mt-2 w-48 bg-card border rounded-lg shadow-lg z-50 py-2">
+									{moreItems.map((item) => (
+										<Link
+											key={item.name}
+											href={item.href}
+											onClick={() => setMoreMenuOpen(false)}
+											className={cn(
+												"block px-4 py-2 text-sm hover:bg-muted transition-colors",
+												pathname === item.href
+													? "bg-primary/10 text-foreground font-medium"
+													: "text-muted-foreground"
+											)}
+										>
+											{item.name}
+										</Link>
+									))}
+								</div>
+							)}
+						</div>
 					</div>
 
 					<div className="hidden md:flex items-center space-x-4">
@@ -101,7 +159,7 @@ export function Navigation() {
 						<LanguageSelector />
 						
 						{session?.user ? (
-							<div className="relative">
+							<div className="relative dropdown-container">
 								<button
 									onClick={() => setUserMenuOpen(!userMenuOpen)}
 									className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted transition-colors"
@@ -200,6 +258,28 @@ export function Navigation() {
 								{item.name}
 							</Link>
 						))}
+
+						{/* More Section in Mobile */}
+						<div className="space-y-1">
+							<div className="px-3 py-2 text-sm font-medium text-muted-foreground">
+								{t.navigation.more}
+							</div>
+							{moreItems.map((item) => (
+								<Link
+									key={item.name}
+									href={item.href}
+									onClick={() => setMobileMenuOpen(false)}
+									className={cn(
+										"block px-6 py-2 text-sm rounded-md transition-colors",
+										pathname === item.href
+											? "bg-primary/10 text-foreground font-medium"
+											: "text-muted-foreground hover:bg-muted"
+									)}
+								>
+									{item.name}
+								</Link>
+							))}
+						</div>
 						<div className="pt-3 space-y-2 border-t">
 							<div className="flex items-center justify-between px-3 py-2">
 								<span className="text-sm font-medium">Theme</span>

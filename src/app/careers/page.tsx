@@ -6,6 +6,7 @@ import { Globe, TrendingUp, Users, Award, Code, Palette, Megaphone, Scale, Headp
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import Image from "next/image";
 
 export default function CareersPage() {
 	const { nt } = useLanguage();
@@ -92,26 +93,52 @@ export default function CareersPage() {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 				{/* About Working at Atenra */}
 				<div ref={section1Ref} className={`mb-20 transition-all duration-700 ${isVisible1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<h2 className="text-4xl font-light mb-6">{nt.careers.about.title}</h2>
-					<p className="text-lg text-muted-foreground leading-loose max-w-4xl">
-						{nt.careers.about.text1} <span className="text-foreground font-medium">{nt.careers.about.highlight}</span> {nt.careers.about.text2}
-					</p>
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+						<div>
+							<h2 className="text-4xl font-light mb-6">{nt.careers.about.title}</h2>
+							<p className="text-lg text-muted-foreground leading-loose">
+								{nt.careers.about.text1} <span className="text-foreground font-medium">{nt.careers.about.highlight}</span> {nt.careers.about.text2}
+							</p>
+						</div>
+						<div className="relative h-[400px] rounded-xl overflow-hidden shadow-xl">
+							<Image
+								src="/images/career1.jpg"
+								alt="Team collaboration at Atenra"
+								fill
+								className="object-cover"
+								sizes="(max-width: 1024px) 100vw, 50vw"
+							/>
+						</div>
+					</div>
 				</div>
 
 				{/* What We Offer */}
 				<div ref={section2Ref} className="mb-20">
-					<h2 className={`text-4xl font-light mb-8 transition-all duration-700 ${isVisible2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{nt.careers.benefits.title}</h2>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{nt.careers.benefits.list.map((benefit, index) => (
-							<div
-								key={benefit}
-								className={`flex items-start gap-3 p-4 rounded-lg border bg-card/50 hover:bg-card transition-all duration-700 ${isVisible2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-								style={{ transitionDelay: `${index * 100 + 200}ms` }}
-							>
-								<Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-								<span className="text-base">{benefit}</span>
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+						<div className="relative h-[400px] rounded-xl overflow-hidden shadow-xl order-2 lg:order-1">
+							<Image
+								src="/images/career2.jpg"
+								alt="Working environment at Atenra"
+								fill
+								className="object-cover"
+								sizes="(max-width: 1024px) 100vw, 50vw"
+							/>
+						</div>
+						<div className="order-1 lg:order-2">
+							<h2 className={`text-4xl font-light mb-8 transition-all duration-700 ${isVisible2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{nt.careers.benefits.title}</h2>
+							<div className="grid grid-cols-1 gap-4">
+								{nt.careers.benefits.list.map((benefit, index) => (
+									<div
+										key={benefit}
+										className={`flex items-start gap-3 p-4 rounded-lg border bg-card/50 hover:bg-card transition-all duration-700 ${isVisible2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+										style={{ transitionDelay: `${index * 100 + 200}ms` }}
+									>
+										<Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+										<span className="text-base">{benefit}</span>
+									</div>
+								))}
 							</div>
-						))}
+						</div>
 					</div>
 				</div>
 
@@ -150,15 +177,26 @@ export default function CareersPage() {
 				</div>
 
 				{/* Team Culture Section */}
-				<div ref={section4Ref} className={`rounded-2xl border bg-gradient-to-br from-primary/5 to-background p-12 text-center relative transition-all duration-700 ${isVisible4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-					<div className="max-w-3xl mx-auto">
-						<h2 className="text-3xl font-light mb-6">{nt.careers.culture.title}</h2>
-						<div className="relative">
-							<div className="absolute -left-4 top-0 text-primary/20 text-6xl font-serif">&ldquo;</div>
-							<p className="text-xl text-muted-foreground leading-loose px-8">
-								{nt.careers.culture.quote}
-							</p>
-							<div className="absolute -right-4 bottom-0 text-primary/20 text-6xl font-serif">&rdquo;</div>
+				<div ref={section4Ref} className={`rounded-2xl border bg-gradient-to-br from-primary/5 to-background overflow-hidden transition-all duration-700 ${isVisible4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+					<div className="grid grid-cols-1 lg:grid-cols-2">
+						<div className="p-12 flex flex-col justify-center">
+							<h2 className="text-3xl font-light mb-6">{nt.careers.culture.title}</h2>
+							<div className="relative">
+								<div className="absolute -left-4 top-0 text-primary/20 text-6xl font-serif">&ldquo;</div>
+								<p className="text-xl text-muted-foreground leading-loose px-8">
+									{nt.careers.culture.quote}
+								</p>
+								<div className="absolute -right-4 bottom-0 text-primary/20 text-6xl font-serif">&rdquo;</div>
+							</div>
+						</div>
+						<div className="relative h-[400px] lg:h-auto">
+							<Image
+								src="/images/career3.jpg"
+								alt="Team culture at Atenra"
+								fill
+								className="object-cover"
+								sizes="(max-width: 1024px) 100vw, 50vw"
+							/>
 						</div>
 					</div>
 				</div>

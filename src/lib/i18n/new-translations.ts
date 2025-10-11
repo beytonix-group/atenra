@@ -119,6 +119,29 @@ export interface NewTranslations {
       personal: string;
       business: string;
     };
+    loading: string;
+    perMonth: string;
+    offFirstMonths: string;
+    dayTrial: string;
+    refundGuarantee: string;
+    getStarted: string;
+    contactUs: string;
+    inviteOnly: string;
+    inviteOnlyBadge: string;
+    custom: string;
+    tailoredPricing: string;
+    features: {
+      [key: string]: string;
+    };
+    taglines: {
+      [key: string]: string;
+    };
+    descriptions: {
+      [key: string]: string;
+    };
+    planNames: {
+      [key: string]: string;
+    };
   };
   contact: {
     directory: {
@@ -319,6 +342,60 @@ export const newTranslations: Record<string, NewTranslations> = {
         student: "Student",
         personal: "Personal",
         business: "Business"
+      },
+      loading: "Loading plans...",
+      perMonth: "/month",
+      offFirstMonths: "% off first {months} months",
+      dayTrial: "-day trial",
+      refundGuarantee: "Pro-rata refund guarantee",
+      getStarted: "Get Started",
+      contactUs: "Contact Us",
+      inviteOnly: "Invite only",
+      inviteOnlyBadge: "Invite Only",
+      custom: "Custom",
+      tailoredPricing: "Tailored pricing based on your needs",
+      features: {
+        "24/7 concierge lifestyle": "24/7 concierge lifestyle",
+        "Global travel/event support": "Global travel/event support",
+        "Bespoke management teams": "Bespoke management teams",
+        "Save on essentials (food, rides)": "Save on essentials (food, rides)",
+        "Study & finance tools": "Study & finance tools",
+        "Simplified planning and reminders": "Simplified planning and reminders",
+        "Daily task support": "Daily task support",
+        "Smart reminders": "Smart reminders",
+        "Personal planning": "Personal planning",
+        "Everything in Basic": "Everything in Basic",
+        "Faster response, personal assistance": "Faster response, personal assistance",
+        "Adaptive automations": "Adaptive automations",
+        "Verified provider listing": "Verified provider listing",
+        "Client referral dashboard": "Client referral dashboard",
+        "Analytics + support": "Analytics + support",
+        "Dedicated Atenra agent": "Dedicated Atenra agent",
+        "On-demand support team": "On-demand support team",
+        "Concierge-level access": "Concierge-level access"
+      },
+      taglines: {
+        "A world of possibilities, crafted just for you.": "A world of possibilities, crafted just for you.",
+        "Built For: Students on a budget": "Built For: Students on a budget",
+        "Built For: Everyday individuals, freelancers, or part-timers": "Built For: Everyday individuals, freelancers, or part-timers",
+        "Built For: Families and busy professionals": "Built For: Families and busy professionals",
+        "Built For: All businesses": "Built For: All businesses",
+        "Built For: Executives and high achievers": "Built For: Executives and high achievers"
+      },
+      descriptions: {
+        "Built For: Discerning individuals and institutions": "Built For: Discerning individuals and institutions",
+        "Join our exclusive network of verified service providers. Start with our risk-free 3-month trial.": "Join our exclusive network of verified service providers. Start with our risk-free 3-month trial.",
+        "Perfect for individuals who want a helping hand with life's little tasks.": "Perfect for individuals who want a helping hand with life's little tasks.",
+        "This is the upgrade for people ready to take convenience to the next level.": "This is the upgrade for people ready to take convenience to the next level.",
+        "Imagine a solid step up in convenience, week after week.": "Imagine a solid step up in convenience, week after week."
+      },
+      planNames: {
+        "☐☐☐ Plan": "☐☐☐ Plan",
+        "Student Plan": "Student Plan",
+        "Basic Plan": "Basic Plan",
+        "Premium Plan": "Premium Plan",
+        "Premium Business Partnership": "Premium Business Partnership",
+        "Royal Plan": "Royal Plan"
       }
     },
     contact: {
@@ -518,6 +595,60 @@ export const newTranslations: Record<string, NewTranslations> = {
         student: "Estudiante",
         personal: "Personal",
         business: "Empresarial"
+      },
+      loading: "Cargando planes...",
+      perMonth: "/mes",
+      offFirstMonths: "% de descuento los primeros {months} meses",
+      dayTrial: "-días de prueba",
+      refundGuarantee: "Garantía de reembolso prorrateado",
+      getStarted: "Comenzar",
+      contactUs: "Contáctenos",
+      inviteOnly: "Solo por invitación",
+      inviteOnlyBadge: "Solo por Invitación",
+      custom: "Personalizado",
+      tailoredPricing: "Precio personalizado según sus necesidades",
+      features: {
+        "24/7 concierge lifestyle": "Estilo de vida con conserje 24/7",
+        "Global travel/event support": "Soporte global de viajes/eventos",
+        "Bespoke management teams": "Equipos de gestión personalizados",
+        "Save on essentials (food, rides)": "Ahorra en esenciales (comida, transporte)",
+        "Study & finance tools": "Herramientas de estudio y finanzas",
+        "Simplified planning and reminders": "Planificación simplificada y recordatorios",
+        "Daily task support": "Soporte de tareas diarias",
+        "Smart reminders": "Recordatorios inteligentes",
+        "Personal planning": "Planificación personal",
+        "Everything in Basic": "Todo en Básico",
+        "Faster response, personal assistance": "Respuesta más rápida, asistencia personal",
+        "Adaptive automations": "Automatizaciones adaptativas",
+        "Verified provider listing": "Lista de proveedores verificados",
+        "Client referral dashboard": "Panel de referencias de clientes",
+        "Analytics + support": "Análisis + soporte",
+        "Dedicated Atenra agent": "Agente Atenra dedicado",
+        "On-demand support team": "Equipo de soporte a demanda",
+        "Concierge-level access": "Acceso nivel conserje"
+      },
+      taglines: {
+        "A world of possibilities, crafted just for you.": "Un mundo de posibilidades, diseñado solo para ti.",
+        "Built For: Students on a budget": "Diseñado Para: Estudiantes con presupuesto limitado",
+        "Built For: Everyday individuals, freelancers, or part-timers": "Diseñado Para: Individuos cotidianos, freelancers o trabajadores a tiempo parcial",
+        "Built For: Families and busy professionals": "Diseñado Para: Familias y profesionales ocupados",
+        "Built For: All businesses": "Diseñado Para: Todo tipo de empresas",
+        "Built For: Executives and high achievers": "Diseñado Para: Ejecutivos y alto rendimiento"
+      },
+      descriptions: {
+        "Built For: Discerning individuals and institutions": "Diseñado Para: Individuos e instituciones exigentes",
+        "Join our exclusive network of verified service providers. Start with our risk-free 3-month trial.": "Únase a nuestra red exclusiva de proveedores de servicios verificados. Comience con nuestra prueba sin riesgo de 3 meses.",
+        "Perfect for individuals who want a helping hand with life's little tasks.": "Perfecto para individuos que quieren una mano amiga con las pequeñas tareas de la vida.",
+        "This is the upgrade for people ready to take convenience to the next level.": "Esta es la actualización para personas listas para llevar la conveniencia al siguiente nivel.",
+        "Imagine a solid step up in convenience, week after week.": "Imagina un paso sólido en conveniencia, semana tras semana."
+      },
+      planNames: {
+        "☐☐☐ Plan": "Plan ☐☐☐",
+        "Student Plan": "Plan Estudiante",
+        "Basic Plan": "Plan Básico",
+        "Premium Plan": "Plan Premium",
+        "Premium Business Partnership": "Asociación Empresarial Premium",
+        "Royal Plan": "Plan Royal"
       }
     },
     contact: {
@@ -717,6 +848,60 @@ export const newTranslations: Record<string, NewTranslations> = {
         student: "Étudiant",
         personal: "Personnel",
         business: "Entreprise"
+      },
+      loading: "Chargement des plans...",
+      perMonth: "/mois",
+      offFirstMonths: "% de réduction les {months} premiers mois",
+      dayTrial: "-jours d'essai",
+      refundGuarantee: "Garantie de remboursement au prorata",
+      getStarted: "Commencer",
+      contactUs: "Contactez-nous",
+      inviteOnly: "Sur invitation uniquement",
+      inviteOnlyBadge: "Sur Invitation",
+      custom: "Personnalisé",
+      tailoredPricing: "Tarification personnalisée selon vos besoins",
+      features: {
+        "24/7 concierge lifestyle": "Style de vie concierge 24/7",
+        "Global travel/event support": "Support voyage/événement mondial",
+        "Bespoke management teams": "Équipes de gestion sur mesure",
+        "Save on essentials (food, rides)": "Économisez sur l'essentiel (nourriture, transports)",
+        "Study & finance tools": "Outils d'étude et de finance",
+        "Simplified planning and reminders": "Planification simplifiée et rappels",
+        "Daily task support": "Support des tâches quotidiennes",
+        "Smart reminders": "Rappels intelligents",
+        "Personal planning": "Planification personnelle",
+        "Everything in Basic": "Tout dans Basique",
+        "Faster response, personal assistance": "Réponse plus rapide, assistance personnelle",
+        "Adaptive automations": "Automatisations adaptatives",
+        "Verified provider listing": "Liste de fournisseurs vérifiés",
+        "Client referral dashboard": "Tableau de bord des références clients",
+        "Analytics + support": "Analyses + support",
+        "Dedicated Atenra agent": "Agent Atenra dédié",
+        "On-demand support team": "Équipe de support à la demande",
+        "Concierge-level access": "Accès niveau concierge"
+      },
+      taglines: {
+        "A world of possibilities, crafted just for you.": "Un monde de possibilités, conçu rien que pour vous.",
+        "Built For: Students on a budget": "Conçu Pour: Étudiants avec un budget limité",
+        "Built For: Everyday individuals, freelancers, or part-timers": "Conçu Pour: Particuliers, freelances ou travailleurs à temps partiel",
+        "Built For: Families and busy professionals": "Conçu Pour: Familles et professionnels occupés",
+        "Built For: All businesses": "Conçu Pour: Toutes les entreprises",
+        "Built For: Executives and high achievers": "Conçu Pour: Cadres et hauts performers"
+      },
+      descriptions: {
+        "Built For: Discerning individuals and institutions": "Conçu Pour: Particuliers et institutions exigeants",
+        "Join our exclusive network of verified service providers. Start with our risk-free 3-month trial.": "Rejoignez notre réseau exclusif de fournisseurs de services vérifiés. Commencez avec notre essai sans risque de 3 mois.",
+        "Perfect for individuals who want a helping hand with life's little tasks.": "Parfait pour les particuliers qui veulent un coup de main avec les petites tâches de la vie.",
+        "This is the upgrade for people ready to take convenience to the next level.": "C'est la mise à niveau pour les personnes prêtes à porter la commodité au niveau supérieur.",
+        "Imagine a solid step up in convenience, week after week.": "Imaginez un pas solide vers plus de commodité, semaine après semaine."
+      },
+      planNames: {
+        "☐☐☐ Plan": "Plan ☐☐☐",
+        "Student Plan": "Plan Étudiant",
+        "Basic Plan": "Plan Basique",
+        "Premium Plan": "Plan Premium",
+        "Premium Business Partnership": "Partenariat Entreprise Premium",
+        "Royal Plan": "Plan Royal"
       }
     },
     contact: {
@@ -916,6 +1101,60 @@ export const newTranslations: Record<string, NewTranslations> = {
         student: "Student",
         personal: "Persönlich",
         business: "Geschäftlich"
+      },
+      loading: "Pläne werden geladen...",
+      perMonth: "/Monat",
+      offFirstMonths: "% Rabatt auf die ersten {months} Monate",
+      dayTrial: "-Tage Testversion",
+      refundGuarantee: "Anteilige Rückerstattungsgarantie",
+      getStarted: "Beginnen",
+      contactUs: "Kontaktieren Sie uns",
+      inviteOnly: "Nur auf Einladung",
+      inviteOnlyBadge: "Nur auf Einladung",
+      custom: "Individuell",
+      tailoredPricing: "Maßgeschneiderte Preisgestaltung nach Ihren Bedürfnissen",
+      features: {
+        "24/7 concierge lifestyle": "24/7 Concierge-Lifestyle",
+        "Global travel/event support": "Globale Reise-/Event-Unterstützung",
+        "Bespoke management teams": "Maßgeschneiderte Management-Teams",
+        "Save on essentials (food, rides)": "Sparen Sie bei Grundbedarf (Essen, Fahrten)",
+        "Study & finance tools": "Studien- und Finanztools",
+        "Simplified planning and reminders": "Vereinfachte Planung und Erinnerungen",
+        "Daily task support": "Unterstützung bei täglichen Aufgaben",
+        "Smart reminders": "Intelligente Erinnerungen",
+        "Personal planning": "Persönliche Planung",
+        "Everything in Basic": "Alles in Basic",
+        "Faster response, personal assistance": "Schnellere Antwort, persönliche Unterstützung",
+        "Adaptive automations": "Adaptive Automatisierungen",
+        "Verified provider listing": "Verifizierte Anbieterauflistung",
+        "Client referral dashboard": "Kunden-Empfehlungs-Dashboard",
+        "Analytics + support": "Analysen + Support",
+        "Dedicated Atenra agent": "Dedizierter Atenra-Agent",
+        "On-demand support team": "On-Demand-Support-Team",
+        "Concierge-level access": "Concierge-Level-Zugang"
+      },
+      taglines: {
+        "A world of possibilities, crafted just for you.": "Eine Welt voller Möglichkeiten, nur für Sie gemacht.",
+        "Built For: Students on a budget": "Entwickelt Für: Studenten mit begrenztem Budget",
+        "Built For: Everyday individuals, freelancers, or part-timers": "Entwickelt Für: Alltägliche Personen, Freelancer oder Teilzeitbeschäftigte",
+        "Built For: Families and busy professionals": "Entwickelt Für: Familien und vielbeschäftigte Profis",
+        "Built For: All businesses": "Entwickelt Für: Alle Unternehmen",
+        "Built For: Executives and high achievers": "Entwickelt Für: Führungskräfte und Hochleister"
+      },
+      descriptions: {
+        "Built For: Discerning individuals and institutions": "Entwickelt Für: Anspruchsvolle Einzelpersonen und Institutionen",
+        "Join our exclusive network of verified service providers. Start with our risk-free 3-month trial.": "Treten Sie unserem exklusiven Netzwerk verifizierter Dienstleister bei. Starten Sie mit unserer risikofreien 3-Monats-Testversion.",
+        "Perfect for individuals who want a helping hand with life's little tasks.": "Perfekt für Personen, die eine helfende Hand bei den kleinen Aufgaben des Lebens wünschen.",
+        "This is the upgrade for people ready to take convenience to the next level.": "Dies ist das Upgrade für Menschen, die bereit sind, Komfort auf die nächste Stufe zu heben.",
+        "Imagine a solid step up in convenience, week after week.": "Stellen Sie sich einen soliden Schritt zu mehr Komfort vor, Woche für Woche."
+      },
+      planNames: {
+        "☐☐☐ Plan": "☐☐☐ Plan",
+        "Student Plan": "Studenten-Plan",
+        "Basic Plan": "Basic-Plan",
+        "Premium Plan": "Premium-Plan",
+        "Premium Business Partnership": "Premium-Geschäftspartnerschaft",
+        "Royal Plan": "Royal-Plan"
       }
     },
     contact: {
@@ -1115,6 +1354,60 @@ export const newTranslations: Record<string, NewTranslations> = {
         student: "学生",
         personal: "个人",
         business: "企业"
+      },
+      loading: "正在加载计划...",
+      perMonth: "/月",
+      offFirstMonths: "% 折扣前 {months} 个月",
+      dayTrial: "天试用",
+      refundGuarantee: "按比例退款保证",
+      getStarted: "开始使用",
+      contactUs: "联系我们",
+      inviteOnly: "仅限邀请",
+      inviteOnlyBadge: "仅限邀请",
+      custom: "自定义",
+      tailoredPricing: "根据您的需求量身定制的价格",
+      features: {
+        "24/7 concierge lifestyle": "24/7 礼宾生活方式",
+        "Global travel/event support": "全球旅行/活动支持",
+        "Bespoke management teams": "定制管理团队",
+        "Save on essentials (food, rides)": "节省必需品（食品、交通）",
+        "Study & finance tools": "学习和财务工具",
+        "Simplified planning and reminders": "简化的计划和提醒",
+        "Daily task support": "日常任务支持",
+        "Smart reminders": "智能提醒",
+        "Personal planning": "个人规划",
+        "Everything in Basic": "基础计划的所有功能",
+        "Faster response, personal assistance": "更快响应，个人协助",
+        "Adaptive automations": "自适应自动化",
+        "Verified provider listing": "认证供应商列表",
+        "Client referral dashboard": "客户推荐仪表板",
+        "Analytics + support": "分析 + 支持",
+        "Dedicated Atenra agent": "专属Atenra代理",
+        "On-demand support team": "按需支持团队",
+        "Concierge-level access": "礼宾级访问"
+      },
+      taglines: {
+        "A world of possibilities, crafted just for you.": "专为您打造的无限可能世界。",
+        "Built For: Students on a budget": "专为：预算有限的学生",
+        "Built For: Everyday individuals, freelancers, or part-timers": "专为：日常个人、自由职业者或兼职人员",
+        "Built For: Families and busy professionals": "专为：家庭和忙碌的专业人士",
+        "Built For: All businesses": "专为：所有企业",
+        "Built For: Executives and high achievers": "专为：高管和高成就者"
+      },
+      descriptions: {
+        "Built For: Discerning individuals and institutions": "专为：眼光独到的个人和机构",
+        "Join our exclusive network of verified service providers. Start with our risk-free 3-month trial.": "加入我们的认证服务提供商专属网络。从我们的无风险3个月试用开始。",
+        "Perfect for individuals who want a helping hand with life's little tasks.": "非常适合希望在生活小事上得到帮助的个人。",
+        "This is the upgrade for people ready to take convenience to the next level.": "这是为准备将便利提升到新水平的人们而设计的升级版。",
+        "Imagine a solid step up in convenience, week after week.": "想象一下，每周便利性都在稳步提升。"
+      },
+      planNames: {
+        "☐☐☐ Plan": "☐☐☐ 计划",
+        "Student Plan": "学生计划",
+        "Basic Plan": "基础计划",
+        "Premium Plan": "高级计划",
+        "Premium Business Partnership": "高级商业合作",
+        "Royal Plan": "尊享计划"
       }
     },
     contact: {

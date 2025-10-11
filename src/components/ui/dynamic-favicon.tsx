@@ -13,15 +13,15 @@ export function DynamicFavicon() {
     const favicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
     if (favicon) {
       favicon.href = theme === 'dark'
-        ? '/logos/Icon_Shadow_White.png'
-        : '/logos/Icon_Shadow_Blue.png';
+        ? '/logos/Icon_White.png'
+        : '/logos/Icon_Black.png';
     } else {
       const newFavicon = document.createElement('link');
       newFavicon.rel = 'icon';
       newFavicon.type = 'image/png';
       newFavicon.href = theme === 'dark'
-        ? '/logos/Icon_Shadow_White.png'
-        : '/logos/Icon_Shadow_Blue.png';
+        ? '/logos/Icon_White.png'
+        : '/logos/Icon_Black.png';
       document.head.appendChild(newFavicon);
     }
   }, [theme, mounted]);
