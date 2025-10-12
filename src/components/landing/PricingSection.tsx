@@ -38,6 +38,7 @@ export function PricingSection() {
 	const [plans, setPlans] = useState<PlanFromDB[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [isVisible, setIsVisible] = useState(false);
+	const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
 	const sectionRef = useRef<HTMLElement>(null);
 
 	useEffect(() => {
@@ -127,6 +128,19 @@ export function PricingSection() {
 		if (plan.is_invite_only) return Sparkles;
 		if (plan.price >= 200) return Crown;
 		return getIcon(plan.plan_type);
+	};
+
+	const getFirstSentence = (text: string | null) => {
+		if (!text) return '';
+		const match = text.match(/^[^.!?]+[.!?]/);
+		return match ? match[0] : text;
+	};
+
+	const toggleDescription = (planId: number) => {
+		setExpandedDescriptions(prev => ({
+			...prev,
+			[planId]: !prev[planId]
+		}));
 	};
 
 	return (
@@ -278,9 +292,20 @@ export function PricingSection() {
 
 										{/* Detailed Description - In Detail Section */}
 										{plan.detailed_description && (
-											<div className="relative z-10 mb-6 p-4 bg-muted/30 rounded-lg border border-border/50">
+											<div
+												className="relative z-10 mb-6 p-4 bg-muted/30 rounded-lg border border-border/50 cursor-pointer hover:bg-muted/40 transition-colors"
+												onClick={() => toggleDescription(plan.id)}
+											>
 												<p className="text-sm text-muted-foreground leading-relaxed">
-													{plan.detailed_description}
+													{expandedDescriptions[plan.id]
+														? plan.detailed_description
+														: getFirstSentence(plan.detailed_description)}
+													{!expandedDescriptions[plan.id] && plan.detailed_description !== getFirstSentence(plan.detailed_description) && (
+														<span className="text-primary ml-1">Read more</span>
+													)}
+													{expandedDescriptions[plan.id] && (
+														<span className="text-primary ml-1">Show less</span>
+													)}
 												</p>
 											</div>
 										)}
@@ -371,9 +396,20 @@ export function PricingSection() {
 
 												{/* Detailed Description - In Detail Section */}
 												{plan.detailed_description && (
-													<div className="relative z-10 mb-6 p-4 bg-muted/30 rounded-lg border border-border/50">
+													<div
+														className="relative z-10 mb-6 p-4 bg-muted/30 rounded-lg border border-border/50 cursor-pointer hover:bg-muted/40 transition-colors"
+														onClick={() => toggleDescription(plan.id)}
+													>
 														<p className="text-sm text-muted-foreground leading-relaxed">
-															{plan.detailed_description}
+															{expandedDescriptions[plan.id]
+																? plan.detailed_description
+																: getFirstSentence(plan.detailed_description)}
+															{!expandedDescriptions[plan.id] && plan.detailed_description !== getFirstSentence(plan.detailed_description) && (
+																<span className="text-primary ml-1">Read more</span>
+															)}
+															{expandedDescriptions[plan.id] && (
+																<span className="text-primary ml-1">Show less</span>
+															)}
 														</p>
 													</div>
 												)}

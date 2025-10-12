@@ -65,12 +65,6 @@ const navigationItems = [
     badge: null,
   },
   {
-    title: "Billing",
-    href: "/admindashboard/billing",
-    icon: CreditCard,
-    badge: null,
-  },
-  {
     title: "Plans",
     href: "/admindashboard/plans",
     icon: Package,
@@ -91,8 +85,8 @@ const settingsMenuItems = [
     icon: User,
   },
   {
-    title: "Subscription",
-    href: "/admindashboard/subscription",
+    title: "Billing",
+    href: "/subscription",
     icon: CreditCard,
   },
 ];

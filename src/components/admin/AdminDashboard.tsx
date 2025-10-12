@@ -329,25 +329,26 @@ export function AdminDashboard() {
 		user.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
-	const StatCard = ({ 
-		icon: Icon, 
-		label, 
-		value, 
+	const StatCard = ({
+		icon: Icon,
+		label,
+		value,
 		growth,
-		description 
-	}: { 
-		icon: any; 
-		label: string; 
-		value: number; 
+		description
+	}: {
+		icon: any;
+		label: string;
+		value: number;
 		growth: number;
 		description?: string;
 	}) => (
-		<Card>
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+		<Card className="lg:block">
+			{/* Desktop view */}
+			<CardHeader className="hidden lg:flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle className="text-sm font-medium">{label}</CardTitle>
 				<Icon className="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
-			<CardContent>
+			<CardContent className="hidden lg:block">
 				<div className="text-2xl font-bold">{value.toLocaleString()}</div>
 				<p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
 					{growth !== 0 && (
@@ -365,6 +366,31 @@ export function AdminDashboard() {
 					{description && <span className="ml-1">{description}</span>}
 				</p>
 			</CardContent>
+
+			{/* Mobile compact view */}
+			<CardContent className="lg:hidden p-3">
+				<div className="flex items-center gap-3">
+					<div className="flex items-center justify-center h-8 w-8 rounded-md bg-primary/10 flex-shrink-0">
+						<Icon className="h-4 w-4 text-primary" />
+					</div>
+					<div className="flex-1 min-w-0">
+						<div className="text-xs text-muted-foreground">{label}</div>
+						<div className="text-lg font-bold">{value.toLocaleString()}</div>
+					</div>
+					{growth !== 0 && (
+						<div className="flex items-center gap-1 flex-shrink-0">
+							{growth > 0 ? (
+								<TrendingUp className="h-3 w-3 text-green-500" />
+							) : (
+								<TrendingDown className="h-3 w-3 text-red-500" />
+							)}
+							<span className={`text-xs font-medium ${growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
+								{growth > 0 ? '+' : ''}{growth}%
+							</span>
+						</div>
+					)}
+				</div>
+			</CardContent>
 		</Card>
 	);
 
@@ -378,8 +404,8 @@ export function AdminDashboard() {
 
 	return (
 		<div className="space-y-4 md:space-y-6">
-			{/* Stats Overview - Desktop Only */}
-			<div className="hidden lg:grid gap-3 grid-cols-4">
+			{/* Stats Overview - Mobile: 2x2 Grid, Desktop: 4 columns */}
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
 				<StatCard
 					icon={Users}
 					label="Total Users"

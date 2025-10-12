@@ -32,7 +32,9 @@
     "studio:stop": "if [ -f .studio.pid ]; then kill $(cat .studio.pid) && rm .studio.pid && echo 'Drizzle Studio stopped'; else echo 'Drizzle Studio is not running'; fi",
     "studio:restart": "bun run studio:stop && bun run studio:start",
     "db:query": "bunx wrangler d1 execute atenra-dev-db --local --command",
-    "db:query:prod": "bunx wrangler d1 execute atenra-dev-db --command"
+    "db:query:prod": "bunx wrangler d1 execute atenra-dev-db --command",
+    "stripe:sync": "bun run scripts/sync-stripe-products.ts",
+    "stripe:update-prices": "bun run scripts/update-stripe-prices.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.10.0",
