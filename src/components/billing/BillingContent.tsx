@@ -48,7 +48,14 @@ export function BillingContent() {
 		try {
 			// Fetch subscription
 			const subResponse = await fetch('/api/billing/subscription');
-			const subData = await subResponse.json();
+			const subData = await subResponse.json() as {
+				status: string;
+				plan?: {
+					name: string;
+					price: number;
+				};
+				currentPeriodEnd?: number;
+			};
 
 			if (subData.status !== "inactive" && subData.plan) {
 				setSubscription({
@@ -66,14 +73,21 @@ export function BillingContent() {
 
 			// Fetch payment method
 			const pmResponse = await fetch('/api/billing/payment-method');
-			const pmData = await pmResponse.json();
+			const pmData = await pmResponse.json() as {
+				paymentMethod?: {
+					brand: string;
+					last4: string;
+				} | null;
+			};
 			if (pmData.paymentMethod) {
 				setPaymentMethod(pmData.paymentMethod);
 			}
 
 			// Fetch invoices
 			const invResponse = await fetch('/api/billing/invoices');
-			const invData = await invResponse.json();
+			const invData = await invResponse.json() as {
+				invoices?: Invoice[];
+			};
 			if (invData.invoices) {
 				setInvoices(invData.invoices);
 			}
@@ -166,7 +180,7 @@ export function BillingContent() {
 								)}
 								{!subscription && (
 									<p className="text-sm text-muted-foreground mt-1">
-										You don't have an active subscription plan
+										You don&apos;t have an active subscription plan
 									</p>
 								)}
 							</div>

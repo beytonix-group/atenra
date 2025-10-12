@@ -49,13 +49,20 @@ export function UpgradeContent() {
 		try {
 			// Fetch available plans
 			const plansResponse = await fetch('/api/plans');
-			const plansData = await plansResponse.json();
+			const plansData = await plansResponse.json() as {
+				plans?: Plan[];
+			};
 
 			setPlans(plansData.plans || []);
 
 			// Fetch current subscription
 			const subResponse = await fetch('/api/billing/subscription');
-			const subData = await subResponse.json();
+			const subData = await subResponse.json() as {
+				status: string;
+				plan?: {
+					name: string;
+				};
+			};
 
 			if (subData.status !== "inactive") {
 				// Get plan ID from plan name
@@ -87,7 +94,7 @@ export function UpgradeContent() {
 				body: JSON.stringify({ planId }),
 			});
 
-			const data = await response.json();
+			const data = await response.json() as { url?: string };
 
 			if (data.url) {
 				window.location.href = data.url;
@@ -119,7 +126,8 @@ export function UpgradeContent() {
 	const getPlanIcon = (plan: Plan) => {
 		if (plan.is_invite_only) return Sparkles;
 		if (plan.price >= 200) return Crown;
-		return getIcon(plan.plan_type);
+		const planType = plan.plan_type === 'invite-only' ? 'regular' : plan.plan_type;
+		return getIcon(planType);
 	};
 
 	// Filter plans by selected type
