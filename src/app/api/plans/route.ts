@@ -42,7 +42,9 @@ export async function GET() {
 					has_promotion,
 					promotion_percent_off,
 					promotion_months,
-					has_refund_guarantee
+					has_refund_guarantee,
+					stripe_product_id,
+					stripe_price_id
 				FROM plans
 				WHERE is_active = 1
 				ORDER BY

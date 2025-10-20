@@ -88,6 +88,7 @@ export async function GET(): Promise<NextResponse> {
 				: undefined,
 			currentPeriodEnd: subscription.currentPeriodEnd,
 			cancelAtPeriodEnd: subscription.cancelAtPeriodEnd === 1,
+			canceledAt: subscription.canceledAt,
 		});
 	} catch (error: unknown) {
 		console.error("Error fetching subscription:", error);

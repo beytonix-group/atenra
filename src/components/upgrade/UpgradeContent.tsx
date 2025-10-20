@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Loader2, Check, ArrowLeft, GraduationCap, Users, Briefcase, Crown, Sparkles } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Check, ArrowLeft, GraduationCap, Users, Briefcase, Crown, AlertCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Plan {
@@ -20,6 +21,7 @@ interface Plan {
 	has_promotion: number;
 	promotion_percent_off: number | null;
 	promotion_months: number | null;
+	trial_days: number | null;
 	is_invite_only: number;
 	detailed_description: string | null;
 }
@@ -39,6 +41,10 @@ export function UpgradeContent() {
 	const [loading, setLoading] = useState(true);
 	const [processingPlanId, setProcessingPlanId] = useState<number | null>(null);
 	const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
+	const [notification, setNotification] = useState<{
+		type: 'error';
+		message: string;
+	} | null>(null);
 
 	useEffect(() => {
 		fetchData();
@@ -85,23 +91,38 @@ export function UpgradeContent() {
 
 	const handleSelectPlan = async (planId: number) => {
 		setProcessingPlanId(planId);
+		setNotification(null); // Clear any existing notifications
+
 		try {
-			// TODO: Implement Stripe checkout flow
-			// This should create a Stripe Checkout Session and redirect
 			const response = await fetch('/api/checkout/create-session', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ planId }),
 			});
 
-			const data = await response.json() as { url?: string };
+			const data = await response.json() as { url?: string; error?: string };
+
+			if (!response.ok) {
+				console.error("Checkout session error:", data.error);
+				setNotification({
+					type: 'error',
+					message: `Failed to start checkout: ${data.error || 'Unknown error'}`
+				});
+				setTimeout(() => setNotification(null), 5000);
+				setProcessingPlanId(null);
+				return;
+			}
 
 			if (data.url) {
 				window.location.href = data.url;
 			}
 		} catch (error) {
 			console.error("Error creating checkout session:", error);
-		} finally {
+			setNotification({
+				type: 'error',
+				message: 'An unexpected error occurred. Please try again.'
+			});
+			setTimeout(() => setNotification(null), 5000);
 			setProcessingPlanId(null);
 		}
 	};
@@ -124,20 +145,15 @@ export function UpgradeContent() {
 	};
 
 	const getPlanIcon = (plan: Plan) => {
-		if (plan.is_invite_only) return Sparkles;
 		if (plan.price >= 200) return Crown;
-		const planType = plan.plan_type === 'invite-only' ? 'regular' : plan.plan_type;
-		return getIcon(planType);
+		// Only pass valid PlanType to getIcon
+		if (plan.plan_type === 'invite-only') return Crown;
+		return getIcon(plan.plan_type);
 	};
 
 	// Filter plans by selected type
 	const filteredPlans = plans
 		.filter(plan => plan.plan_type === selectedType)
-		.sort((a, b) => a.price - b.price);
-
-	// Filter invite-only plans
-	const inviteOnlyPlans = plans
-		.filter(plan => plan.plan_type === 'invite-only')
 		.sort((a, b) => a.price - b.price);
 
 	const getFirstSentence = (text: string | null) => {
@@ -163,6 +179,20 @@ export function UpgradeContent() {
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8">
+			{/* Notification */}
+			{notification && (
+				<Alert variant="destructive" className="relative pr-12">
+					<AlertCircle className="h-4 w-4" />
+					<AlertDescription>{notification.message}</AlertDescription>
+					<button
+						onClick={() => setNotification(null)}
+						className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+					>
+						<X className="h-4 w-4" />
+					</button>
+				</Alert>
+			)}
+
 			{/* Header */}
 			<div className="flex items-center gap-4">
 				<Button
@@ -345,110 +375,6 @@ export function UpgradeContent() {
 					);
 				})}
 			</div>
-
-			{/* Invite-Only Plans - Only show under Personal tab */}
-			{selectedType === 'regular' && inviteOnlyPlans.length > 0 && (
-				<div className="mt-16">
-					<div className={cn(
-						"grid gap-8 max-w-md mx-auto",
-						inviteOnlyPlans.length === 2 && "md:grid-cols-2 max-w-4xl"
-					)}>
-						{inviteOnlyPlans.map((plan) => {
-							const isCurrentPlan = currentSubscription?.planId === plan.id;
-							const Icon = getPlanIcon(plan);
-							const quickView = parseQuickView(plan.quick_view_json);
-
-							return (
-								<div
-									key={plan.id}
-									className={cn(
-										"relative flex flex-col rounded-xl border bg-card p-8 shadow-sm transition-all duration-300",
-										"hover:shadow-xl hover:scale-[1.02]",
-										"border-primary/30 bg-gradient-to-br from-primary/5 to-transparent",
-										isCurrentPlan && "border-primary"
-									)}
-								>
-									{/* Invite Only Badge */}
-									<div className="absolute top-4 right-4 z-10">
-										<span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-											<Sparkles className="h-3 w-3" />
-											Invite Only
-										</span>
-									</div>
-
-									{/* Icon & Name */}
-									<div className="mb-6">
-										<Icon className="h-8 w-8 text-primary mb-4" />
-										<h3 className="text-2xl font-semibold mb-2">{plan.name}</h3>
-										{plan.tagline && (
-											<p className="text-sm text-muted-foreground">
-												{plan.tagline}
-											</p>
-										)}
-									</div>
-
-									{/* Price */}
-									<div className="mb-6">
-										<div className="flex items-baseline gap-2">
-											<span className="text-4xl font-bold">
-												${plan.price === 0 ? 'Custom' : plan.price}
-											</span>
-											{plan.price > 0 && (
-												<span className="text-muted-foreground">/month</span>
-											)}
-										</div>
-									</div>
-
-									{/* Quick View Features */}
-									{quickView.length > 0 && (
-										<ul className="space-y-3 mb-6 flex-grow">
-											{quickView.map((feature, idx) => (
-												<li key={idx} className="flex items-start gap-3">
-													<Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-													<span className="text-sm leading-relaxed">{feature}</span>
-												</li>
-											))}
-										</ul>
-									)}
-
-									{/* Detailed Description */}
-									{plan.detailed_description && (
-										<div
-											className="mb-6 p-4 bg-muted/30 rounded-lg border border-border/50 cursor-pointer hover:bg-muted/40 transition-colors"
-											onClick={() => toggleDescription(plan.id)}
-										>
-											<p className="text-sm text-muted-foreground leading-relaxed">
-												{expandedDescriptions[plan.id]
-													? plan.detailed_description
-													: getFirstSentence(plan.detailed_description)}
-												{!expandedDescriptions[plan.id] && plan.detailed_description !== getFirstSentence(plan.detailed_description) && (
-													<span className="text-primary ml-1">Read more</span>
-												)}
-												{expandedDescriptions[plan.id] && (
-													<span className="text-primary ml-1">Show less</span>
-												)}
-											</p>
-										</div>
-									)}
-
-									{/* CTA Button */}
-									<Button
-										className="w-full mt-auto"
-										variant="outline"
-										onClick={() => router.push('/contact')}
-									>
-										Contact Us
-									</Button>
-
-									<p className="text-xs text-center text-muted-foreground mt-3">
-										Available by invitation only
-									</p>
-								</div>
-							);
-						})}
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }

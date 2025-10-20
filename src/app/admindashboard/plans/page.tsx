@@ -6,11 +6,6 @@ import { isSuperAdmin } from "@/lib/auth-helpers";
 
 export const runtime = "edge";
 
-export const metadata = {
-	title: "Plans Management - Admin Dashboard",
-	description: "Manage subscription plans and Stripe integration",
-};
-
 export default async function PlansPage() {
 	const session = await auth();
 
