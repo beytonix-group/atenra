@@ -4,7 +4,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { CreditCard, Loader2, AlertCircle, CheckCircle2, X } from "lucide-react";
 
 interface Subscription {
 	id: number;
@@ -14,6 +23,8 @@ interface Subscription {
 	status: string;
 	currentPeriodEnd: string;
 	stripeSubscriptionId?: string;
+	cancelAtPeriodEnd?: boolean;
+	canceledAt?: number | null;
 }
 
 interface PaymentMethod {
@@ -44,6 +55,13 @@ export function BillingContent() {
 	const [addingPaymentMethod, setAddingPaymentMethod] = useState(false);
 	const [cancelLoading, setCancelLoading] = useState(false);
 	const [removingId, setRemovingId] = useState<number | null>(null);
+	const [notification, setNotification] = useState<{
+		type: 'success' | 'error';
+		message: string;
+	} | null>(null);
+	const [showCancelDialog, setShowCancelDialog] = useState(false);
+	const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+	const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
 
 	useEffect(() => {
 		fetchBillingData();
@@ -74,6 +92,8 @@ export function BillingContent() {
 					price: number;
 				};
 				currentPeriodEnd?: number;
+				cancelAtPeriodEnd?: boolean;
+				canceledAt?: number | null;
 			};
 
 			if (subData.status !== "inactive" && subData.plan) {
@@ -86,7 +106,9 @@ export function BillingContent() {
 					currentPeriodEnd: subData.currentPeriodEnd
 						? new Date(subData.currentPeriodEnd * 1000).toISOString().split('T')[0]
 						: new Date().toISOString().split('T')[0],
-					stripeSubscriptionId: undefined
+					stripeSubscriptionId: undefined,
+					cancelAtPeriodEnd: subData.cancelAtPeriodEnd || false,
+					canceledAt: subData.canceledAt
 				});
 			}
 
@@ -116,52 +138,83 @@ export function BillingContent() {
 	};
 
 	const handleCancelSubscription = async () => {
-		if (!confirm("Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your billing period.")) {
-			return;
-		}
-
 		setCancelLoading(true);
+		setShowCancelDialog(false);
 		try {
-			// TODO: Implement cancel subscription API call
-			// const response = await fetch('/api/billing/cancel', {
-			//   method: 'POST',
-			// });
-			// if (response.ok) {
-			//   await fetchBillingData();
-			// }
+			const response = await fetch('/api/billing/cancel', {
+				method: 'POST',
+			});
 
-			alert("Subscription cancellation will be implemented");
+			const data = await response.json() as { success?: boolean; message?: string; error?: string };
+
+			if (response.ok && data.success) {
+				setNotification({
+					type: 'success',
+					message: data.message || 'Subscription cancelled successfully. You will retain access until the end of your billing period.'
+				});
+				setTimeout(() => setNotification(null), 5000);
+				await fetchBillingData();
+			} else {
+				setNotification({
+					type: 'error',
+					message: data.error || 'Failed to cancel subscription'
+				});
+				setTimeout(() => setNotification(null), 5000);
+			}
 		} catch (error) {
 			console.error("Error cancelling subscription:", error);
+			setNotification({
+				type: 'error',
+				message: 'An unexpected error occurred while cancelling subscription'
+			});
+			setTimeout(() => setNotification(null), 5000);
 		} finally {
 			setCancelLoading(false);
 		}
 	};
 
-	const handleRemovePaymentMethod = async (paymentMethodId: number) => {
-		if (!confirm("Are you sure you want to remove this payment method?")) {
-			return;
-		}
+	const confirmRemovePaymentMethod = (paymentMethodId: number) => {
+		setSelectedPaymentMethodId(paymentMethodId);
+		setShowRemoveDialog(true);
+	};
 
-		setRemovingId(paymentMethodId);
+	const handleRemovePaymentMethod = async () => {
+		if (!selectedPaymentMethodId) return;
+
+		setRemovingId(selectedPaymentMethodId);
+		setShowRemoveDialog(false);
 		try {
 			const response = await fetch('/api/billing/payment-method', {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ paymentMethodId }),
+				body: JSON.stringify({ paymentMethodId: selectedPaymentMethodId }),
 			});
 
 			if (response.ok) {
 				await fetchBillingData();
+				setNotification({
+					type: 'success',
+					message: 'Payment method removed successfully'
+				});
+				setTimeout(() => setNotification(null), 5000);
 			} else {
 				const data = await response.json() as { error?: string };
-				alert(data.error || "Failed to remove payment method");
+				setNotification({
+					type: 'error',
+					message: data.error || 'Failed to remove payment method'
+				});
+				setTimeout(() => setNotification(null), 5000);
 			}
 		} catch (error) {
 			console.error("Error removing payment method:", error);
-			alert("Failed to remove payment method");
+			setNotification({
+				type: 'error',
+				message: 'Failed to remove payment method'
+			});
+			setTimeout(() => setNotification(null), 5000);
 		} finally {
 			setRemovingId(null);
+			setSelectedPaymentMethodId(null);
 		}
 	};
 
@@ -175,13 +228,26 @@ export function BillingContent() {
 
 			if (response.ok) {
 				await fetchBillingData();
+				setNotification({
+					type: 'success',
+					message: 'Default payment method updated successfully'
+				});
+				setTimeout(() => setNotification(null), 5000);
 			} else {
 				const data = await response.json() as { error?: string };
-				alert(data.error || "Failed to set default payment method");
+				setNotification({
+					type: 'error',
+					message: data.error || 'Failed to set default payment method'
+				});
+				setTimeout(() => setNotification(null), 5000);
 			}
 		} catch (error) {
 			console.error("Error setting default payment method:", error);
-			alert("Failed to set default payment method");
+			setNotification({
+				type: 'error',
+				message: 'Failed to set default payment method'
+			});
+			setTimeout(() => setNotification(null), 5000);
 		}
 	};
 
@@ -198,12 +264,20 @@ export function BillingContent() {
 				// Redirect to Stripe Checkout
 				window.location.href = data.url;
 			} else {
-				alert(data.error || "Failed to create checkout session");
+				setNotification({
+					type: 'error',
+					message: data.error || 'Failed to create checkout session'
+				});
+				setTimeout(() => setNotification(null), 5000);
 				setAddingPaymentMethod(false);
 			}
 		} catch (error) {
 			console.error("Error creating checkout session:", error);
-			alert("Failed to create checkout session");
+			setNotification({
+				type: 'error',
+				message: 'Failed to create checkout session'
+			});
+			setTimeout(() => setNotification(null), 5000);
 			setAddingPaymentMethod(false);
 		}
 	};
@@ -226,6 +300,27 @@ export function BillingContent() {
 
 	return (
 		<div className="max-w-4xl space-y-6">
+			{/* Notification */}
+			{notification && (
+				<Alert
+					variant={notification.type === 'error' ? 'destructive' : 'default'}
+					className="relative pr-12"
+				>
+					{notification.type === 'success' ? (
+						<CheckCircle2 className="h-4 w-4" />
+					) : (
+						<AlertCircle className="h-4 w-4" />
+					)}
+					<AlertDescription>{notification.message}</AlertDescription>
+					<button
+						onClick={() => setNotification(null)}
+						className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+					>
+						<X className="h-4 w-4" />
+					</button>
+				</Alert>
+			)}
+
 			{/* Current Plan Section */}
 			<Card className="border bg-card">
 				<CardContent className="p-6">
@@ -254,15 +349,15 @@ export function BillingContent() {
 								<h2 className="text-xl font-semibold">
 									{subscription ? subscription.planName : "No plan"}
 								</h2>
-								{subscription && (
-									<>
-										<p className="text-sm text-muted-foreground mt-1">
-											5x more usage than Pro
-										</p>
-										<p className="text-sm text-muted-foreground mt-1">
-											Your subscription will auto renew on {formatDate(subscription.currentPeriodEnd)}.
-										</p>
-									</>
+								{subscription && subscription.cancelAtPeriodEnd && (
+									<p className="text-sm text-destructive mt-1 font-medium">
+										⚠️ Subscription cancelled. Access ends on {formatDate(subscription.currentPeriodEnd)}.
+									</p>
+								)}
+								{subscription && !subscription.cancelAtPeriodEnd && (
+									<p className="text-sm text-muted-foreground mt-1">
+										Your subscription will auto renew on {formatDate(subscription.currentPeriodEnd)}.
+									</p>
 								)}
 								{!subscription && (
 									<p className="text-sm text-muted-foreground mt-1">
@@ -281,6 +376,39 @@ export function BillingContent() {
 					</div>
 				</CardContent>
 			</Card>
+
+			{/* Cancellation Status - Show if subscription is cancelled */}
+			{subscription && subscription.cancelAtPeriodEnd && subscription.canceledAt && (
+				<Card className="border border-destructive/50 bg-card">
+					<CardContent className="p-6">
+						<div className="flex items-start gap-4">
+							<AlertCircle className="h-6 w-6 text-destructive mt-0.5" />
+							<div className="flex-1">
+								<h3 className="text-lg font-semibold text-destructive">Subscription Cancelled</h3>
+								<div className="mt-2 space-y-1 text-sm text-muted-foreground">
+									<p>
+										<span className="font-medium">Cancelled on:</span>{" "}
+										{new Date(subscription.canceledAt * 1000).toLocaleDateString("en-US", {
+											year: "numeric",
+											month: "long",
+											day: "numeric",
+											hour: "2-digit",
+											minute: "2-digit"
+										})}
+									</p>
+									<p>
+										<span className="font-medium">Access ends:</span>{" "}
+										{formatDate(subscription.currentPeriodEnd)}
+									</p>
+									<p className="mt-3 text-foreground">
+										You will retain access to {subscription.planName} features until {formatDate(subscription.currentPeriodEnd)}. After this date, your subscription will not renew and you&apos;ll be downgraded to the free plan.
+									</p>
+								</div>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Payment Methods Section */}
 			<Card className="border bg-card">
@@ -344,7 +472,7 @@ export function BillingContent() {
 										<Button
 											variant="ghost"
 											size="sm"
-											onClick={() => handleRemovePaymentMethod(pm.id)}
+											onClick={() => confirmRemovePaymentMethod(pm.id)}
 											disabled={removingId === pm.id}
 										>
 											{removingId === pm.id ? (
@@ -409,19 +537,19 @@ export function BillingContent() {
 				</CardContent>
 			</Card>
 
-			{/* Cancellation Section - Only show if user has active subscription */}
-			{subscription && (
+			{/* Cancellation Section - Only show if user has active subscription that is not yet cancelled */}
+			{subscription && !subscription.cancelAtPeriodEnd && (
 				<Card className="border bg-card">
 					<CardContent className="p-6">
 						<div className="flex items-center justify-between">
 							<div>
 								<h3 className="text-lg font-semibold">Cancellation</h3>
-								<p className="text-sm text-muted-foreground mt-1">Cancel plan</p>
+								<p className="text-sm text-muted-foreground mt-1">Cancel your subscription</p>
 							</div>
 
 							<Button
 								variant="destructive"
-								onClick={handleCancelSubscription}
+								onClick={() => setShowCancelDialog(true)}
 								disabled={cancelLoading}
 							>
 								{cancelLoading ? (
@@ -430,13 +558,65 @@ export function BillingContent() {
 										Cancelling...
 									</>
 								) : (
-									"Cancel"
+									"Cancel Subscription"
 								)}
 							</Button>
 						</div>
 					</CardContent>
 				</Card>
 			)}
+
+			{/* Cancel Subscription Confirmation Dialog */}
+			<Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Cancel Subscription</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your billing period.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setShowCancelDialog(false)}
+						>
+							Keep Subscription
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleCancelSubscription}
+						>
+							Cancel Subscription
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Remove Payment Method Confirmation Dialog */}
+			<Dialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Remove Payment Method</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to remove this payment method? This action cannot be undone.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setShowRemoveDialog(false)}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleRemovePaymentMethod}
+						>
+							Remove
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 
 		</div>
 	);

@@ -72,9 +72,47 @@ export async function POST(request: Request): Promise<NextResponse> {
 			.bind(now, now, subscription.id)
 			.run();
 
+		// Log the cancellation activity for audit trail
+		try {
+			await db
+				.prepare(
+					`
+					INSERT INTO user_activities (
+						user_id,
+						activity_type,
+						description,
+						metadata,
+						created_at
+					) VALUES (?, ?, ?, ?, ?)
+				`
+				)
+				.bind(
+					user.id,
+					'subscription_cancelled',
+					`Subscription cancelled for plan ID ${subscription.planId}`,
+					JSON.stringify({
+						subscription_id: subscription.id,
+						plan_id: subscription.planId,
+						stripe_subscription_id: subscription.externalSubscriptionId,
+						cancel_at_period_end: true,
+						period_end: subscription.currentPeriodEnd,
+					}),
+					now
+				)
+				.run();
+		} catch (activityError) {
+			console.error("Error logging cancellation activity:", activityError);
+			// Don't fail the request if activity logging fails
+		}
+
+		console.log(`✅ Subscription ${subscription.externalSubscriptionId} cancelled successfully for user ${user.id}`);
+		console.log(`   - Cancels at period end: ${new Date(subscription.currentPeriodEnd! * 1000).toISOString()}`);
+		console.log(`   - Stripe subscription ID: ${subscription.externalSubscriptionId}`);
+
 		return NextResponse.json({
 			success: true,
 			cancel_at_period_end: updatedSubscription.cancel_at_period_end,
+			message: 'Subscription cancelled successfully. Access will continue until the end of your billing period.',
 		});
 	} catch (error: any) {
 		console.error("Error canceling subscription:", error);

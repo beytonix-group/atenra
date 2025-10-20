@@ -38,7 +38,7 @@ export default async function BillingCancelPage() {
 						<h2 className="font-semibold text-lg">What happened?</h2>
 						<p className="text-sm text-muted-foreground">
 							You cancelled the checkout process or closed the payment window before completing your purchase.
-							This is completely normal, and you can try again whenever you're ready.
+							This is completely normal, and you can try again whenever you&apos;re ready.
 						</p>
 					</div>
 

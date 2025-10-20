@@ -168,9 +168,9 @@ async function handleSubscriptionEvent(subscription: Stripe.Subscription): Promi
 		externalSubscriptionId: subscription.id,
 		currentPeriodStart: (subscription as any).current_period_start,
 		currentPeriodEnd: (subscription as any).current_period_end,
-		trialEnd: (subscription as any).trial_end || undefined,
+		trialEnd: (subscription as any).trial_end || null,
 		cancelAtPeriodEnd: (subscription as any).cancel_at_period_end,
-		canceledAt: (subscription as any).canceled_at || undefined,
+		canceledAt: (subscription as any).canceled_at || null,
 	});
 }
 

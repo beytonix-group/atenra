@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Loader2, Check, ArrowLeft, GraduationCap, Users, Briefcase, Crown } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Check, ArrowLeft, GraduationCap, Users, Briefcase, Crown, AlertCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Plan {
@@ -40,6 +41,10 @@ export function UpgradeContent() {
 	const [loading, setLoading] = useState(true);
 	const [processingPlanId, setProcessingPlanId] = useState<number | null>(null);
 	const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
+	const [notification, setNotification] = useState<{
+		type: 'error';
+		message: string;
+	} | null>(null);
 
 	useEffect(() => {
 		fetchData();
@@ -86,6 +91,8 @@ export function UpgradeContent() {
 
 	const handleSelectPlan = async (planId: number) => {
 		setProcessingPlanId(planId);
+		setNotification(null); // Clear any existing notifications
+
 		try {
 			const response = await fetch('/api/checkout/create-session', {
 				method: 'POST',
@@ -97,7 +104,11 @@ export function UpgradeContent() {
 
 			if (!response.ok) {
 				console.error("Checkout session error:", data.error);
-				alert(`Failed to start checkout: ${data.error || 'Unknown error'}`);
+				setNotification({
+					type: 'error',
+					message: `Failed to start checkout: ${data.error || 'Unknown error'}`
+				});
+				setTimeout(() => setNotification(null), 5000);
 				setProcessingPlanId(null);
 				return;
 			}
@@ -107,7 +118,11 @@ export function UpgradeContent() {
 			}
 		} catch (error) {
 			console.error("Error creating checkout session:", error);
-			alert("An unexpected error occurred. Please try again.");
+			setNotification({
+				type: 'error',
+				message: 'An unexpected error occurred. Please try again.'
+			});
+			setTimeout(() => setNotification(null), 5000);
 			setProcessingPlanId(null);
 		}
 	};
@@ -131,6 +146,8 @@ export function UpgradeContent() {
 
 	const getPlanIcon = (plan: Plan) => {
 		if (plan.price >= 200) return Crown;
+		// Only pass valid PlanType to getIcon
+		if (plan.plan_type === 'invite-only') return Crown;
 		return getIcon(plan.plan_type);
 	};
 
@@ -162,6 +179,20 @@ export function UpgradeContent() {
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8">
+			{/* Notification */}
+			{notification && (
+				<Alert variant="destructive" className="relative pr-12">
+					<AlertCircle className="h-4 w-4" />
+					<AlertDescription>{notification.message}</AlertDescription>
+					<button
+						onClick={() => setNotification(null)}
+						className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+					>
+						<X className="h-4 w-4" />
+					</button>
+				</Alert>
+			)}
+
 			{/* Header */}
 			<div className="flex items-center gap-4">
 				<Button
