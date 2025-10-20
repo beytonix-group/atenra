@@ -81,7 +81,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "braces": "^3.0.3",
-    "eslint": "^8",
+    "eslint": "^9",
     "eslint-config-next": "15.5.2",
     "eslint-plugin-next-on-pages": "1.13.2",
     "fill-range": "^7.1.1",
