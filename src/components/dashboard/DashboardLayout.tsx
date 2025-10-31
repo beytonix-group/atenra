@@ -21,6 +21,7 @@ import {
   CreditCard,
   FileText,
   Package,
+  MessageSquare,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -56,6 +57,12 @@ const navigationItems = [
     title: "Marketplace",
     href: "/marketplace",
     icon: ShoppingBag,
+    badge: null,
+  },
+  {
+    title: "Chat",
+    href: "/chat",
+    icon: MessageSquare,
     badge: null,
   },
   {
