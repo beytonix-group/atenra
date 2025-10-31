@@ -1,0 +1,41 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/server/auth";
+import { isSuperAdmin } from "@/lib/auth-helpers";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { CreateCompanyForm } from "@/components/company/CreateCompanyForm";
+import { fetchServiceCategories } from "@/app/marketplace/actions";
+
+export const runtime = "edge";
+
+export default async function CreateCompanyPage() {
+	const session = await auth();
+
+	if (!session?.user) {
+		redirect("/auth/signin");
+	}
+
+	// Check if user is super admin
+	const isAdmin = await isSuperAdmin();
+
+	if (!isAdmin) {
+		redirect("/403");
+	}
+
+	// Fetch service categories
+	const categories = await fetchServiceCategories();
+
+	return (
+		<DashboardLayout user={session.user}>
+			<div className="max-w-4xl mx-auto">
+				<div className="mb-6">
+					<h1 className="text-3xl font-bold">Create New Company</h1>
+					<p className="text-muted-foreground mt-2">
+						Add a new company to the marketplace
+					</p>
+				</div>
+
+				<CreateCompanyForm categories={categories} />
+			</div>
+		</DashboardLayout>
+	);
+}

@@ -106,6 +106,7 @@ export default async function MarketplacePage({
 				initialTotalPages={companiesData.totalPages}
 				isUsingPreferences={isUsingPreferences}
 				defaultCategoryId={categoryId}
+				isAdmin={isAdmin}
 			/>
 		</Layout>
 	);

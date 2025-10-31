@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, MapPin, Globe, Phone, Mail, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
+import { Building2, MapPin, Globe, Phone, Mail, ChevronLeft, ChevronRight, Filter, Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,6 +19,7 @@ interface MarketplaceContentProps {
   initialTotalPages?: number;
   isUsingPreferences?: boolean;
   defaultCategoryId?: number;
+  isAdmin?: boolean;
 }
 
 export function MarketplaceContent({
@@ -26,7 +27,8 @@ export function MarketplaceContent({
   initialCategories = [],
   initialTotalPages = 1,
   isUsingPreferences = false,
-  defaultCategoryId
+  defaultCategoryId,
+  isAdmin = false
 }: MarketplaceContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -140,16 +142,29 @@ export function MarketplaceContent({
       <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 -mx-4 lg:-mx-6 px-3 md:px-4 lg:px-6 mb-4 md:mb-6 sticky top-0 z-50 shadow-md">
         <div className="max-w-full py-2 md:py-3">
           <div className="flex flex-col gap-2 md:gap-3">
-            {/* Search Bar */}
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-              <Input
-                type="text"
-                placeholder="Search companies..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10 pr-4 h-9 md:h-10 text-sm bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus:bg-white dark:focus:bg-gray-600 w-full"
-              />
+            {/* Search Bar and Add Company Button */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <Input
+                  type="text"
+                  placeholder="Search companies..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="pl-10 pr-4 h-9 md:h-10 text-sm bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus:bg-white dark:focus:bg-gray-600 w-full"
+                />
+              </div>
+              {isAdmin && (
+                <Link href="/marketplace/create">
+                  <Button
+                    size="sm"
+                    className="h-9 md:h-10 whitespace-nowrap"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Company
+                  </Button>
+                </Link>
+              )}
             </div>
 
             {/* Filters */}

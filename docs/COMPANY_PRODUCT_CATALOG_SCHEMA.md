@@ -150,36 +150,85 @@ Add-ons:
 
 ---
 
-### 5. `company_product_reviews`
+### 5. `company_reviews`
 
-Customer reviews and ratings for marketplace functionality.
+Customer reviews and ratings focused on the company's overall service quality.
 
 **Features:**
-- 5-star rating system
+- Overall 5-star rating system
+- Detailed rating categories (professionalism, communication, quality, value, timeliness)
+- Service/project context information
 - Review moderation (approval required)
-- Verified purchase badge
+- Verified customer badge
 - Company response capability
 - Media attachments (images)
+- Helpfulness tracking system
+- Review reporting mechanism
 
 **Fields:**
 - `id` - Primary key
-- `product_id` - Foreign key to company_products
+- `company_id` - Foreign key to companies
 - `user_id` - Foreign key to users
-- `rating` - 1-5 stars
+- `rating` - Overall rating (1-5 stars)
 - `title` - Review title
 - `comment` - Review text
+- `professionalism_rating` - Optional detailed rating (1-5)
+- `communication_rating` - Optional detailed rating (1-5)
+- `quality_rating` - Optional detailed rating (1-5)
+- `value_rating` - Optional detailed rating (1-5)
+- `timeliness_rating` - Optional detailed rating (1-5)
+- `service_type` - Type of service received (e.g., "Plumbing", "Web Design")
+- `project_description` - Description of the project/service
+- `project_cost` - Optional project cost for context
 - `image_urls` - JSON array of review images
-- `is_verified_purchase` - Verified buyer badge
+- `is_verified_customer` - Verified transaction badge
 - `is_approved` - Moderation status
 - `is_featured` - Highlighted review
-- `company_response` - Company's response
+- `company_response` - Company's response to review
 - `company_response_at` - Response timestamp
+- `company_response_by_user_id` - User who responded
+- `helpful_count` - Number of helpful votes
+- `not_helpful_count` - Number of not helpful votes
+- `moderation_notes` - Admin notes
 
-**Constraint:** One review per user per product
+**Constraint:** One review per user per company
 
 ---
 
-### 6. `company_product_availability`
+### 6. `company_review_helpfulness`
+
+Track which users found reviews helpful or not helpful.
+
+**Fields:**
+- `review_id` - Foreign key to company_reviews
+- `user_id` - Foreign key to users
+- `is_helpful` - 1 for helpful, 0 for not helpful
+- `created_at` - Timestamp
+
+**Primary Key:** (`review_id`, `user_id`)
+
+---
+
+### 7. `company_review_reports`
+
+Allow users to report inappropriate reviews for moderation.
+
+**Fields:**
+- `id` - Primary key
+- `review_id` - Foreign key to company_reviews
+- `reported_by_user_id` - Foreign key to users
+- `reason` - Report reason ('spam', 'offensive', 'fake', 'inappropriate', 'other')
+- `description` - Optional detailed description
+- `status` - Report status ('pending', 'reviewed', 'resolved', 'dismissed')
+- `admin_notes` - Admin notes about the report
+- `resolved_at` - Resolution timestamp
+- `resolved_by_user_id` - Admin who resolved the report
+- `created_at` - Report created timestamp
+- `updated_at` - Last updated timestamp
+
+---
+
+### 8. `company_product_availability`
 
 Scheduling and availability for service-based products.
 
@@ -210,7 +259,7 @@ Availability:
 
 ---
 
-### 7. `company_product_tags`
+### 9. `company_product_tags`
 
 Flexible tagging system for categorization and filtering.
 
@@ -229,7 +278,7 @@ Flexible tagging system for categorization and filtering.
 
 ---
 
-### 8. `company_product_tag_relations`
+### 10. `company_product_tag_relations`
 
 Many-to-many relationship between products and tags.
 
@@ -309,7 +358,13 @@ INSERT INTO company_product_pricing_tiers (product_id, tier_name, price, min_qua
 - `company_products.category_id` → `service_categories.id`
 - `company_products.created_by_user_id` → `users.id`
 - `company_product_pricing_tiers.required_plan_id` → `plans.id`
-- `company_product_reviews.user_id` → `users.id`
+- `company_reviews.company_id` → `companies.id`
+- `company_reviews.user_id` → `users.id`
+- `company_review_helpfulness.review_id` → `company_reviews.id`
+- `company_review_helpfulness.user_id` → `users.id`
+- `company_review_reports.review_id` → `company_reviews.id`
+- `company_review_reports.reported_by_user_id` → `users.id`
+- `company_review_reports.resolved_by_user_id` → `users.id`
 
 ## API Endpoints to Build
 
@@ -338,10 +393,14 @@ Recommended API endpoints for this schema:
 - `GET /api/marketplace/companies/:companyId/products` - Company's products
 - `GET /api/marketplace/categories/:categoryId/products` - Products by category
 
-### Reviews
-- `POST /api/products/:id/reviews` - Submit review
-- `GET /api/products/:id/reviews` - Get product reviews
-- `PUT /api/company/products/:id/reviews/:reviewId/response` - Company response
+### Company Reviews
+- `POST /api/companies/:id/reviews` - Submit company review
+- `GET /api/companies/:id/reviews` - Get company reviews
+- `PUT /api/companies/:id/reviews/:reviewId/response` - Company response to review
+- `POST /api/companies/reviews/:reviewId/helpful` - Mark review as helpful/not helpful
+- `POST /api/companies/reviews/:reviewId/report` - Report inappropriate review
+- `GET /api/admin/review-reports` - Get all review reports (admin only)
+- `PUT /api/admin/review-reports/:reportId` - Resolve review report (admin only)
 
 ## Best Practices
 
@@ -353,10 +412,23 @@ Recommended API endpoints for this schema:
 6. **Soft delete** - Consider adding `deleted_at` field instead of hard deletes
 7. **Version pricing** - Consider storing pricing history for auditing
 
-## Migration Applied
+## Migrations Applied
 
 ✅ Migration `0011_add_company_product_catalog.sql` successfully applied to:
 - Remote database (production)
 - Local database (development)
 
-Created 8 new tables and 16 indexes with automatic timestamp triggers.
+Created 8 new tables (company_products, variants, pricing_tiers, addons, availability, tags, tag_relations, product_reviews) and 16 indexes with automatic timestamp triggers.
+
+✅ Migration `0012_refactor_reviews_to_company.sql` successfully applied to:
+- Remote database (production)
+- Local database (development)
+
+Refactored reviews from product-focused to company-focused:
+- Dropped `company_product_reviews` table
+- Created 3 new tables:
+  - `company_reviews` - Company reviews with detailed rating categories
+  - `company_review_helpfulness` - Helpfulness voting system
+  - `company_review_reports` - Review reporting and moderation
+
+**Final Schema:** 10 new tables total for the complete company product catalog and review system.
