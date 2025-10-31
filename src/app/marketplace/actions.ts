@@ -181,6 +181,7 @@ export async function fetchServiceCategories() {
         id: serviceCategories.id,
         name: serviceCategories.name,
         description: serviceCategories.description,
+        parentId: serviceCategories.parentId,
       })
       .from(serviceCategories)
       .orderBy(asc(serviceCategories.name));
