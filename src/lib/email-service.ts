@@ -20,6 +20,9 @@ function generateInvitationEmailHtml({
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const acceptUrl = `${baseUrl}/accept-invitation?token=${invitationToken}`;
 
+  // Use absolute URL for production, base64 fallback for email client compatibility
+  const logoUrl = `${baseUrl}/logos/Horizontal_FullWhite.png`;
+
   return `
 <!DOCTYPE html>
 <html>
@@ -32,6 +35,9 @@ function generateInvitationEmailHtml({
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
     <tr>
       <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div style="margin-bottom: 20px;">
+          <img src="${logoUrl}" alt="Atenra" style="max-width: 250px; height: auto; display: inline-block;" />
+        </div>
         <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
           Employee Invitation
         </h1>

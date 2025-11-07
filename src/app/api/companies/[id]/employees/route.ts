@@ -154,60 +154,122 @@ export async function POST(
 			.where(eq(users.email, email.toLowerCase()))
 			.get();
 
+		let userToLink;
+
 		if (existingUser) {
-			return NextResponse.json(
-				{ error: "User with this email already exists" },
-				{ status: 400 }
-			);
-		}
-
-		// Check if there's already a pending invitation for this email and company
-		const existingInvitation = await db
-			.select()
-			.from(employeeInvitations)
-			.where(
-				and(
-					eq(employeeInvitations.email, email.toLowerCase()),
-					eq(employeeInvitations.companyId, companyId),
-					eq(employeeInvitations.status, "pending")
+			// User exists, check if they're already associated with this company
+			const existingAssociation = await db
+				.select()
+				.from(companyUsers)
+				.where(
+					and(
+						eq(companyUsers.userId, existingUser.id),
+						eq(companyUsers.companyId, companyId)
+					)
 				)
-			)
-			.get();
+				.get();
 
-		if (existingInvitation) {
-			return NextResponse.json(
-				{ error: "An invitation has already been sent to this email for this company" },
-				{ status: 400 }
-			);
-		}
+			if (existingAssociation) {
+				return NextResponse.json(
+					{ error: "This user is already an employee of this company" },
+					{ status: 400 }
+				);
+			}
 
-		// Create the user with placeholder password (will be set when they accept invitation)
-		// Using a unique placeholder that will never match any real password attempt
-		const placeholderPasswordHash = `PENDING_INVITATION_${crypto.randomUUID()}`;
+			// Check if there's already a pending invitation for this email and company
+			const existingInvitation = await db
+				.select()
+				.from(employeeInvitations)
+				.where(
+					and(
+						eq(employeeInvitations.email, email.toLowerCase()),
+						eq(employeeInvitations.companyId, companyId),
+						eq(employeeInvitations.status, "pending")
+					)
+				)
+				.get();
 
-		const newUser = await db
-			.insert(users)
-			.values({
-				email: email.toLowerCase(),
-				passwordHash: placeholderPasswordHash, // Placeholder password (not a real hash)
-				firstName: firstName || null,
-				lastName: lastName || null,
-				displayName: displayName || null,
-				phone: phone || null,
-				addressLine1: addressLine1 || null,
-				addressLine2: addressLine2 || null,
-				city: city || null,
-				state: state || null,
-				zipCode: zipCode || null,
-				country: country || "US",
-				status: "active",
-				emailVerified: 0,
-			})
-			.returning()
-			.get();
+			if (existingInvitation) {
+				return NextResponse.json(
+					{ error: "An invitation has already been sent to this email for this company" },
+					{ status: 400 }
+				);
+			}
 
-		if (!newUser) {
-			return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+			// User exists but not associated with this company - reuse the existing user
+			userToLink = existingUser;
+
+			// Update user information if provided
+			if (firstName || lastName || displayName || phone || addressLine1 || city || state) {
+				const updateData: Record<string, string | null> = {};
+				if (firstName) updateData.firstName = firstName;
+				if (lastName) updateData.lastName = lastName;
+				if (displayName) updateData.displayName = displayName;
+				if (phone) updateData.phone = phone;
+				if (addressLine1) updateData.addressLine1 = addressLine1;
+				if (addressLine2) updateData.addressLine2 = addressLine2;
+				if (city) updateData.city = city;
+				if (state) updateData.state = state;
+				if (zipCode) updateData.zipCode = zipCode;
+				if (country) updateData.country = country;
+
+				await db
+					.update(users)
+					.set(updateData)
+					.where(eq(users.id, existingUser.id));
+			}
+		} else {
+			// User doesn't exist, create new user
+			// Check if there's already a pending invitation for this email and company
+			const existingInvitation = await db
+				.select()
+				.from(employeeInvitations)
+				.where(
+					and(
+						eq(employeeInvitations.email, email.toLowerCase()),
+						eq(employeeInvitations.companyId, companyId),
+						eq(employeeInvitations.status, "pending")
+					)
+				)
+				.get();
+
+			if (existingInvitation) {
+				return NextResponse.json(
+					{ error: "An invitation has already been sent to this email for this company" },
+					{ status: 400 }
+				);
+			}
+
+			// Create the user with placeholder password (will be set when they accept invitation)
+			// Using a unique placeholder that will never match any real password attempt
+			const placeholderPasswordHash = `PENDING_INVITATION_${crypto.randomUUID()}`;
+
+			const newUser = await db
+				.insert(users)
+				.values({
+					email: email.toLowerCase(),
+					passwordHash: placeholderPasswordHash, // Placeholder password (not a real hash)
+					firstName: firstName || null,
+					lastName: lastName || null,
+					displayName: displayName || null,
+					phone: phone || null,
+					addressLine1: addressLine1 || null,
+					addressLine2: addressLine2 || null,
+					city: city || null,
+					state: state || null,
+					zipCode: zipCode || null,
+					country: country || "US",
+					status: "active",
+					emailVerified: 0,
+				})
+				.returning()
+				.get();
+
+			if (!newUser) {
+				return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+			}
+
+			userToLink = newUser;
 		}
 
 		// Link user to company
@@ -215,7 +277,7 @@ export async function POST(
 			.insert(companyUsers)
 			.values({
 				companyId,
-				userId: newUser.id,
+				userId: userToLink.id,
 				role: companyRole,
 				isDefault: 0,
 			})
@@ -237,7 +299,7 @@ export async function POST(
 			.values({
 				email: email.toLowerCase(),
 				companyId,
-				userId: newUser.id,
+				userId: userToLink.id,
 				token: invitationToken,
 				expiresAt,
 				status: "pending",
@@ -272,8 +334,8 @@ export async function POST(
 				info: {
 					companyId,
 					companyName: company.name,
-					userId: newUser.id,
-					userEmail: newUser.email,
+					userId: userToLink.id,
+					userEmail: userToLink.email,
 					companyRole,
 					invitationSent: emailResult.success,
 				},
@@ -284,10 +346,10 @@ export async function POST(
 		return NextResponse.json({
 			success: true,
 			user: {
-				id: newUser.id,
-				email: newUser.email,
-				firstName: newUser.firstName,
-				lastName: newUser.lastName,
+				id: userToLink.id,
+				email: userToLink.email,
+				firstName: userToLink.firstName,
+				lastName: userToLink.lastName,
 			},
 			invitation: {
 				id: invitation.id,
