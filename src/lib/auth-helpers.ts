@@ -1,7 +1,7 @@
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { users, userRoles, roles } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { users, userRoles, roles, companyUsers } from "@/server/db/schema";
+import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function checkSuperAdmin() {
@@ -92,11 +92,132 @@ export async function getUserRole(authUserId: string): Promise<string | null> {
 
 export async function isSuperAdmin(): Promise<boolean> {
 	const session = await auth();
-	
+
 	if (!session?.user?.id) {
 		return false;
 	}
 
 	const role = await getUserRole(session.user.id);
 	return role === 'super_admin';
+}
+
+/**
+ * Check if the current user has access to view a company's details
+ * (super admin or associated with the company)
+ */
+export async function hasCompanyAccess(companyId: number): Promise<boolean> {
+	const session = await auth();
+
+	if (!session?.user?.id) {
+		return false;
+	}
+
+	// Super admins have access to all companies
+	if (await isSuperAdmin()) {
+		return true;
+	}
+
+	// Check if user is associated with the company
+	const user = await db
+		.select()
+		.from(users)
+		.where(eq(users.authUserId, session.user.id))
+		.get();
+
+	if (!user) {
+		return false;
+	}
+
+	const association = await db
+		.select()
+		.from(companyUsers)
+		.where(
+			and(
+				eq(companyUsers.companyId, companyId),
+				eq(companyUsers.userId, user.id)
+			)
+		)
+		.get();
+
+	return !!association;
+}
+
+/**
+ * Check if the current user has management privileges for a company
+ * (super admin, owner, or manager)
+ */
+export async function hasCompanyManagementAccess(companyId: number): Promise<boolean> {
+	const session = await auth();
+
+	if (!session?.user?.id) {
+		return false;
+	}
+
+	// Super admins have management access to all companies
+	if (await isSuperAdmin()) {
+		return true;
+	}
+
+	// Check if user is owner or manager of the company
+	const user = await db
+		.select()
+		.from(users)
+		.where(eq(users.authUserId, session.user.id))
+		.get();
+
+	if (!user) {
+		return false;
+	}
+
+	const association = await db
+		.select()
+		.from(companyUsers)
+		.where(
+			and(
+				eq(companyUsers.companyId, companyId),
+				eq(companyUsers.userId, user.id)
+			)
+		)
+		.get();
+
+	if (!association) {
+		return false;
+	}
+
+	// Check if role is owner or manager
+	return association.role === 'owner' || association.role === 'manager';
+}
+
+/**
+ * Get the current user's company role for a specific company
+ */
+export async function getUserCompanyRole(companyId: number): Promise<'owner' | 'manager' | 'staff' | null> {
+	const session = await auth();
+
+	if (!session?.user?.id) {
+		return null;
+	}
+
+	const user = await db
+		.select()
+		.from(users)
+		.where(eq(users.authUserId, session.user.id))
+		.get();
+
+	if (!user) {
+		return null;
+	}
+
+	const association = await db
+		.select()
+		.from(companyUsers)
+		.where(
+			and(
+				eq(companyUsers.companyId, companyId),
+				eq(companyUsers.userId, user.id)
+			)
+		)
+		.get();
+
+	return association?.role || null;
 }

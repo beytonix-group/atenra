@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { users, companyUsers, companies, userRoles, roles, employeeInvitations } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
-import { isSuperAdmin } from "@/lib/auth-helpers";
+import { isSuperAdmin, hasCompanyManagementAccess } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { trackActivity } from "@/lib/server-activity-tracker";
@@ -33,15 +33,19 @@ export async function GET(
 	{ params }: { params: { id: string } }
 ) {
 	try {
-		const isAdmin = await isSuperAdmin();
-		if (!isAdmin) {
-			return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-		}
-
 		const companyId = parseInt(params.id);
 
 		if (isNaN(companyId)) {
 			return NextResponse.json({ error: "Invalid company ID" }, { status: 400 });
+		}
+
+		// Check if user has management privileges (super admin, owner, or manager)
+		const canManage = await hasCompanyManagementAccess(companyId);
+		if (!canManage) {
+			return NextResponse.json(
+				{ error: "Forbidden - You must be a company owner, manager, or super admin to view employees" },
+				{ status: 403 }
+			);
 		}
 
 		// Verify company exists
@@ -97,15 +101,19 @@ export async function POST(
 	{ params }: { params: { id: string } }
 ) {
 	try {
-		const isAdmin = await isSuperAdmin();
-		if (!isAdmin) {
-			return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-		}
-
 		const companyId = parseInt(params.id);
 
 		if (isNaN(companyId)) {
 			return NextResponse.json({ error: "Invalid company ID" }, { status: 400 });
+		}
+
+		// Check if user has management privileges (super admin, owner, or manager)
+		const canManage = await hasCompanyManagementAccess(companyId);
+		if (!canManage) {
+			return NextResponse.json(
+				{ error: "Forbidden - You must be a company owner, manager, or super admin to add employees" },
+				{ status: 403 }
+			);
 		}
 
 		// Verify company exists
@@ -310,15 +318,19 @@ export async function DELETE(
 	{ params }: { params: { id: string } }
 ) {
 	try {
-		const isAdmin = await isSuperAdmin();
-		if (!isAdmin) {
-			return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-		}
-
 		const companyId = parseInt(params.id);
 
 		if (isNaN(companyId)) {
 			return NextResponse.json({ error: "Invalid company ID" }, { status: 400 });
+		}
+
+		// Check if user has management privileges (super admin, owner, or manager)
+		const canManage = await hasCompanyManagementAccess(companyId);
+		if (!canManage) {
+			return NextResponse.json(
+				{ error: "Forbidden - You must be a company owner, manager, or super admin to remove employees" },
+				{ status: 403 }
+			);
 		}
 
 		const body: unknown = await request.json();

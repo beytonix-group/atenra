@@ -29,9 +29,11 @@ interface CompanyDetailContentProps {
 	company: CompanyWithCategories;
 	employees: CompanyEmployee[];
 	isAdmin: boolean;
+	canViewEmployees: boolean;
+	canManageEmployees: boolean;
 }
 
-export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDetailContentProps) {
+export function CompanyDetailContent({ company, employees, isAdmin, canViewEmployees, canManageEmployees }: CompanyDetailContentProps) {
 	const router = useRouter();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [removingEmployeeId, setRemovingEmployeeId] = useState<number | null>(null);
@@ -79,7 +81,7 @@ export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDet
 	};
 
 	const fetchInvitations = async () => {
-		if (!isAdmin) return;
+		if (!canManageEmployees) return;
 
 		setLoadingInvitations(true);
 		try {
@@ -157,11 +159,11 @@ export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDet
 
 	// Fetch invitations on component mount and when dialog closes
 	useEffect(() => {
-		if (isAdmin && !isDialogOpen) {
+		if (canManageEmployees && !isDialogOpen) {
 			void fetchInvitations();
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isAdmin, isDialogOpen]);
+	}, [canManageEmployees, isDialogOpen]);
 
 	return (
 		<div className="container mx-auto px-4 py-6 max-w-5xl">
@@ -300,28 +302,29 @@ export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDet
 				</CardContent>
 			</Card>
 
-			{/* Employees Section */}
-			<Card className="mt-6">
-				<CardHeader>
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-2">
-							<Users className="h-5 w-5 text-primary" />
-							<CardTitle>Employees</CardTitle>
-							<Badge variant="secondary">{employees.length}</Badge>
+			{/* Employees Section - Only visible to super admins and company-associated users */}
+			{canViewEmployees && (
+				<Card className="mt-6">
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<Users className="h-5 w-5 text-primary" />
+								<CardTitle>Employees</CardTitle>
+								<Badge variant="secondary">{employees.length}</Badge>
+							</div>
+							{canManageEmployees && (
+								<Button onClick={() => setIsDialogOpen(true)} size="sm">
+									Add Employee
+								</Button>
+							)}
 						</div>
-						{isAdmin && (
-							<Button onClick={() => setIsDialogOpen(true)} size="sm">
-								Add Employee
-							</Button>
-						)}
-					</div>
-				</CardHeader>
+					</CardHeader>
 				<CardContent>
 					{employees.length === 0 ? (
 						<div className="text-center py-8 text-muted-foreground">
 							<Users className="h-12 w-12 mx-auto mb-3 opacity-20" />
 							<p>No employees have been added to this company yet.</p>
-							{isAdmin && (
+							{canManageEmployees && (
 								<Button
 									onClick={() => setIsDialogOpen(true)}
 									variant="outline"
@@ -374,7 +377,7 @@ export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDet
 											)}
 										</div>
 									</div>
-									{isAdmin && (
+									{canManageEmployees && (
 										<Button
 											variant="ghost"
 											size="icon"
@@ -391,9 +394,10 @@ export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDet
 					)}
 				</CardContent>
 			</Card>
+			)}
 
-			{/* Pending Invitations Section */}
-			{isAdmin && pendingInvitations.length > 0 && (
+			{/* Pending Invitations Section - Only visible to managers/owners/admins */}
+			{canManageEmployees && pendingInvitations.length > 0 && (
 				<Card className="mt-6">
 					<CardHeader>
 						<div className="flex items-center justify-between">
@@ -455,8 +459,8 @@ export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDet
 				</Card>
 			)}
 
-			{/* Add Employee Dialog */}
-			{isAdmin && (
+			{/* Add Employee Dialog - Only available to managers/owners/admins */}
+			{canManageEmployees && (
 				<AddEmployeeDialog
 					open={isDialogOpen}
 					onOpenChange={setIsDialogOpen}
