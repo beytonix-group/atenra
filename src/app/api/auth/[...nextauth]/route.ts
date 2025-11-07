@@ -3,9 +3,9 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { D1Adapter } from "@/server/db/auth-adapter";
 import { db } from "@/server/db";
-import { users, roles, userRoles } from "@/server/db/schema";
+import { users, roles, userRoles, authUsers } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { verifyPasswordPBKDF2 } from "@/lib/password-utils";
 import { getEnv } from "@/lib/env-edge";
 
 export const runtime = "edge";
@@ -15,17 +15,28 @@ const auth = NextAuth({
     trustHost: true,
     adapter: D1Adapter,
     debug: true,
+    session: {
+      strategy: "jwt", // Use JWT for compatibility with both OAuth and Credentials
+      maxAge: 15 * 24 * 60 * 60, // 15 days
+    },
     pages: {
       signIn: "/login",
       error: "/auth/error",
     },
     callbacks: {
       async session({ session, token }) {
+        // Add user id and email from token to session
+        if (token) {
+          session.user.id = token.id as string;
+          session.user.email = token.email as string;
+        }
         return session;
       },
       async jwt({ token, user }) {
+        // On sign in, store user info in token
         if (user) {
           token.id = user.id;
+          token.email = user.email;
         }
         return token;
       }
@@ -64,7 +75,8 @@ const auth = NextAuth({
               return null;
             }
 
-            const isPasswordValid = await bcrypt.compare(
+            // Verify password using PBKDF2 (edge-compatible)
+            const isPasswordValid = await verifyPasswordPBKDF2(
               credentials.password as string,
               user.passwordHash
             );
@@ -77,8 +89,35 @@ const auth = NextAuth({
               throw new Error("Please verify your email before signing in");
             }
 
+            // Ensure auth_users record exists for NextAuth adapter compatibility
+            if (!user.authUserId) {
+              // Create auth_users record for this credentials-based user
+              // Generate a proper UUID for NextAuth compatibility
+              const authUserId = crypto.randomUUID();
+
+              await db.insert(authUsers).values({
+                id: authUserId,
+                email: user.email,
+                emailVerified: user.emailVerified ? new Date() : null,
+                name: user.displayName,
+                image: user.avatarUrl,
+              }).onConflictDoNothing();
+
+              // Update users table with the authUserId
+              await db.update(users)
+                .set({ authUserId: authUserId })
+                .where(eq(users.id, user.id));
+
+              return {
+                id: authUserId,
+                email: user.email,
+                name: user.displayName,
+                image: user.avatarUrl,
+              };
+            }
+
             return {
-              id: user.authUserId || user.id.toString(),
+              id: user.authUserId,
               email: user.email,
               name: user.displayName,
               image: user.avatarUrl,
@@ -93,7 +132,13 @@ const auth = NextAuth({
     events: {
       async signIn({ user, account, profile }) {
         try {
-          console.log('SignIn event triggered for user:', user.email);
+          // Only run this for OAuth providers (Google), not for credentials login
+          if (account?.provider === 'credentials') {
+            console.log('SignIn event: Skipping for credentials login');
+            return;
+          }
+
+          console.log('SignIn event triggered for OAuth user:', user.email);
           if (user.id && user.email) {
             const existingUser = await db
               .select()

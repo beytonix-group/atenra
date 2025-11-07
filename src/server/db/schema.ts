@@ -776,6 +776,42 @@ export const userActivitiesRelations = relations(userActivities, ({ one }) => ({
   }),
 }));
 
+// ----------------------------------------------------------
+// Employee Invitations
+// ----------------------------------------------------------
+
+export const employeeInvitations = sqliteTable('employee_invitations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  expiresAt: integer('expires_at').notNull(),
+  status: text('status', { enum: ['pending', 'accepted', 'expired'] }).notNull().default('pending'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  acceptedAt: integer('accepted_at'),
+}, (table) => ({
+  emailCompanyIdx: index('idx_ei_email_company').on(table.email, table.companyId),
+  tokenIdx: uniqueIndex('idx_ei_token').on(table.token),
+  statusIdx: index('idx_ei_status').on(table.status),
+  companyIdx: index('idx_ei_company').on(table.companyId),
+  expiresAtIdx: index('idx_ei_expires_at').on(table.expiresAt),
+}));
+
+export const employeeInvitationsRelations = relations(employeeInvitations, ({ one }) => ({
+  company: one(companies, {
+    fields: [employeeInvitations.companyId],
+    references: [companies.id],
+  }),
+  user: one(users, {
+    fields: [employeeInvitations.userId],
+    references: [users.id],
+  }),
+}));
+
+export type EmployeeInvitation = typeof employeeInvitations.$inferSelect;
+export type NewEmployeeInvitation = typeof employeeInvitations.$inferInsert;
+
 export const paymentMethodsRelations = relations(paymentMethods, ({ one, many }) => ({
   user: one(users, {
     fields: [paymentMethods.userId],

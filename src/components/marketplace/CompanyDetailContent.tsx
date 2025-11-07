@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2 } from 'lucide-react';
+import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2, Clock, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,18 @@ import { RoleBadge } from '@/components/ui/role-badge';
 import { AddEmployeeDialog } from './AddEmployeeDialog';
 import { toast } from 'sonner';
 import type { CompanyWithCategories, CompanyEmployee } from '@/app/marketplace/actions';
+
+interface PendingInvitation {
+	id: number;
+	email: string;
+	userId: number | null;
+	status: string;
+	expiresAt: number;
+	createdAt: number;
+	acceptedAt: number | null;
+	isExpired: boolean;
+	expiresInHours: number;
+}
 
 interface CompanyDetailContentProps {
 	company: CompanyWithCategories;
@@ -23,6 +35,10 @@ export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDet
 	const router = useRouter();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [removingEmployeeId, setRemovingEmployeeId] = useState<number | null>(null);
+	const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([]);
+	const [loadingInvitations, setLoadingInvitations] = useState(false);
+	const [resendingInvitationId, setResendingInvitationId] = useState<number | null>(null);
+	const [cancellingInvitationId, setCancellingInvitationId] = useState<number | null>(null);
 
 	const formatDate = (timestamp: number) => {
 		return new Date(timestamp * 1000).toLocaleDateString('en-US', {
@@ -61,6 +77,91 @@ export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDet
 			setRemovingEmployeeId(null);
 		}
 	};
+
+	const fetchInvitations = async () => {
+		if (!isAdmin) return;
+
+		setLoadingInvitations(true);
+		try {
+			const response = await fetch(`/api/companies/${company.id}/invitations`);
+			if (!response.ok) {
+				throw new Error('Failed to fetch invitations');
+			}
+			const data = await response.json() as { invitations: PendingInvitation[] };
+			// Filter to show only pending and not expired invitations
+			setPendingInvitations(data.invitations.filter(inv => inv.status === 'pending' && !inv.isExpired));
+		} catch (error) {
+			console.error('Error fetching invitations:', error);
+		} finally {
+			setLoadingInvitations(false);
+		}
+	};
+
+	const handleResendInvitation = async (invitationId: number, email: string) => {
+		setResendingInvitationId(invitationId);
+
+		try {
+			const response = await fetch(`/api/companies/${company.id}/invitations`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ invitationId }),
+			});
+
+			if (!response.ok) {
+				const data = await response.json() as { error?: string };
+				throw new Error(data.error || 'Failed to resend invitation');
+			}
+
+			toast.success(`Invitation resent to ${email}`);
+			await fetchInvitations();
+		} catch (error) {
+			console.error('Error resending invitation:', error);
+			toast.error(error instanceof Error ? error.message : 'Failed to resend invitation');
+		} finally {
+			setResendingInvitationId(null);
+		}
+	};
+
+	const handleCancelInvitation = async (invitationId: number, email: string) => {
+		if (!confirm(`Are you sure you want to cancel the invitation for ${email}?`)) {
+			return;
+		}
+
+		setCancellingInvitationId(invitationId);
+
+		try {
+			const response = await fetch(`/api/companies/${company.id}/invitations`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ invitationId }),
+			});
+
+			if (!response.ok) {
+				const data = await response.json() as { error?: string };
+				throw new Error(data.error || 'Failed to cancel invitation');
+			}
+
+			const result = await response.json() as { success: boolean; message: string };
+			toast.success(result.message || `Invitation for ${email} has been cancelled`);
+
+			// Refresh both invitations and employees list
+			await fetchInvitations();
+			router.refresh();
+		} catch (error) {
+			console.error('Error cancelling invitation:', error);
+			toast.error(error instanceof Error ? error.message : 'Failed to cancel invitation');
+		} finally {
+			setCancellingInvitationId(null);
+		}
+	};
+
+	// Fetch invitations on component mount and when dialog closes
+	useEffect(() => {
+		if (isAdmin && !isDialogOpen) {
+			void fetchInvitations();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isAdmin, isDialogOpen]);
 
 	return (
 		<div className="container mx-auto px-4 py-6 max-w-5xl">
@@ -290,6 +391,69 @@ export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDet
 					)}
 				</CardContent>
 			</Card>
+
+			{/* Pending Invitations Section */}
+			{isAdmin && pendingInvitations.length > 0 && (
+				<Card className="mt-6">
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<Clock className="h-5 w-5 text-orange-500" />
+								<CardTitle>Pending Invitations</CardTitle>
+								<Badge variant="secondary">{pendingInvitations.length}</Badge>
+							</div>
+						</div>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-4">
+							{pendingInvitations.map((invitation) => (
+								<div
+									key={invitation.id}
+									className="flex items-center justify-between p-4 border rounded-lg bg-orange-50/50 border-orange-200"
+								>
+									<div className="flex-1">
+										<div className="flex items-center gap-3 mb-2">
+											<Mail className="h-4 w-4 text-orange-600" />
+											<span className="font-medium">{invitation.email}</span>
+											<Badge variant="outline" className="text-orange-600 border-orange-300">
+												Pending
+											</Badge>
+										</div>
+										<div className="text-sm text-muted-foreground">
+											<div className="flex items-center gap-2">
+												<Clock className="h-3 w-3" />
+												<span>
+													Expires in {invitation.expiresInHours} hour{invitation.expiresInHours !== 1 ? 's' : ''}
+												</span>
+											</div>
+										</div>
+									</div>
+									<div className="flex items-center gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => handleResendInvitation(invitation.id, invitation.email)}
+											disabled={resendingInvitationId === invitation.id}
+										>
+											<Send className="h-3 w-3 mr-1" />
+											{resendingInvitationId === invitation.id ? 'Sending...' : 'Resend'}
+										</Button>
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => handleCancelInvitation(invitation.id, invitation.email)}
+											disabled={cancellingInvitationId === invitation.id}
+											className="text-destructive hover:text-destructive hover:bg-destructive/10"
+										>
+											<X className="h-4 w-4" />
+										</Button>
+									</div>
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Add Employee Dialog */}
 			{isAdmin && (

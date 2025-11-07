@@ -1,12 +1,13 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/server/db";
-import { users, companyUsers, companies, userRoles, roles } from "@/server/db/schema";
+import { users, companyUsers, companies, userRoles, roles, employeeInvitations } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { trackActivity } from "@/lib/server-activity-tracker";
 import { auth } from "@/server/auth";
+import { sendInvitationEmail } from "@/lib/email-service";
 
 export const runtime = "edge";
 
@@ -152,16 +153,35 @@ export async function POST(
 			);
 		}
 
-		// Generate a random password (user will need to reset it)
-		const tempPassword = Math.random().toString(36).slice(-8);
-		const passwordHash = await bcrypt.hash(tempPassword, 10);
+		// Check if there's already a pending invitation for this email and company
+		const existingInvitation = await db
+			.select()
+			.from(employeeInvitations)
+			.where(
+				and(
+					eq(employeeInvitations.email, email.toLowerCase()),
+					eq(employeeInvitations.companyId, companyId),
+					eq(employeeInvitations.status, "pending")
+				)
+			)
+			.get();
 
-		// Create the user
+		if (existingInvitation) {
+			return NextResponse.json(
+				{ error: "An invitation has already been sent to this email for this company" },
+				{ status: 400 }
+			);
+		}
+
+		// Create the user with placeholder password (will be set when they accept invitation)
+		// Using a unique placeholder that will never match any real password attempt
+		const placeholderPasswordHash = `PENDING_INVITATION_${crypto.randomUUID()}`;
+
 		const newUser = await db
 			.insert(users)
 			.values({
 				email: email.toLowerCase(),
-				passwordHash,
+				passwordHash: placeholderPasswordHash, // Placeholder password (not a real hash)
 				firstName: firstName || null,
 				lastName: lastName || null,
 				displayName: displayName || null,
@@ -194,26 +214,45 @@ export async function POST(
 			.returning()
 			.get();
 
-		// Assign system role (default to 'employee' if not provided)
-		let assignedRoleId = systemRoleId;
-		if (!assignedRoleId) {
-			// Get the 'employee' role ID
-			const employeeRole = await db
-				.select()
-				.from(roles)
-				.where(eq(roles.name, "employee"))
-				.get();
+		// Note: System role is automatically assigned by database trigger (auto_assign_user_role)
+		// which assigns the 'user' role to all new users
 
-			if (employeeRole) {
-				assignedRoleId = employeeRole.id;
-			}
+		// Generate unique invitation token
+		const invitationToken = crypto.randomUUID();
+
+		// Set expiration to 24 hours from now (in Unix timestamp)
+		const expiresAt = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
+
+		// Create invitation record
+		const invitation = await db
+			.insert(employeeInvitations)
+			.values({
+				email: email.toLowerCase(),
+				companyId,
+				userId: newUser.id,
+				token: invitationToken,
+				expiresAt,
+				status: "pending",
+			})
+			.returning()
+			.get();
+
+		if (!invitation) {
+			return NextResponse.json({ error: "Failed to create invitation" }, { status: 500 });
 		}
 
-		if (assignedRoleId) {
-			await db.insert(userRoles).values({
-				userId: newUser.id,
-				roleId: assignedRoleId,
-			});
+		// Send invitation email
+		const emailResult = await sendInvitationEmail({
+			email: email.toLowerCase(),
+			companyName: company.name,
+			invitationToken,
+			expiresInHours: 24,
+		});
+
+		if (!emailResult.success) {
+			console.error("Failed to send invitation email:", emailResult.error);
+			// Don't fail the entire request if email fails, but log it
+			// The invitation is still in the database and can be resent
 		}
 
 		// Track activity
@@ -228,7 +267,7 @@ export async function POST(
 					userId: newUser.id,
 					userEmail: newUser.email,
 					companyRole,
-					systemRoleId: assignedRoleId,
+					invitationSent: emailResult.success,
 				},
 				request,
 			});
@@ -236,9 +275,17 @@ export async function POST(
 
 		return NextResponse.json({
 			success: true,
-			user: newUser,
-			companyRelationship,
-			tempPassword, // In production, send this via email instead
+			user: {
+				id: newUser.id,
+				email: newUser.email,
+				firstName: newUser.firstName,
+				lastName: newUser.lastName,
+			},
+			invitation: {
+				id: invitation.id,
+				expiresAt: invitation.expiresAt,
+			},
+			emailSent: emailResult.success,
 		});
 	} catch (error) {
 		console.error("Error creating employee:", error);

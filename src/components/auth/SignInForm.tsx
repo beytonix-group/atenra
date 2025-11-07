@@ -34,8 +34,12 @@ export function SignInForm() {
 			if (result?.error) {
 				setError(t.auth.signIn.errors.invalidCredentials);
 			} else {
-				// Redirect will be handled by middleware based on user role
-				router.push("/");
+				// Force refresh to update session, then redirect
+				router.refresh();
+				// Use a small delay to ensure session is set before redirect
+				setTimeout(() => {
+					window.location.href = "/";
+				}, 100);
 			}
 		} catch (error) {
 			setError(t.auth.signIn.errors.somethingWentWrong);
@@ -47,7 +51,7 @@ export function SignInForm() {
 	const handleGoogleSignIn = async () => {
 		setIsLoading(true);
 		try {
-			await signIn("google", { redirectTo: "/" });
+			await signIn("google", { callbackUrl: "/" });
 		} catch (error) {
 			setError(t.auth.signIn.errors.googleSignInFailed);
 			setIsLoading(false);

@@ -3,9 +3,9 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { D1Adapter } from "./db/auth-adapter";
 import { db } from "./db";
-import { users, roles, userRoles } from "./db/schema";
+import { users, roles, userRoles, authUsers } from "./db/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { verifyPasswordPBKDF2 } from "@/lib/password-utils";
 
 // Helper to get environment variables that works in both local and Cloudflare
 function getEnvVar(name: string): string {
@@ -33,17 +33,29 @@ export const {
 	secret: getEnvVar("AUTH_SECRET"),
 	trustHost: true,
 	adapter: D1Adapter,
+	debug: true,
+	session: {
+		strategy: "jwt", // Use JWT for compatibility with both OAuth and Credentials
+		maxAge: 15 * 24 * 60 * 60, // 15 days
+	},
 	pages: {
 		signIn: "/login",
 		error: "/auth/error",
 	},
 	callbacks: {
 		async session({ session, token }) {
+			// Add user id and email from token to session
+			if (token) {
+				session.user.id = token.id as string;
+				session.user.email = token.email as string;
+			}
 			return session;
 		},
 		async jwt({ token, user }) {
+			// On sign in, store user info in token
 			if (user) {
 				token.id = user.id;
+				token.email = user.email;
 			}
 			return token;
 		}
@@ -82,7 +94,8 @@ export const {
 						return null;
 					}
 
-					const isPasswordValid = await bcrypt.compare(
+					// Verify password using PBKDF2 (edge-compatible)
+					const isPasswordValid = await verifyPasswordPBKDF2(
 						credentials.password as string,
 						user.passwordHash
 					);
@@ -95,8 +108,35 @@ export const {
 						throw new Error("Please verify your email before signing in");
 					}
 
+					// Ensure auth_users record exists for NextAuth adapter compatibility
+					if (!user.authUserId) {
+						// Create auth_users record for this credentials-based user
+						// Generate a proper UUID for NextAuth compatibility
+						const authUserId = crypto.randomUUID();
+
+						await db.insert(authUsers).values({
+							id: authUserId,
+							email: user.email,
+							emailVerified: user.emailVerified ? new Date() : null,
+							name: user.displayName,
+							image: user.avatarUrl,
+						}).onConflictDoNothing();
+
+						// Update users table with the authUserId
+						await db.update(users)
+							.set({ authUserId: authUserId })
+							.where(eq(users.id, user.id));
+
+						return {
+							id: authUserId,
+							email: user.email,
+							name: user.displayName,
+							image: user.avatarUrl,
+						};
+					}
+
 					return {
-						id: user.authUserId || user.id.toString(),
+						id: user.authUserId,
 						email: user.email,
 						name: user.displayName,
 						image: user.avatarUrl,
@@ -111,44 +151,26 @@ export const {
 	events: {
 		async signIn({ user, account, profile }) {
 			try {
+				// Only run this for OAuth providers (Google), not for credentials login
+				if (account?.provider === 'credentials') {
+					console.log('SignIn event: Skipping for credentials login');
+					return;
+				}
+
+				console.log('SignIn event triggered for OAuth user:', user.email);
 				if (user.id && user.email) {
-					// First check if user exists by auth_user_id
-					let existingUser = await db
+					const existingUser = await db
 						.select()
 						.from(users)
 						.where(eq(users.authUserId, user.id))
 						.get();
 
-					// If not found by auth_user_id, check by email (for migrated users)
-					if (!existingUser) {
-						existingUser = await db
-							.select()
-							.from(users)
-							.where(eq(users.email, user.email))
-							.get();
-						
-						// If found by email, update the auth_user_id
-						if (existingUser) {
-							await db
-								.update(users)
-								.set({ 
-									authUserId: user.id,
-									updatedAt: Math.floor(Date.now() / 1000) // Unix timestamp
-								})
-								.where(eq(users.email, user.email));
-							return; // User exists and was updated, no need to create
-						}
-					} else {
-						return; // User already exists with correct auth_user_id
-					}
-
-					// Only create new user if not found by either auth_user_id or email
 					if (!existingUser) {
 						const nameParts = user.name?.split(' ') || [];
 						const firstName = nameParts[0] || '';
 						const lastName = nameParts.slice(1).join(' ') || '';
 
-						const newUser = await db.insert(users).values({
+						await db.insert(users).values({
 							authUserId: user.id,
 							email: user.email,
 							passwordHash: '',
@@ -157,13 +179,13 @@ export const {
 							displayName: user.name,
 							avatarUrl: user.image,
 							emailVerified: 1,
-						}).returning().get();
+						});
 
 						// Check if user should be assigned super admin role
 						const superUserEmails = process.env.SUPER_USER_EMAIL?.split(',').map(email => email.trim()) || [];
 						const isSuperUser = user.email && superUserEmails.includes(user.email);
 
-						if (isSuperUser && newUser) {
+						if (isSuperUser) {
 							const superAdminRole = await db
 								.select()
 								.from(roles)
@@ -171,16 +193,24 @@ export const {
 								.get();
 
 							if (superAdminRole) {
-								await db.insert(userRoles).values({
-									userId: newUser.id,
-									roleId: superAdminRole.id,
-								});
+								const newUser = await db
+									.select()
+									.from(users)
+									.where(eq(users.authUserId, user.id))
+									.get();
+
+								if (newUser) {
+									await db.insert(userRoles).values({
+										userId: newUser.id,
+										roleId: superAdminRole.id,
+									});
+								}
 							}
 						}
 					}
 				}
 			} catch (error) {
-				console.error('Error creating user profile:', error);
+				console.error('Error in signIn event:', error);
 			}
 		},
 	},

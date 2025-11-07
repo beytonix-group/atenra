@@ -44,7 +44,6 @@ interface FormData {
 	zipCode: string;
 	country: string;
 	companyRole: 'owner' | 'manager' | 'staff' | '';
-	systemRoleId: string;
 }
 
 export function AddEmployeeDialog({
@@ -71,8 +70,7 @@ export function AddEmployeeDialog({
 		state: '',
 		zipCode: '',
 		country: 'US',
-		companyRole: '',
-		systemRoleId: '3', // Default to 'employee' role (typically ID 3)
+		companyRole: 'staff',
 	});
 
 	// Debounced email check
@@ -149,17 +147,22 @@ export function AddEmployeeDialog({
 					zipCode: formData.zipCode || undefined,
 					country: formData.country || 'US',
 					companyRole: formData.companyRole,
-					systemRoleId: formData.systemRoleId ? parseInt(formData.systemRoleId) : undefined,
 				}),
 			});
 
-			const data = await response.json() as { success?: boolean; tempPassword?: string; error?: string };
+			const data = await response.json() as { success?: boolean; emailSent?: boolean; error?: string };
 
 			if (!response.ok) {
 				throw new Error(data.error || 'Failed to create employee');
 			}
 
-			toast.success(`Employee added: ${formData.email}. Temporary password: ${data.tempPassword}`);
+			if (data.emailSent) {
+				toast.success(`Invitation sent to ${formData.email}. They will receive an email with instructions to set up their account.`);
+			} else {
+				toast.success(`Employee added: ${formData.email}. Warning: Invitation email failed to send.`, {
+					description: 'You can resend the invitation from the Pending Invitations section.',
+				});
+			}
 
 			// Reset form
 			setFormData({
@@ -174,8 +177,7 @@ export function AddEmployeeDialog({
 				state: '',
 				zipCode: '',
 				country: 'US',
-				companyRole: '',
-				systemRoleId: '3',
+				companyRole: 'staff',
 			});
 
 			onOpenChange(false);
@@ -373,24 +375,6 @@ export function AddEmployeeDialog({
 								<SelectItem value="staff">Staff</SelectItem>
 								<SelectItem value="manager">Manager</SelectItem>
 								<SelectItem value="owner">Owner</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-
-					{/* System Role */}
-					<div className="space-y-2">
-						<Label htmlFor="systemRoleId">System Role</Label>
-						<Select
-							value={formData.systemRoleId}
-							onValueChange={(value) => handleInputChange('systemRoleId', value)}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Select system role" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="4">User</SelectItem>
-								<SelectItem value="3">Employee</SelectItem>
-								<SelectItem value="2">Manager</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
