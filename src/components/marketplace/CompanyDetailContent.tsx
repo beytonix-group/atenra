@@ -1,24 +1,65 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import type { CompanyWithCategories } from '@/app/marketplace/actions';
+import { RoleBadge } from '@/components/ui/role-badge';
+import { AddEmployeeDialog } from './AddEmployeeDialog';
+import { toast } from 'sonner';
+import type { CompanyWithCategories, CompanyEmployee } from '@/app/marketplace/actions';
 
 interface CompanyDetailContentProps {
 	company: CompanyWithCategories;
+	employees: CompanyEmployee[];
+	isAdmin: boolean;
 }
 
-export function CompanyDetailContent({ company }: CompanyDetailContentProps) {
+export function CompanyDetailContent({ company, employees, isAdmin }: CompanyDetailContentProps) {
+	const router = useRouter();
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [removingEmployeeId, setRemovingEmployeeId] = useState<number | null>(null);
+
 	const formatDate = (timestamp: number) => {
 		return new Date(timestamp * 1000).toLocaleDateString('en-US', {
 			year: 'numeric',
 			month: 'long',
 			day: 'numeric',
 		});
+	};
+
+	const handleRemoveEmployee = async (userId: number, employeeEmail: string) => {
+		if (!confirm(`Are you sure you want to remove ${employeeEmail} from this company?`)) {
+			return;
+		}
+
+		setRemovingEmployeeId(userId);
+
+		try {
+			const response = await fetch(`/api/companies/${company.id}/employees`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ userId }),
+			});
+
+			if (!response.ok) {
+				const data = await response.json() as { error?: string };
+				throw new Error(data.error || 'Failed to remove employee');
+			}
+
+			toast.success(`${employeeEmail} has been removed from the company.`);
+
+			router.refresh();
+		} catch (error) {
+			console.error('Error removing employee:', error);
+			toast.error(error instanceof Error ? error.message : 'Failed to remove employee');
+		} finally {
+			setRemovingEmployeeId(null);
+		}
 	};
 
 	return (
@@ -157,6 +198,108 @@ export function CompanyDetailContent({ company }: CompanyDetailContentProps) {
 					</div>
 				</CardContent>
 			</Card>
+
+			{/* Employees Section */}
+			<Card className="mt-6">
+				<CardHeader>
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-2">
+							<Users className="h-5 w-5 text-primary" />
+							<CardTitle>Employees</CardTitle>
+							<Badge variant="secondary">{employees.length}</Badge>
+						</div>
+						{isAdmin && (
+							<Button onClick={() => setIsDialogOpen(true)} size="sm">
+								Add Employee
+							</Button>
+						)}
+					</div>
+				</CardHeader>
+				<CardContent>
+					{employees.length === 0 ? (
+						<div className="text-center py-8 text-muted-foreground">
+							<Users className="h-12 w-12 mx-auto mb-3 opacity-20" />
+							<p>No employees have been added to this company yet.</p>
+							{isAdmin && (
+								<Button
+									onClick={() => setIsDialogOpen(true)}
+									variant="outline"
+									size="sm"
+									className="mt-4"
+								>
+									Add First Employee
+								</Button>
+							)}
+						</div>
+					) : (
+						<div className="space-y-4">
+							{employees.map((employee) => (
+								<div
+									key={employee.userId}
+									className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+								>
+									<div className="flex-1">
+										<div className="flex items-center gap-3 mb-2">
+											<h4 className="font-medium">
+												{employee.displayName ||
+													`${employee.firstName || ''} ${employee.lastName || ''}`.trim() ||
+													'Unnamed Employee'}
+											</h4>
+											<Badge variant="outline" className="capitalize">
+												{employee.companyRole}
+											</Badge>
+											{employee.systemRoleName && (
+												<RoleBadge role={employee.systemRoleName} />
+											)}
+										</div>
+										<div className="space-y-1 text-sm text-muted-foreground">
+											<div className="flex items-center gap-2">
+												<Mail className="h-3 w-3" />
+												<span>{employee.email}</span>
+											</div>
+											{employee.phone && (
+												<div className="flex items-center gap-2">
+													<Phone className="h-3 w-3" />
+													<span>{employee.phone}</span>
+												</div>
+											)}
+											{(employee.city || employee.state) && (
+												<div className="flex items-center gap-2">
+													<MapPin className="h-3 w-3" />
+													<span>
+														{[employee.city, employee.state].filter(Boolean).join(', ')}
+													</span>
+												</div>
+											)}
+										</div>
+									</div>
+									{isAdmin && (
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={() => handleRemoveEmployee(employee.userId, employee.email)}
+											disabled={removingEmployeeId === employee.userId}
+											className="text-destructive hover:text-destructive hover:bg-destructive/10"
+										>
+											<Trash2 className="h-4 w-4" />
+										</Button>
+									)}
+								</div>
+							))}
+						</div>
+					)}
+				</CardContent>
+			</Card>
+
+			{/* Add Employee Dialog */}
+			{isAdmin && (
+				<AddEmployeeDialog
+					open={isDialogOpen}
+					onOpenChange={setIsDialogOpen}
+					companyId={company.id}
+					onSuccess={() => router.refresh()}
+				/>
+			)}
 		</div>
 	);
 }

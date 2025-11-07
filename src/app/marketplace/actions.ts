@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/server/db';
-import { companies, serviceCategories, companyServiceCategories } from '@/server/db/schema';
+import { companies, serviceCategories, companyServiceCategories, companyUsers, users, userRoles, roles } from '@/server/db/schema';
 import { eq, and, sql, desc, asc, inArray, or, like } from 'drizzle-orm';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 
@@ -10,6 +10,27 @@ export type CompanyWithCategories = typeof companies.$inferSelect & {
     id: number;
     name: string;
   }>;
+}
+
+export type CompanyEmployee = {
+  userId: number;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  displayName: string | null;
+  phone: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  zipCode: string | null;
+  country: string;
+  status: 'active' | 'suspended' | 'deleted';
+  companyRole: 'owner' | 'manager' | 'staff';
+  isDefault: number;
+  invitedAt: string;
+  systemRoleId: number | null;
+  systemRoleName: string | null;
 }
 
 interface FetchCompaniesParams {
@@ -238,5 +259,42 @@ export async function fetchCompanyById(id: number) {
   } catch (error) {
     console.error('Error fetching company:', error);
     throw new Error('Failed to fetch company details');
+  }
+}
+
+export async function fetchCompanyEmployees(companyId: number): Promise<CompanyEmployee[]> {
+  try {
+    const employees = await db
+      .select({
+        userId: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        displayName: users.displayName,
+        phone: users.phone,
+        addressLine1: users.addressLine1,
+        addressLine2: users.addressLine2,
+        city: users.city,
+        state: users.state,
+        zipCode: users.zipCode,
+        country: users.country,
+        status: users.status,
+        companyRole: companyUsers.role,
+        isDefault: companyUsers.isDefault,
+        invitedAt: companyUsers.invitedAt,
+        systemRoleId: userRoles.roleId,
+        systemRoleName: roles.name,
+      })
+      .from(companyUsers)
+      .innerJoin(users, eq(companyUsers.userId, users.id))
+      .leftJoin(userRoles, eq(users.id, userRoles.userId))
+      .leftJoin(roles, eq(userRoles.roleId, roles.id))
+      .where(eq(companyUsers.companyId, companyId))
+      .all();
+
+    return employees as CompanyEmployee[];
+  } catch (error) {
+    console.error('Error fetching company employees:', error);
+    throw new Error('Failed to fetch company employees');
   }
 }

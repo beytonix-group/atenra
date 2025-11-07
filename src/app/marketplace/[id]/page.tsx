@@ -3,7 +3,7 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { isSuperAdmin } from "@/lib/auth-helpers";
-import { fetchCompanyById } from "../actions";
+import { fetchCompanyById, fetchCompanyEmployees } from "../actions";
 import { CompanyDetailContent } from "@/components/marketplace/CompanyDetailContent";
 
 export const runtime = "edge";
@@ -31,9 +31,12 @@ export default async function CompanyDetailPage({
 		notFound();
 	}
 
+	// Fetch company employees
+	const employees = await fetchCompanyEmployees(Number(params.id));
+
 	return (
 		<Layout user={session.user}>
-			<CompanyDetailContent company={company} />
+			<CompanyDetailContent company={company} employees={employees} isAdmin={isAdmin} />
 		</Layout>
 	);
 }
