@@ -2,8 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
-import { isSuperAdmin } from "@/lib/auth-helpers";
-import { fetchCompanyById } from "../actions";
+import { isSuperAdmin, hasCompanyAccess, hasCompanyManagementAccess } from "@/lib/auth-helpers";
+import { fetchCompanyById, fetchCompanyEmployees } from "../actions";
 import { CompanyDetailContent } from "@/components/marketplace/CompanyDetailContent";
 
 export const runtime = "edge";
@@ -19,21 +19,37 @@ export default async function CompanyDetailPage({
 		redirect("/auth/signin");
 	}
 
+	const companyId = Number(params.id);
 	const isAdmin = await isSuperAdmin();
 
 	// Use different layout based on user role
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
 
 	// Fetch company details
-	const company = await fetchCompanyById(Number(params.id));
+	const company = await fetchCompanyById(companyId);
 
 	if (!company) {
 		notFound();
 	}
 
+	// Check if user has access to view this company's employee section
+	const canViewEmployees = await hasCompanyAccess(companyId);
+
+	// Check if user has management access (can add/remove employees)
+	const canManageEmployees = await hasCompanyManagementAccess(companyId);
+
+	// Fetch company employees only if user has access
+	const employees = canViewEmployees ? await fetchCompanyEmployees(companyId) : [];
+
 	return (
 		<Layout user={session.user}>
-			<CompanyDetailContent company={company} />
+			<CompanyDetailContent
+				company={company}
+				employees={employees}
+				isAdmin={isAdmin}
+				canViewEmployees={canViewEmployees}
+				canManageEmployees={canManageEmployees}
+			/>
 		</Layout>
 	);
 }
