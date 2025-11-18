@@ -29,6 +29,7 @@ interface Plan {
 	is_active: number;
 	stripe_product_id: string | null;
 	stripe_price_id: string | null;
+	paypal_plan_id: string | null;
 	trial_days: number | null;
 	created_at: number;
 	updated_at: number;
@@ -51,6 +52,8 @@ export function PlansManagement() {
 	const [editDialogOpen, setEditDialogOpen] = useState(false);
 	const [editingPlan, setEditingPlan] = useState<EditingPlan | null>(null);
 	const [saving, setSaving] = useState(false);
+	const [stripeSyncing, setStripeSyncing] = useState(false);
+	const [paypalSyncing, setPaypalSyncing] = useState(false);
 
 	// Fetch plans on mount
 	useEffect(() => {
@@ -173,6 +176,62 @@ export function PlansManagement() {
 		}
 	};
 
+	const handleStripeSyncClick = async () => {
+		try {
+			setStripeSyncing(true);
+			const response = await fetch("/api/admin/sync-plans-stripe", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+			});
+
+			const data = (await response.json()) as {
+				success?: boolean;
+				summary?: { successful?: number; total?: number };
+				error?: string;
+			};
+
+			if (data.success) {
+				toast.success(`Stripe sync complete! ${data.summary?.successful || 0}/${data.summary?.total || 0} plans synced`);
+				await fetchPlans(); // Refresh plans to show updated Stripe IDs
+			} else {
+				toast.error(data.error || "Failed to sync plans with Stripe");
+			}
+		} catch (error) {
+			console.error("Error syncing with Stripe:", error);
+			toast.error("Failed to sync plans with Stripe");
+		} finally {
+			setStripeSyncing(false);
+		}
+	};
+
+	const handlePayPalSyncClick = async () => {
+		try {
+			setPaypalSyncing(true);
+			const response = await fetch("/api/admin/paypal/sync-plans", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+			});
+
+			const data = (await response.json()) as {
+				success?: boolean;
+				summary?: { successful?: number; total?: number };
+				error?: string;
+			};
+
+			if (data.success) {
+				toast.success(`PayPal sync complete! ${data.summary?.successful || 0}/${data.summary?.total || 0} plans synced`);
+				await fetchPlans(); // Refresh plans to show updated PayPal IDs
+			} else {
+				toast.error(data.error || "Failed to sync plans with PayPal");
+			}
+		} catch (error) {
+			console.error("Error syncing with PayPal:", error);
+			toast.error("Failed to sync plans with PayPal");
+		} finally {
+			setPaypalSyncing(false);
+		}
+	};
+
 	if (loading) {
 		return (
 			<div className="flex items-center justify-center py-12">
@@ -185,11 +244,43 @@ export function PlansManagement() {
 		<>
 			<div className="space-y-6">
 				{/* Header */}
-				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Plans Management</h1>
-					<p className="text-muted-foreground mt-2">
-						Manage subscription plans and Stripe integration
-					</p>
+				<div className="flex items-start justify-between">
+					<div>
+						<h1 className="text-3xl font-bold tracking-tight">Plans Management</h1>
+						<p className="text-muted-foreground mt-2">
+							Manage subscription plans and payment provider integration
+						</p>
+					</div>
+					<div className="flex gap-2">
+						<Button
+							onClick={handleStripeSyncClick}
+							disabled={stripeSyncing}
+							variant="outline"
+						>
+							{stripeSyncing ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									Syncing Stripe...
+								</>
+							) : (
+								"Sync Stripe Plans"
+							)}
+						</Button>
+						<Button
+							onClick={handlePayPalSyncClick}
+							disabled={paypalSyncing}
+							variant="outline"
+						>
+							{paypalSyncing ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									Syncing PayPal...
+								</>
+							) : (
+								"Sync PayPal Plans"
+							)}
+						</Button>
+					</div>
 				</div>
 
 				{/* Plans Grid */}
@@ -197,6 +288,7 @@ export function PlansManagement() {
 					{plans.map((plan) => {
 						const features = parseFeatures(plan.features);
 						const hasStripeIntegration = !!(plan.stripe_product_id && plan.stripe_price_id);
+						const hasPayPalIntegration = !!plan.paypal_plan_id;
 
 						return (
 							<Card key={plan.id} className="relative">
@@ -226,44 +318,62 @@ export function PlansManagement() {
 										</span>
 									</div>
 
-									{/* Stripe Integration Status */}
-									<div className="space-y-2">
-										<div className="flex items-center gap-2 text-sm">
-											{hasStripeIntegration ? (
-												<>
-													<CheckCircle2 className="h-4 w-4 text-green-500" />
-													<span className="text-green-600 dark:text-green-400">
-														Stripe Connected
-													</span>
-												</>
-											) : (
-												<>
-													<XCircle className="h-4 w-4 text-amber-500" />
-													<span className="text-amber-600 dark:text-amber-400">
-														Stripe Not Configured
-													</span>
-												</>
+									{/* Payment Provider Integration Status */}
+									<div className="space-y-3">
+										{/* Stripe */}
+										<div className="space-y-1">
+											<div className="flex items-center gap-2 text-sm">
+												{hasStripeIntegration ? (
+													<>
+														<CheckCircle2 className="h-4 w-4 text-green-500" />
+														<span className="text-green-600 dark:text-green-400">
+															Stripe Connected
+														</span>
+													</>
+												) : (
+													<>
+														<XCircle className="h-4 w-4 text-amber-500" />
+														<span className="text-amber-600 dark:text-amber-400">
+															Stripe Not Configured
+														</span>
+													</>
+												)}
+											</div>
+
+											{plan.stripe_product_id && (
+												<div className="text-xs text-muted-foreground font-mono pl-6">
+													{plan.stripe_product_id}
+												</div>
 											)}
 										</div>
 
-										{plan.stripe_product_id && (
-											<div className="text-xs text-muted-foreground font-mono">
-												Product: {plan.stripe_product_id}
+										{/* PayPal */}
+										<div className="space-y-1">
+											<div className="flex items-center gap-2 text-sm">
+												{hasPayPalIntegration ? (
+													<>
+														<CheckCircle2 className="h-4 w-4 text-green-500" />
+														<span className="text-green-600 dark:text-green-400">
+															PayPal Connected
+														</span>
+													</>
+												) : (
+													<>
+														<XCircle className="h-4 w-4 text-amber-500" />
+														<span className="text-amber-600 dark:text-amber-400">
+															PayPal Not Configured
+														</span>
+													</>
+												)}
 											</div>
-										)}
-										{plan.stripe_price_id && (
-											<div className="text-xs text-muted-foreground font-mono">
-												Price: {plan.stripe_price_id}
-											</div>
-										)}
-									</div>
 
-									{/* Trial Days */}
-									{plan.trial_days && plan.trial_days > 0 && (
-										<Badge variant="secondary">
-											{plan.trial_days} day free trial
-										</Badge>
-									)}
+											{plan.paypal_plan_id && (
+												<div className="text-xs text-muted-foreground font-mono pl-6">
+													{plan.paypal_plan_id}
+												</div>
+											)}
+										</div>
+									</div>
 
 									{/* Features */}
 									{features.length > 0 && (
@@ -285,10 +395,17 @@ export function PlansManagement() {
 										</div>
 									)}
 
-									{/* Status Badge */}
-									<Badge variant={plan.is_active ? "default" : "secondary"}>
-										{plan.is_active ? "Active" : "Inactive"}
-									</Badge>
+									{/* Status Badges */}
+									<div className="flex items-center gap-2 flex-wrap">
+										{(plan.trial_days ?? 0) > 0 && (
+											<Badge variant="secondary">
+												{plan.trial_days} day free trial
+											</Badge>
+										)}
+										<Badge variant={plan.is_active ? "default" : "secondary"}>
+											{plan.is_active ? "Active" : "Inactive"}
+										</Badge>
+									</div>
 								</CardContent>
 							</Card>
 						);

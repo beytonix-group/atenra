@@ -100,6 +100,7 @@ export async function getSubscriptionByProviderSubscriptionId(
 
 /**
  * Get effective plan for a user (returns plan slug or 'guest' if no active subscription)
+ * Works with both Stripe and PayPal subscriptions
  */
 export async function getEffectivePlan(userId: number): Promise<{
 	slug: PlanSlug | "guest";
@@ -147,6 +148,24 @@ export async function getEffectivePlan(userId: number): Promise<{
 		status: subscription.status,
 		subscription,
 	};
+}
+
+/**
+ * Check if user has an active subscription (regardless of provider)
+ * Returns true for both Stripe and PayPal active subscriptions
+ */
+export async function hasActiveSubscription(userId: number): Promise<boolean> {
+	const subscription = await getUserActiveSubscription(userId);
+	return subscription !== null && (subscription.status === "active" || subscription.status === "trialing");
+}
+
+/**
+ * Get subscription provider for a user
+ * Returns 'stripe', 'paypal', 'braintree', or null if no active subscription
+ */
+export async function getSubscriptionProvider(userId: number): Promise<string | null> {
+	const subscription = await getUserActiveSubscription(userId);
+	return subscription?.provider || null;
 }
 
 /**

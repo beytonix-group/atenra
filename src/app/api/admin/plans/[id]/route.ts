@@ -36,7 +36,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 			.prepare(
 				`
 				SELECT id, name, description, price, currency, billing_period,
-				       features, stripe_product_id, stripe_price_id, trial_days,
+				       features, stripe_product_id, stripe_price_id, paypal_plan_id, trial_days,
 				       is_active, created_at, updated_at
 				FROM plans
 				WHERE id = ?
@@ -83,7 +83,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 			.prepare(
 				`
 				SELECT id, name, description, price, currency, billing_period,
-				       stripe_product_id, stripe_price_id, trial_days
+				       stripe_product_id, stripe_price_id, paypal_plan_id, trial_days
 				FROM plans
 				WHERE id = ?
 			`
@@ -98,6 +98,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 				billing_period: string;
 				stripe_product_id: string | null;
 				stripe_price_id: string | null;
+				paypal_plan_id: string | null;
 				trial_days: number | null;
 			}>();
 
@@ -203,7 +204,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 			.prepare(
 				`
 				SELECT id, name, description, price, currency, billing_period,
-				       features, stripe_product_id, stripe_price_id, trial_days,
+				       features, stripe_product_id, stripe_price_id, paypal_plan_id, trial_days,
 				       is_active, created_at, updated_at
 				FROM plans
 				WHERE id = ?
