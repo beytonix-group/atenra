@@ -397,7 +397,7 @@ export function PlansManagement() {
 
 									{/* Status Badges */}
 									<div className="flex items-center gap-2 flex-wrap">
-										{plan.trial_days && plan.trial_days > 0 && (
+										{(plan.trial_days ?? 0) > 0 && (
 											<Badge variant="secondary">
 												{plan.trial_days} day free trial
 											</Badge>

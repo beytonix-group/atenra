@@ -145,6 +145,11 @@ export async function syncPlanWithPayPal(
 				if (error.message.includes("404") || error.message.includes("not found")) {
 					console.log(`[PayPal Sync] Existing PayPal plan ${paypalPlanId} not found. Creating new one.`);
 
+					// Convert billing_period to interval format
+					const interval = plan.billing_period.toLowerCase().includes("year") ? "year" : "month";
+					// Convert price to cents
+					const priceCents = Math.round(plan.price * 100);
+
 					const paypalPlan = await createPayPalPlan(env, {
 						name: plan.name,
 						description: plan.description || undefined,
