@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Check, ArrowLeft, GraduationCap, Users, Briefcase, Crown, AlertCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PaymentMethodSelector } from "./PaymentMethodSelector";
 
 interface Plan {
 	id: number;
@@ -45,6 +46,7 @@ export function UpgradeContent() {
 		type: 'error';
 		message: string;
 	} | null>(null);
+	const [selectedPlanForPayment, setSelectedPlanForPayment] = useState<Plan | null>(null);
 
 	useEffect(() => {
 		fetchData();
@@ -89,15 +91,26 @@ export function UpgradeContent() {
 		}
 	};
 
-	const handleSelectPlan = async (planId: number) => {
-		setProcessingPlanId(planId);
-		setNotification(null); // Clear any existing notifications
+	// Show payment method selector dialog
+	const handleSelectPlan = (planId: number) => {
+		const plan = plans.find(p => p.id === planId);
+		if (plan) {
+			setSelectedPlanForPayment(plan);
+		}
+	};
+
+	// Handle Stripe checkout (called from payment selector)
+	const handleStripeCheckout = async () => {
+		if (!selectedPlanForPayment) return;
+
+		setProcessingPlanId(selectedPlanForPayment.id);
+		setNotification(null);
 
 		try {
 			const response = await fetch('/api/checkout/create-session', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ planId }),
+				body: JSON.stringify({ planId: selectedPlanForPayment.id }),
 			});
 
 			const data = await response.json() as { url?: string; error?: string };
@@ -110,10 +123,12 @@ export function UpgradeContent() {
 				});
 				setTimeout(() => setNotification(null), 5000);
 				setProcessingPlanId(null);
+				setSelectedPlanForPayment(null);
 				return;
 			}
 
 			if (data.url) {
+				// Will redirect to Stripe checkout
 				window.location.href = data.url;
 			}
 		} catch (error) {
@@ -124,6 +139,7 @@ export function UpgradeContent() {
 			});
 			setTimeout(() => setNotification(null), 5000);
 			setProcessingPlanId(null);
+			setSelectedPlanForPayment(null);
 		}
 	};
 
@@ -375,6 +391,18 @@ export function UpgradeContent() {
 					);
 				})}
 			</div>
+
+			{/* Payment Method Selector Dialog */}
+			{selectedPlanForPayment && (
+				<PaymentMethodSelector
+					open={!!selectedPlanForPayment}
+					onClose={() => setSelectedPlanForPayment(null)}
+					planId={selectedPlanForPayment.id}
+					planName={selectedPlanForPayment.name}
+					planPrice={selectedPlanForPayment.price}
+					onStripeCheckout={handleStripeCheckout}
+				/>
+			)}
 		</div>
 	);
 }

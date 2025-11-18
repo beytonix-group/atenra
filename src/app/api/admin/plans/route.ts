@@ -45,6 +45,7 @@ export async function GET(): Promise<NextResponse> {
 					is_active,
 					stripe_product_id,
 					stripe_price_id,
+					paypal_plan_id,
 					trial_days,
 					created_at,
 					updated_at

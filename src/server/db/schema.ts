@@ -297,6 +297,7 @@ export const plans = sqliteTable('plans', {
   hasRefundGuarantee: integer('has_refund_guarantee').notNull().default(0),
   stripeProductId: text('stripe_product_id').unique(),
   stripePriceId: text('stripe_price_id').unique(),
+  paypalPlanId: text('paypal_plan_id').unique(),
   createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
@@ -309,11 +310,11 @@ export const subscriptions = sqliteTable('subscriptions', {
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   companyId: integer('company_id').references(() => companies.id, { onDelete: 'cascade' }),
   planId: integer('plan_id').notNull().references(() => plans.id),
-  provider: text('provider', { enum: ['stripe', 'braintree'] }).notNull(),
+  provider: text('provider', { enum: ['stripe', 'braintree', 'paypal'] }).notNull(),
   externalCustomerId: text('external_customer_id'),
   externalSubscriptionId: text('external_subscription_id').unique(),
   status: text('status', {
-    enum: ['active', 'past_due', 'canceled', 'incomplete', 'trialing']
+    enum: ['active', 'past_due', 'canceled', 'incomplete', 'trialing', 'suspended']
   }).notNull(),
   currentPeriodStart: integer('current_period_start'),
   currentPeriodEnd: integer('current_period_end'),
@@ -432,6 +433,25 @@ export const stripeWebhookEvents = sqliteTable('stripe_webhook_events', {
   eventIdIdx: index('idx_swe_event_id').on(table.stripeEventId),
   processedIdx: index('idx_swe_processed').on(table.processed),
   typeIdx: index('idx_swe_type').on(table.eventType),
+}));
+
+// ----------------------------------------------------------
+// PayPal Webhook Events
+// ----------------------------------------------------------
+
+export const paypalWebhookEvents = sqliteTable('paypal_webhook_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  paypalEventId: text('paypal_event_id').unique().notNull(),
+  eventType: text('event_type').notNull(),
+  eventData: text('event_data').notNull(),
+  processed: integer('processed').default(0),
+  processingError: text('processing_error'),
+  receivedAt: integer('received_at').notNull().default(sql`(unixepoch())`),
+  processedAt: integer('processed_at'),
+}, (table) => ({
+  eventIdIdx: index('idx_pwe_event_id').on(table.paypalEventId),
+  processedIdx: index('idx_pwe_processed').on(table.processed),
+  typeIdx: index('idx_pwe_type').on(table.eventType),
 }));
 
 // ----------------------------------------------------------
@@ -899,3 +919,6 @@ export type NewPaymentTransaction = typeof paymentTransactions.$inferInsert;
 
 export type StripeWebhookEvent = typeof stripeWebhookEvents.$inferSelect;
 export type NewStripeWebhookEvent = typeof stripeWebhookEvents.$inferInsert;
+
+export type PayPalWebhookEvent = typeof paypalWebhookEvents.$inferSelect;
+export type NewPayPalWebhookEvent = typeof paypalWebhookEvents.$inferInsert;
