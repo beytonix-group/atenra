@@ -79,7 +79,7 @@
     "@cloudflare/next-on-pages": "^1.13.16",
     "@cloudflare/workers-types": "^4.20240903.0",
     "@types/node": "^24",
-    "@types/react": "^18",
+    "@types/react": "^19",
     "@types/react-dom": "^19",
     "braces": "^3.0.3",
     "eslint": "^8",
