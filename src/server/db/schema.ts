@@ -568,6 +568,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   // RBAC
   rolesAssigned: many(userRoles, { relationName: 'userRole' }),
   roleAssignments: many(userRoles, { relationName: 'assignedByUser' }),
+
+  // Messaging
+  conversationsCreated: many(conversations),
+  conversationParticipations: many(conversationParticipants),
+  messagesSent: many(messages),
 }));
 
 export const userRelationshipsRelations = relations(userRelationships, ({ one }) => ({
@@ -872,6 +877,80 @@ export const paymentTransactionsRelations = relations(paymentTransactions, ({ on
 }));
 
 // ----------------------------------------------------------
+// Messaging System
+// ----------------------------------------------------------
+
+export const conversations = sqliteTable('conversations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title'),
+  isGroup: integer('is_group').notNull().default(0),
+  createdByUserId: integer('created_by_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  createdByIdx: index('idx_conversations_created_by').on(table.createdByUserId),
+  updatedAtIdx: index('idx_conversations_updated_at').on(table.updatedAt),
+}));
+
+export const conversationParticipants = sqliteTable('conversation_participants', {
+  conversationId: integer('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  joinedAt: integer('joined_at').notNull().default(sql`(unixepoch())`),
+  lastReadAt: integer('last_read_at'),
+  isAdmin: integer('is_admin').notNull().default(0),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.conversationId, table.userId] }),
+  userIdx: index('idx_cp_user_id').on(table.userId),
+  lastReadIdx: index('idx_cp_last_read').on(table.conversationId, table.lastReadAt),
+}));
+
+export const messages = sqliteTable('messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  conversationId: integer('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  senderId: integer('sender_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  contentType: text('content_type', { enum: ['html', 'json'] }).notNull().default('html'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  editedAt: integer('edited_at'),
+  isDeleted: integer('is_deleted').notNull().default(0),
+}, (table) => ({
+  conversationIdx: index('idx_messages_conversation').on(table.conversationId, table.createdAt),
+  senderIdx: index('idx_messages_sender').on(table.senderId),
+  createdAtIdx: index('idx_messages_created_at').on(table.createdAt),
+}));
+
+export const conversationsRelations = relations(conversations, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [conversations.createdByUserId],
+    references: [users.id],
+  }),
+  participants: many(conversationParticipants),
+  messages: many(messages),
+}));
+
+export const conversationParticipantsRelations = relations(conversationParticipants, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationParticipants.conversationId],
+    references: [conversations.id],
+  }),
+  user: one(users, {
+    fields: [conversationParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+  }),
+}));
+
+// ----------------------------------------------------------
 // Type Exports for TypeScript Inference
 // ----------------------------------------------------------
 
@@ -922,3 +1001,12 @@ export type NewStripeWebhookEvent = typeof stripeWebhookEvents.$inferInsert;
 
 export type PayPalWebhookEvent = typeof paypalWebhookEvents.$inferSelect;
 export type NewPayPalWebhookEvent = typeof paypalWebhookEvents.$inferInsert;
+
+export type Conversation = typeof conversations.$inferSelect;
+export type NewConversation = typeof conversations.$inferInsert;
+
+export type ConversationParticipant = typeof conversationParticipants.$inferSelect;
+export type NewConversationParticipant = typeof conversationParticipants.$inferInsert;
+
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
