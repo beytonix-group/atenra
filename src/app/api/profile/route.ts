@@ -135,7 +135,7 @@ export async function PATCH(request: NextRequest) {
     console.error("Update profile error:", error);
 
     if (error instanceof z.ZodError) {
-      const errorMessages = error.errors.map(err => {
+      const errorMessages = error.issues.map(err => {
         return `${err.path.join('.')}: ${err.message}`;
       }).join(', ');
 

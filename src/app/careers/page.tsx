@@ -43,7 +43,7 @@ export default function CareersPage() {
 	];
 
 	useEffect(() => {
-		const createObserver = (ref: React.RefObject<HTMLDivElement>, setter: (value: boolean) => void) => {
+		const createObserver = (ref: React.RefObject<HTMLDivElement | null>, setter: (value: boolean) => void) => {
 			const observer = new IntersectionObserver(
 				([entry]) => {
 					if (entry.isIntersecting) {
