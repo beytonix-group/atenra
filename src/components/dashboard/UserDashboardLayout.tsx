@@ -14,6 +14,7 @@ import {
   User,
   HelpCircle,
   MessageSquare,
+  Bot,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -61,7 +62,7 @@ const navigationItems = [
   {
     title: "AI Chatbot",
     href: "/chat",
-    icon: MessageSquare,
+    icon: Bot,
     badge: null,
   },
   {
