@@ -91,7 +91,6 @@
     "braces": "^3.0.3",
     "eslint": "^8",
     "eslint-config-next": "15.5.2",
-    "eslint-plugin-next-on-pages": "1.13.2",
     "fill-range": "^7.1.1",
     "i": "^0.3.7",
     "micromatch": "^4.0.8",
