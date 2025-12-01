@@ -22,6 +22,7 @@ import {
   FileText,
   Package,
   MessageSquare,
+  Bot,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -31,6 +32,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
@@ -60,9 +67,15 @@ const navigationItems = [
     badge: null,
   },
   {
-    title: "Chat",
-    href: "/chat",
+    title: "Messages",
+    href: "/messages",
     icon: MessageSquare,
+    badge: null,
+  },
+  {
+    title: "AI Chatbot",
+    href: "/chat",
+    icon: Bot,
     badge: null,
   },
   {
@@ -107,7 +120,7 @@ const bottomNavigationItems = [
 ];
 
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
@@ -177,33 +190,45 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
 
           {/* Navigation Items */}
           <nav className="space-y-1 p-2">
-            {navigationItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                    isActive && "bg-accent text-accent-foreground",
-                    sidebarCollapsed && "justify-center"
-                  )}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!sidebarCollapsed && (
-                    <>
-                      <span className="flex-1">{item.title}</span>
-                      {item.badge && (
-                        <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </Link>
-              );
-            })}
+            <TooltipProvider delayDuration={0}>
+              {navigationItems.map((item) => {
+                const isActive = pathname === item.href;
+                const linkContent = (
+                  <Link
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                      isActive && "bg-accent text-accent-foreground",
+                      sidebarCollapsed && "justify-center"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {!sidebarCollapsed && (
+                      <>
+                        <span className="flex-1">{item.title}</span>
+                        {item.badge && (
+                          <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                            {item.badge}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </Link>
+                );
+
+                return sidebarCollapsed ? (
+                  <Tooltip key={item.href}>
+                    <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={10}>
+                      {item.title}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <div key={item.href}>{linkContent}</div>
+                );
+              })}
+            </TooltipProvider>
           </nav>
 
           {/* Spacer to push bottom items down - Desktop only */}
@@ -211,60 +236,81 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
 
           {/* Bottom Navigation - Always Visible */}
           <div className="border-t p-2 flex-shrink-0 space-y-1">
-            {/* Settings Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-3 px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                    sidebarCollapsed && "justify-center px-2"
+            <TooltipProvider delayDuration={0}>
+              {/* Settings Dropdown */}
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start gap-3 px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                          sidebarCollapsed && "justify-center px-2"
+                        )}
+                      >
+                        <Settings className="h-5 w-5 flex-shrink-0" />
+                        {!sidebarCollapsed && <span>Settings</span>}
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  {sidebarCollapsed && (
+                    <TooltipContent side="right" sideOffset={10}>
+                      Settings
+                    </TooltipContent>
                   )}
+                </Tooltip>
+                <DropdownMenuContent
+                  align="end"
+                  side="top"
+                  className="w-56 mb-2"
+                  sideOffset={8}
                 >
-                  <Settings className="h-5 w-5 flex-shrink-0" />
-                  {!sidebarCollapsed && <span>Settings</span>}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                side="top"
-                className="w-56 mb-2"
-                sideOffset={8}
-              >
-                {settingsMenuItems.map((item) => (
-                  <DropdownMenuItem key={item.href} asChild>
-                    <Link
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {settingsMenuItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-            {/* Other Bottom Navigation Items */}
-            {bottomNavigationItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                    isActive && "bg-accent text-accent-foreground",
-                    sidebarCollapsed && "justify-center"
-                  )}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!sidebarCollapsed && <span>{item.title}</span>}
-                </Link>
-              );
-            })}
+              {/* Other Bottom Navigation Items */}
+              {bottomNavigationItems.map((item) => {
+                const isActive = pathname === item.href;
+                const linkContent = (
+                  <Link
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                      isActive && "bg-accent text-accent-foreground",
+                      sidebarCollapsed && "justify-center"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {!sidebarCollapsed && <span>{item.title}</span>}
+                  </Link>
+                );
+
+                return sidebarCollapsed ? (
+                  <Tooltip key={item.href}>
+                    <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={10}>
+                      {item.title}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <div key={item.href}>{linkContent}</div>
+                );
+              })}
+            </TooltipProvider>
           </div>
         </div>
       </aside>

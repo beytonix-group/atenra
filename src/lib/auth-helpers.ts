@@ -221,3 +221,23 @@ export async function getUserCompanyRole(companyId: number): Promise<'owner' | '
 
 	return association?.role || null;
 }
+
+/**
+ * Get the current authenticated user from the database
+ * Returns the full user object or null if not authenticated
+ */
+export async function getCurrentUser() {
+	const session = await auth();
+
+	if (!session?.user?.id) {
+		return null;
+	}
+
+	const user = await db
+		.select()
+		.from(users)
+		.where(eq(users.authUserId, session.user.id))
+		.get();
+
+	return user || null;
+}

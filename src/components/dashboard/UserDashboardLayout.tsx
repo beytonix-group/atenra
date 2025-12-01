@@ -14,6 +14,7 @@ import {
   User,
   HelpCircle,
   MessageSquare,
+  Bot,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,6 +24,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
@@ -47,9 +54,15 @@ const navigationItems = [
     badge: null,
   },
   {
-    title: "Chat",
-    href: "/chat",
+    title: "Messages",
+    href: "/messages",
     icon: MessageSquare,
+    badge: null,
+  },
+  {
+    title: "AI Chatbot",
+    href: "/chat",
+    icon: Bot,
     badge: null,
   },
   {
@@ -69,7 +82,7 @@ const bottomNavigationItems = [
 ];
 
 export function UserDashboardLayout({ children, user }: UserDashboardLayoutProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
@@ -139,53 +152,77 @@ export function UserDashboardLayout({ children, user }: UserDashboardLayoutProps
 
           {/* Navigation Items */}
           <nav className="flex-1 space-y-1 p-2">
-            {navigationItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                    isActive && "bg-accent text-accent-foreground",
-                    sidebarCollapsed && "justify-center"
-                  )}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!sidebarCollapsed && (
-                    <>
-                      <span className="flex-1">{item.title}</span>
-                      {item.badge && (
-                        <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </Link>
-              );
-            })}
+            <TooltipProvider delayDuration={0}>
+              {navigationItems.map((item) => {
+                const isActive = pathname === item.href;
+                const linkContent = (
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                      isActive && "bg-accent text-accent-foreground",
+                      sidebarCollapsed && "justify-center"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {!sidebarCollapsed && (
+                      <>
+                        <span className="flex-1">{item.title}</span>
+                        {item.badge && (
+                          <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                            {item.badge}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </Link>
+                );
+
+                return sidebarCollapsed ? (
+                  <Tooltip key={item.href}>
+                    <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={10}>
+                      {item.title}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <div key={item.href}>{linkContent}</div>
+                );
+              })}
+            </TooltipProvider>
           </nav>
 
           {/* Bottom Navigation */}
           <div className="border-t p-2">
-            {bottomNavigationItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                    isActive && "bg-accent text-accent-foreground",
-                    sidebarCollapsed && "justify-center"
-                  )}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!sidebarCollapsed && <span>{item.title}</span>}
-                </Link>
-              );
-            })}
+            <TooltipProvider delayDuration={0}>
+              {bottomNavigationItems.map((item) => {
+                const isActive = pathname === item.href;
+                const linkContent = (
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                      isActive && "bg-accent text-accent-foreground",
+                      sidebarCollapsed && "justify-center"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {!sidebarCollapsed && <span>{item.title}</span>}
+                  </Link>
+                );
+
+                return sidebarCollapsed ? (
+                  <Tooltip key={item.href}>
+                    <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={10}>
+                      {item.title}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <div key={item.href}>{linkContent}</div>
+                );
+              })}
+            </TooltipProvider>
           </div>
         </div>
       </aside>

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { RoleBadge } from '@/components/ui/role-badge';
 import { AddEmployeeDialog } from './AddEmployeeDialog';
+import { SendMessageButton } from '@/components/messages/SendMessageButton';
 import { toast } from 'sonner';
 import type { CompanyWithCategories, CompanyEmployee } from '@/app/marketplace/actions';
 
@@ -377,6 +378,13 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 											)}
 										</div>
 									</div>
+									<div className="flex items-center gap-2">
+									<SendMessageButton
+										userId={employee.userId}
+										userName={employee.displayName || employee.email}
+										variant="outline"
+										size="sm"
+									/>
 									{canManageEmployees && (
 										<Button
 											variant="ghost"
@@ -388,6 +396,7 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 											<Trash2 className="h-4 w-4" />
 										</Button>
 									)}
+								</div>
 								</div>
 							))}
 						</div>
