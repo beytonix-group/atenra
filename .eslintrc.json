@@ -1,9 +1,5 @@
 {
   "extends": [
-    "next/core-web-vitals",
-    "plugin:@cloudflare/next-on-pages/recommended"
-  ],
-  "plugins": [
-    "@cloudflare/next-on-pages"
+    "next/core-web-vitals"
   ]
 }
