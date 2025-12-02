@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { conversations, conversationParticipants, messages, users } from "@/server/db/schema";
-import { eq, and, desc, lt, sql } from "drizzle-orm";
+import { eq, and, desc, lt, gt, asc, sql } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { z } from "zod";
 
@@ -48,8 +48,26 @@ export async function GET(
 		const { searchParams } = new URL(request.url);
 		const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
 		const beforeId = searchParams.get('before') ? parseInt(searchParams.get('before')!) : null;
+		const afterId = searchParams.get('after') ? parseInt(searchParams.get('after')!) : null;
 
-		// Build query
+		// Build query - handle "after" (new messages) vs "before" (older messages)
+		let whereClause;
+		if (afterId) {
+			// Fetching new messages after a specific ID
+			whereClause = and(
+				eq(messages.conversationId, conversationId),
+				gt(messages.id, afterId)
+			);
+		} else if (beforeId) {
+			// Fetching older messages before a specific ID
+			whereClause = and(
+				eq(messages.conversationId, conversationId),
+				lt(messages.id, beforeId)
+			);
+		} else {
+			whereClause = eq(messages.conversationId, conversationId);
+		}
+
 		let messagesQuery = db
 			.select({
 				id: messages.id,
@@ -66,15 +84,8 @@ export async function GET(
 			})
 			.from(messages)
 			.innerJoin(users, eq(messages.senderId, users.id))
-			.where(
-				beforeId
-					? and(
-							eq(messages.conversationId, conversationId),
-							lt(messages.id, beforeId)
-						)
-					: eq(messages.conversationId, conversationId)
-			)
-			.orderBy(desc(messages.createdAt))
+			.where(whereClause)
+			.orderBy(afterId ? asc(messages.id) : desc(messages.createdAt))
 			.limit(limit);
 
 		const messageList = await messagesQuery.all();
@@ -100,8 +111,12 @@ export async function GET(
 		// Check if there are more messages
 		const hasMore = messageList.length === limit;
 
+		// For "after" queries, messages are already in chronological order
+		// For "before" queries, we need to reverse
+		const sortedMessages = afterId ? formattedMessages : formattedMessages.reverse();
+
 		return NextResponse.json({
-			messages: formattedMessages.reverse(), // Return in chronological order
+			messages: sortedMessages,
 			hasMore,
 			oldestId: messageList.length > 0 ? messageList[messageList.length - 1].id : null,
 		});

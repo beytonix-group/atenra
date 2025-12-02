@@ -93,12 +93,10 @@
     "eslint": "^8",
     "eslint-config-next": "15.5.2",
     "fill-range": "^7.1.1",
-    "i": "^0.3.7",
     "micromatch": "^4.0.8",
     "postcss": "^8",
     "tailwindcss": "^4.1.17",
     "typescript": "^5",
-    "vercel": "48.10.10",
     "wrangler": "^4.42.2"
   }
 }
