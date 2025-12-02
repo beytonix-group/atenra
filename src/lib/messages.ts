@@ -93,11 +93,12 @@ export async function fetchConversation(conversationId: number): Promise<Convers
 // Fetch messages for a conversation
 export async function fetchMessages(
 	conversationId: number,
-	options?: { limit?: number; before?: number }
+	options?: { limit?: number; before?: number; after?: number }
 ): Promise<{ messages: Message[]; hasMore: boolean; oldestId: number | null }> {
 	const params = new URLSearchParams();
 	if (options?.limit) params.set('limit', options.limit.toString());
 	if (options?.before) params.set('before', options.before.toString());
+	if (options?.after) params.set('after', options.after.toString());
 
 	const response = await fetch(
 		`/api/messages/conversations/${conversationId}/messages?${params.toString()}`

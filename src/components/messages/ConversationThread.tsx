@@ -102,6 +102,40 @@ export function ConversationThread({
 		}
 	}, [conversation.id, conversation.unreadCount]);
 
+	// Poll for new messages every 3 seconds
+	useEffect(() => {
+		if (isLoading) return;
+
+		const pollNewMessages = async () => {
+			try {
+				// Get messages newer than the most recent one we have
+				const latestMessageId = messages.length > 0 ? messages[messages.length - 1].id : undefined;
+				const data = await fetchMessages(conversation.id, { after: latestMessageId, limit: 50 });
+
+				if (data.messages.length > 0) {
+					setMessages(prev => {
+						// Filter out any messages we already have (by ID)
+						const existingIds = new Set(prev.map(m => m.id));
+						const newMessages = data.messages.filter(m => !existingIds.has(m.id));
+						if (newMessages.length > 0) {
+							return [...prev, ...newMessages];
+						}
+						return prev;
+					});
+
+					// Mark as read since we're viewing
+					markConversationAsRead(conversation.id).catch(console.error);
+				}
+			} catch (error) {
+				console.error('Failed to poll for new messages:', error);
+			}
+		};
+
+		const intervalId = setInterval(pollNewMessages, 3000);
+
+		return () => clearInterval(intervalId);
+	}, [conversation.id, isLoading, messages]);
+
 	// Scroll to bottom on new messages
 	useEffect(() => {
 		if (!isLoading) {
