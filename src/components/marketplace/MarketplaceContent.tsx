@@ -139,19 +139,19 @@ export function MarketplaceContent({
   return (
     <div className="w-full -mt-4 lg:-mt-6">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 -mx-4 lg:-mx-6 px-3 md:px-4 lg:px-6 mb-4 md:mb-6 sticky top-0 z-50 shadow-md">
+      <div className="bg-background border-b border-border -mx-4 lg:-mx-6 px-3 md:px-4 lg:px-6 mb-4 md:mb-6 sticky top-[-1rem] lg:top-[-1.5rem] z-50 shadow-md">
         <div className="max-w-full py-2 md:py-3">
           <div className="flex flex-col gap-2 md:gap-3">
             {/* Search Bar and Add Company Button */}
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Search companies..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pl-10 pr-4 h-9 md:h-10 text-sm bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus:bg-white dark:focus:bg-gray-600 w-full"
+                  className="pl-10 pr-4 h-9 md:h-10 text-sm bg-muted border-border focus:bg-background w-full"
                 />
               </div>
               {isAdmin && (
@@ -171,7 +171,7 @@ export function MarketplaceContent({
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {/* Category Filter */}
               <Select value={currentCategory || 'all'} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-[140px] md:w-[180px] h-9 md:h-10 bg-white dark:bg-gray-700 flex-shrink-0 text-xs md:text-sm">
+                <SelectTrigger className="w-[140px] md:w-[180px] h-9 md:h-10 bg-muted flex-shrink-0 text-xs md:text-sm">
                   <div className="flex items-center gap-1.5 md:gap-2">
                     <Filter className="h-3.5 w-3.5 md:h-4 md:w-4" />
                     <SelectValue placeholder="Category" />
@@ -189,7 +189,7 @@ export function MarketplaceContent({
 
               {/* Sort Filter */}
               <Select value={currentSort} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-[120px] md:w-[150px] h-9 md:h-10 bg-white dark:bg-gray-700 flex-shrink-0 text-xs md:text-sm">
+                <SelectTrigger className="w-[120px] md:w-[150px] h-9 md:h-10 bg-muted flex-shrink-0 text-xs md:text-sm">
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent>
@@ -200,7 +200,7 @@ export function MarketplaceContent({
 
               {/* Items per page */}
               <Select value={currentLimit.toString()} onValueChange={handleLimitChange}>
-                <SelectTrigger className="w-[100px] md:w-[120px] h-9 md:h-10 bg-white dark:bg-gray-700 flex-shrink-0 text-xs md:text-sm">
+                <SelectTrigger className="w-[100px] md:w-[120px] h-9 md:h-10 bg-muted flex-shrink-0 text-xs md:text-sm">
                   <SelectValue placeholder="Show" />
                 </SelectTrigger>
                 <SelectContent>
