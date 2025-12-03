@@ -78,6 +78,7 @@ export const users = sqliteTable('users', {
   stripeCustomerId: text('stripe_customer_id').unique(),
   createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+  lastActiveAt: integer('last_active_at'),
 }, (table) => ({
   emailIdx: uniqueIndex('idx_users_email').on(table.email),
 }));
