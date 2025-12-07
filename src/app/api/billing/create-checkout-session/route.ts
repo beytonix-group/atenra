@@ -3,9 +3,8 @@ import { auth } from "@/server/auth";
 import { stripe, getAppUrl } from "@/lib/stripe";
 import { getPlanBySlug, type PlanSlug } from "@/lib/plans";
 import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "edge";
 
 interface CreateCheckoutSessionBody {
 	planSlug: PlanSlug;
@@ -24,7 +23,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		}
 
 		// Get user ID from database
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		const user = await db

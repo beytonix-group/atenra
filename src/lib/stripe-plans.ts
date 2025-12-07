@@ -1,5 +1,5 @@
 import { stripe } from "./stripe";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export interface PlanSyncResult {
 	planId: number;
@@ -139,7 +139,7 @@ export async function syncPlanWithStripe(plan: PlanToSync): Promise<PlanSyncResu
 		}
 
 		// Update database with Stripe IDs
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		await db
@@ -178,7 +178,7 @@ export async function syncPlanWithStripe(plan: PlanToSync): Promise<PlanSyncResu
  * @returns Array of sync results for each plan
  */
 export async function syncAllPlansWithStripe(): Promise<PlanSyncResult[]> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	// Fetch all active plans
@@ -225,7 +225,7 @@ export async function syncAllPlansWithStripe(): Promise<PlanSyncResult[]> {
  * @param planId Database plan ID
  */
 export async function archiveStripePlanResources(planId: number): Promise<void> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	// Get plan's Stripe IDs

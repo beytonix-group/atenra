@@ -8,7 +8,6 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { UserDashboardLayout } from '@/components/dashboard/UserDashboardLayout';
 import { isSuperAdmin } from '@/lib/auth-helpers';
 
-export const runtime = 'edge';
 
 export const metadata = {
 	title: 'Messages',

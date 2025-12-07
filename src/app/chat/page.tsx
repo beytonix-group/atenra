@@ -5,7 +5,6 @@ import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout"
 import { ChatInterface } from "@/components/chat/ChatInterface";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 export const metadata = {
 	title: "Chat - Atenra",

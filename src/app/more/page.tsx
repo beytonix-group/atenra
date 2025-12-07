@@ -3,7 +3,6 @@ import { MoreHero } from "@/components/more/MoreHero";
 import { LegalSection } from "@/components/more/LegalSection";
 import { FooterSection } from "@/components/landing/FooterSection";
 
-export const runtime = "edge";
 
 export const metadata = {
 	title: "More Info - Atenra",

@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   deploy-preview:
-    name: Deploy Preview to Cloudflare Pages
+    name: Deploy Preview to Cloudflare Workers
     runs-on: ubuntu-latest
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.state == 'open'
     permissions:
@@ -28,16 +28,16 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build for Cloudflare Pages
-        run: bun run pages:build
+      - name: Build with OpenNext
+        run: bunx opennextjs-cloudflare build
 
-      - name: Verify Cloudflare Pages build output
+      - name: Verify OpenNext build output
         run: |
-          if [ ! -d ".vercel/output/static" ]; then
-            echo "❌ Cloudflare Pages build output not found"
+          if [ ! -d ".open-next" ]; then
+            echo "❌ OpenNext build output not found"
             exit 1
           fi
-          echo "✅ Cloudflare Pages build verification successful"
+          echo "✅ OpenNext build verification successful"
 
       - name: Comment PR with build status
         uses: actions/github-script@v8
@@ -47,5 +47,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `✅ **Cloudflare Pages build verified!**\n\n🔧 Build output generated successfully and ready for deployment.`
+              body: `✅ **OpenNext build verified!**\n\n🔧 Build output generated successfully and ready for deployment.`
             });

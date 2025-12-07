@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "edge";
 
 /**
  * GET /api/plans
@@ -11,7 +10,7 @@ export const runtime = "edge";
 export async function GET() {
 	try {
 		// Access D1 database
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const d1Database = env.DATABASE as D1Database;
 
 		if (!d1Database) {

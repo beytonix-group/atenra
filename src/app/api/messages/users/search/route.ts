@@ -4,7 +4,6 @@ import { users } from "@/server/db/schema";
 import { eq, like, or, and, ne, sql } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 // GET - Search users to start a conversation with
 export async function GET(request: NextRequest) {

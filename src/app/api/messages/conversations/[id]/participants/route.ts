@@ -5,7 +5,6 @@ import { eq, and, inArray, sql } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { z } from "zod";
 
-export const runtime = "edge";
 
 const addParticipantsSchema = z.object({
 	userIds: z.array(z.number().int().positive()).min(1, "At least one user required"),
@@ -14,7 +13,7 @@ const addParticipantsSchema = z.object({
 // POST - Add participants to a group conversation
 export async function POST(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const currentUser = await getCurrentUser();
@@ -22,7 +21,8 @@ export async function POST(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const conversationId = parseInt(params.id);
+		const { id } = await params;
+		const conversationId = parseInt(id);
 		if (isNaN(conversationId)) {
 			return NextResponse.json({ error: "Invalid conversation ID" }, { status: 400 });
 		}
@@ -154,7 +154,7 @@ export async function POST(
 // DELETE - Remove a participant from conversation (admin only)
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const currentUser = await getCurrentUser();
@@ -162,7 +162,8 @@ export async function DELETE(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const conversationId = parseInt(params.id);
+		const { id } = await params;
+		const conversationId = parseInt(id);
 		if (isNaN(conversationId)) {
 			return NextResponse.json({ error: "Invalid conversation ID" }, { status: 400 });
 		}

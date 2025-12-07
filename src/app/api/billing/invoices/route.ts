@@ -4,7 +4,6 @@ import { db } from "@/server/db";
 import { invoices, users } from "@/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function GET(request: NextRequest) {
 	try {

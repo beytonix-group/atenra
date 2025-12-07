@@ -6,7 +6,6 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { trackActivity } from "@/lib/server-activity-tracker";
 
-export const runtime = "edge";
 
 const updateProfileSchema = z.object({
   firstName: z.string().max(30).nullish().transform(val => val || ""),

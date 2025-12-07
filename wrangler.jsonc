@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "atenra",
+  "compatibility_date": "2024-12-30",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "atenra"
+    }
+  ],
+  // D1 Database binding
+  "d1_databases": [
+    {
+      "binding": "DATABASE",
+      "database_name": "atenra-dev-db",
+      "database_id": "7ed327c0-e838-4fd5-8369-a6b5e90dd04d",
+      "migrations_dir": "./drizzle"
+    }
+  ]
+}

@@ -6,7 +6,6 @@ import { eq, and, desc } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
 
-export const runtime = "edge";
 
 export async function GET(request: NextRequest) {
 	try {

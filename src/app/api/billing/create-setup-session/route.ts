@@ -7,7 +7,6 @@ import { stripe } from "@/lib/stripe";
 import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
 import { getAppUrl } from "@/lib/stripe";
 
-export const runtime = "edge";
 
 export async function POST(request: NextRequest) {
 	try {

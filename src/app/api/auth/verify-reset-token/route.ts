@@ -4,7 +4,6 @@ import { verificationTokens } from "@/server/db/schema";
 import { eq, and, gt } from "drizzle-orm";
 import { z } from "zod";
 
-export const runtime = "edge";
 
 const verifyTokenSchema = z.object({
 	token: z.string().min(1, "Token is required"),

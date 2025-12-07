@@ -5,12 +5,11 @@ import { eq, and } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import { sendInvitationEmail } from "@/lib/email-service";
 
-export const runtime = "edge";
 
 // GET - Fetch all pending invitations for a company
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const isAdmin = await isSuperAdmin();
@@ -18,7 +17,8 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const companyId = parseInt(params.id);
+    const { id } = await params;
+    const companyId = parseInt(id);
 
     if (isNaN(companyId)) {
       return NextResponse.json({ error: "Invalid company ID" }, { status: 400 });
@@ -69,7 +69,7 @@ export async function GET(
 // POST - Resend invitation email
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const isAdmin = await isSuperAdmin();
@@ -77,7 +77,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const companyId = parseInt(params.id);
+    const { id } = await params;
+    const companyId = parseInt(id);
 
     if (isNaN(companyId)) {
       return NextResponse.json({ error: "Invalid company ID" }, { status: 400 });
@@ -174,7 +175,7 @@ export async function POST(
 // DELETE - Cancel/revoke pending invitation and clean up user account
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const isAdmin = await isSuperAdmin();
@@ -182,7 +183,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const companyId = parseInt(params.id);
+    const { id } = await params;
+    const companyId = parseInt(id);
 
     if (isNaN(companyId)) {
       return NextResponse.json({ error: "Invalid company ID" }, { status: 400 });

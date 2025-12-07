@@ -3,7 +3,6 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BarChart3 } from "lucide-react";
 
-export const runtime = "edge";
 
 export default async function AnalyticsPage() {
   const session = await auth();

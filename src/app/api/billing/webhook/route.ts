@@ -3,7 +3,6 @@ import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { handleStripeWebhook } from "@/lib/webhook-handler";
 
-export const runtime = "edge";
 
 /**
  * POST /api/billing/webhook

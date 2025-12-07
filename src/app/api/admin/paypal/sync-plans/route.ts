@@ -38,11 +38,10 @@
  */
 
 import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import { syncPlanWithPayPal, syncAllPlansWithPayPal, type PlanToSyncWithPayPal } from "@/lib/paypal-plans";
 
-export const runtime = "edge";
 
 interface SyncRequestBody {
 	planId?: number;
@@ -63,7 +62,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		const body = (await request.json().catch(() => ({}))) as SyncRequestBody;
 
 		// Get environment
-		const env = getRequestContext().env as {
+		const env = getCloudflareContext().env as {
 			DATABASE: D1Database;
 			PAYPAL_CLIENT_ID?: string;
 			PAYPAL_CLIENT_SECRET?: string;

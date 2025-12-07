@@ -5,7 +5,6 @@ import { FAQ } from "@/components/more/FAQ";
 import { FooterSection } from "@/components/landing/FooterSection";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
-export const runtime = "edge";
 
 export default function FAQPage() {
 	const { nt } = useLanguage();

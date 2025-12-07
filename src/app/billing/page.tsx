@@ -3,7 +3,6 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BillingContent } from "@/components/billing/BillingContent";
 
-export const runtime = "edge";
 
 export default async function BillingPage() {
 	const session = await auth();

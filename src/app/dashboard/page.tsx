@@ -17,7 +17,6 @@ import {
   ArrowRight
 } from "lucide-react";
 
-export const runtime = "edge";
 
 export default async function DashboardPage() {
   const session = await auth();

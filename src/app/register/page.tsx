@@ -3,7 +3,6 @@ import { SignUpForm } from "@/components/auth/SignUpForm";
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 
-export const runtime = "edge";
 
 export const metadata = {
 	title: "Sign Up - Atenra",

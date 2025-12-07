@@ -9,7 +9,6 @@ import { trackActivity } from "@/lib/server-activity-tracker";
 import { auth } from "@/server/auth";
 import { sendInvitationEmail } from "@/lib/email-service";
 
-export const runtime = "edge";
 
 const createEmployeeSchema = z.object({
 	email: z.string().email("Invalid email address"),
@@ -30,10 +29,11 @@ const createEmployeeSchema = z.object({
 // GET - Fetch all employees for a company
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const companyId = parseInt(params.id);
+		const { id } = await params;
+		const companyId = parseInt(id);
 
 		if (isNaN(companyId)) {
 			return NextResponse.json({ error: "Invalid company ID" }, { status: 400 });
@@ -98,10 +98,11 @@ export async function GET(
 // POST - Create new employee and link to company
 export async function POST(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const companyId = parseInt(params.id);
+		const { id } = await params;
+		const companyId = parseInt(id);
 
 		if (isNaN(companyId)) {
 			return NextResponse.json({ error: "Invalid company ID" }, { status: 400 });
@@ -377,10 +378,11 @@ export async function POST(
 // DELETE - Remove employee from company
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const companyId = parseInt(params.id);
+		const { id } = await params;
+		const companyId = parseInt(id);
 
 		if (isNaN(companyId)) {
 			return NextResponse.json({ error: "Invalid company ID" }, { status: 400 });

@@ -4,7 +4,6 @@ import { users } from "@/server/db/schema";
 import { inArray } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 // Online threshold: 60 seconds (user is online if active within last 60 seconds)
 const ONLINE_THRESHOLD_SECONDS = 60;

@@ -6,7 +6,6 @@ import { Toaster } from "sonner";
 import { DynamicFavicon } from "@/components/ui/dynamic-favicon";
 import { SplashScreen } from "@/components/ui/SplashScreen";
 
-export const runtime = 'edge';
 
 const inter = Inter({ subsets: ["latin"] });
 

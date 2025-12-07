@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 export async function GET() {
 	try {

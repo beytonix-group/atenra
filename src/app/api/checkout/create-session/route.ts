@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { stripe, getAppUrl } from "@/lib/stripe";
 import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type Stripe from "stripe";
 
-export const runtime = "edge";
 
 interface CreateCheckoutSessionBody {
 	planId: number;
@@ -39,7 +38,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		}
 
 		// Get database access
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		// Get user ID from database

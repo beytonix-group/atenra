@@ -4,7 +4,6 @@ import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 export async function POST(request: NextRequest) {
 	try {

@@ -4,7 +4,6 @@ import { users } from "@/server/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 // POST - Send heartbeat to update user's last active timestamp
 export async function POST() {

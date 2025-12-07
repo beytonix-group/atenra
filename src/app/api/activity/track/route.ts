@@ -4,7 +4,6 @@ import { db } from "@/server/db";
 import { userActivities, users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
-export const runtime = "edge";
 
 interface ActivityEvent {
   action: string;

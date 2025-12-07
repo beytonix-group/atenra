@@ -3,7 +3,6 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { CreditCard } from "lucide-react";
 
-export const runtime = "edge";
 
 export default async function BillingPage() {
   const session = await auth();

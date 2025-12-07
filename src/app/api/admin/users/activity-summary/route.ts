@@ -4,7 +4,6 @@ import { users, userActivities, userRoles, roles } from "@/server/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 export async function GET() {
 	try {

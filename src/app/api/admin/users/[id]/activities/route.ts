@@ -6,11 +6,10 @@ import { isSuperAdmin } from "@/lib/auth-helpers";
 import { trackActivity } from "@/lib/server-activity-tracker";
 import { auth } from "@/server/auth";
 
-export const runtime = "edge";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check if user is super admin
@@ -19,7 +18,8 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
     if (isNaN(userId)) {
       return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
     }

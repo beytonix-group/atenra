@@ -3,7 +3,6 @@ import { db } from "@/server/db";
 import { serviceCategories } from "@/server/db/schema";
 import { eq, asc, isNull } from "drizzle-orm";
 
-export const runtime = "edge";
 
 // GET - Fetch all active service categories with hierarchy
 export async function GET() {
