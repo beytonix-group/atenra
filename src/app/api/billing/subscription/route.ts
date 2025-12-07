@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getEffectivePlan, getUserActiveSubscription } from "@/lib/subscriptions";
 
-export const runtime = "edge";
 
 /**
  * GET /api/billing/subscription
@@ -18,7 +17,7 @@ export async function GET(): Promise<NextResponse> {
 		}
 
 		// Get user ID from database
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		const user = await db

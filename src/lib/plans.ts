@@ -1,4 +1,4 @@
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export type PlanSlug = "essentials" | "premium" | "executive";
 
@@ -24,7 +24,7 @@ export interface Plan {
  * @returns Plan or null
  */
 export async function getPlanBySlug(slug: PlanSlug): Promise<Plan | null> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	// Map slug to plan name (capitalize first letter)
@@ -61,7 +61,7 @@ export async function getPlanBySlug(slug: PlanSlug): Promise<Plan | null> {
  * Get all active plans
  */
 export async function getActivePlans(): Promise<Plan[]> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const result = await db
@@ -95,7 +95,7 @@ export async function getActivePlans(): Promise<Plan[]> {
  * Get plan by ID
  */
 export async function getPlanById(planId: number): Promise<Plan | null> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const plan = await db

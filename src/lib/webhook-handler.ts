@@ -1,12 +1,12 @@
 import type Stripe from "stripe";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { upsertSubscription, getSubscriptionByProviderSubscriptionId } from "./subscriptions";
 
 /**
  * Check if webhook event has already been processed (idempotency)
  */
 async function isEventProcessed(stripeEventId: string): Promise<boolean> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const event = await db
@@ -27,7 +27,7 @@ async function isEventProcessed(stripeEventId: string): Promise<boolean> {
  * Store webhook event in database
  */
 async function storeWebhookEvent(stripeEventId: string, eventType: string, eventData: string): Promise<number> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const result = await db
@@ -47,7 +47,7 @@ async function storeWebhookEvent(stripeEventId: string, eventType: string, event
  * Mark webhook event as processed
  */
 async function markEventProcessed(eventId: number): Promise<void> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	await db
@@ -66,7 +66,7 @@ async function markEventProcessed(eventId: number): Promise<void> {
  * Mark webhook event as failed
  */
 async function markEventFailed(eventId: number, error: string): Promise<void> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	await db
@@ -85,7 +85,7 @@ async function markEventFailed(eventId: number, error: string): Promise<void> {
  * Get user ID from Stripe customer ID
  */
 async function getUserIdFromCustomer(stripeCustomerId: string): Promise<number | null> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const user = await db
@@ -178,7 +178,7 @@ async function handleSubscriptionEvent(subscription: Stripe.Subscription): Promi
  * Handle invoice events
  */
 async function handleInvoiceEvent(invoice: Stripe.Invoice): Promise<void> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const userId = await getUserIdFromCustomer(invoice.customer as string);
@@ -285,7 +285,7 @@ async function handleInvoiceEvent(invoice: Stripe.Invoice): Promise<void> {
  * Handle payment_intent events
  */
 async function handlePaymentIntentEvent(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const userId = await getUserIdFromCustomer(paymentIntent.customer as string);

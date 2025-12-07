@@ -3,7 +3,6 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 export default async function UsersPage() {
   const session = await auth();

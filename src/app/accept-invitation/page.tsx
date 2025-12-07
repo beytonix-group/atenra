@@ -9,10 +9,9 @@ import { AlertCircle, CheckCircle, XCircle, Clock } from "lucide-react";
 import Link from "next/link";
 
 interface PageProps {
-  searchParams: { token?: string };
+  searchParams: Promise<{ token?: string }>;
 }
 
-export const runtime = "edge";
 
 async function AcceptInvitationContent({ token }: { token?: string }) {
   // Check if token is provided
@@ -186,6 +185,7 @@ async function AcceptInvitationContent({ token }: { token?: string }) {
 }
 
 export default async function AcceptInvitationPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await searchParams;
   return (
     <Suspense
       fallback={
@@ -197,7 +197,7 @@ export default async function AcceptInvitationPage({ searchParams }: PageProps) 
         </div>
       }
     >
-      <AcceptInvitationContent token={searchParams.token} />
+      <AcceptInvitationContent token={resolvedSearchParams.token} />
     </Suspense>
   );
 }

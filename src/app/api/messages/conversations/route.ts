@@ -5,7 +5,6 @@ import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { z } from "zod";
 
-export const runtime = "edge";
 
 const createConversationSchema = z.object({
 	participantIds: z.array(z.number().int().positive()).min(1, "At least one participant required"),

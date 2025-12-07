@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { stripe } from "@/lib/stripe";
 import { getUserActiveSubscription } from "@/lib/subscriptions";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "edge";
 
 /**
  * POST /api/billing/resume
@@ -19,7 +18,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		}
 
 		// Get user ID from database
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		const user = await db

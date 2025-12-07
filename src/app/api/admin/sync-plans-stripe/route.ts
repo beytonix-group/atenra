@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import { syncAllPlansWithStripe, syncPlanWithStripe } from "@/lib/stripe-plans";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "edge";
 
 interface SyncRequestBody {
 	planId?: number; // If provided, sync only this plan
@@ -34,7 +33,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		// Sync single plan or all plans
 		if (body.planId) {
 			// Sync single plan
-			const env = getRequestContext().env;
+			const env = getCloudflareContext().env;
 			const db = env.DATABASE as D1Database;
 
 			const plan = await db

@@ -5,7 +5,6 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { CreateCompanyForm } from "@/components/company/CreateCompanyForm";
 import { fetchServiceCategories } from "@/app/marketplace/actions";
 
-export const runtime = "edge";
 
 export default async function CreateCompanyPage() {
 	const session = await auth();

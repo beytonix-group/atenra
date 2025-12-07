@@ -3,7 +3,7 @@
 import { db } from '@/server/db';
 import { companies, serviceCategories, companyServiceCategories, companyUsers, users, userRoles, roles } from '@/server/db/schema';
 import { eq, and, sql, desc, asc, inArray, or, like } from 'drizzle-orm';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 export type CompanyWithCategories = typeof companies.$inferSelect & {
   categories: Array<{

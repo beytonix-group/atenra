@@ -12,7 +12,7 @@
  * IMPORTANT: This sync should only be triggered by super admin users.
  */
 
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
 	createPayPalPlan,
 	getPayPalPlan,
@@ -331,7 +331,7 @@ export async function archivePayPalPlanResources(
  * @returns PayPal plan ID
  */
 export async function ensurePayPalPlanForPlan(planId: number): Promise<string> {
-	const env = getRequestContext().env as {
+	const env = getCloudflareContext().env as {
 		DATABASE: D1Database;
 		PAYPAL_CLIENT_ID?: string;
 		PAYPAL_CLIENT_SECRET?: string;

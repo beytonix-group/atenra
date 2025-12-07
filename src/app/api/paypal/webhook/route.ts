@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getPayPalAccessToken, verifyPayPalWebhook, mapPayPalStatus, type PayPalSubscription } from "@/lib/paypal";
 import { upsertSubscription, getSubscriptionByProviderSubscriptionId } from "@/lib/subscriptions";
 
-export const runtime = "edge";
 
 /**
  * POST /api/paypal/webhook
@@ -44,7 +43,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		console.log(`[PayPal Webhook] Received event: ${body.event_type} (ID: ${body.id})`);
 
 		// Get environment and database
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		// Extract PayPal webhook headers (case-insensitive)

@@ -9,7 +9,6 @@ import { db } from "@/server/db";
 import { users, userServicePreferences } from "@/server/db/schema";
 import { eq, asc } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export const metadata = {
 	title: "Marketplace - Atenra",
@@ -27,7 +26,7 @@ interface SearchParams {
 export default async function MarketplacePage({
 	searchParams
 }: {
-	searchParams: SearchParams
+	searchParams: Promise<SearchParams>
 }) {
 	const session = await auth();
 
@@ -35,6 +34,7 @@ export default async function MarketplacePage({
 		redirect("/auth/signin");
 	}
 
+	const resolvedSearchParams = await searchParams;
 	const isAdmin = await isSuperAdmin();
 
 	// Use different layout based on user role
@@ -45,7 +45,7 @@ export default async function MarketplacePage({
 	let defaultCategoryId: number | undefined = undefined;
 	let isUsingPreferences = false;
 
-	if (!isAdmin && !('category' in searchParams) && session.user.id) {
+	if (!isAdmin && !('category' in resolvedSearchParams) && session.user.id) {
 		try {
 			// Get user's database ID
 			const user = await db
@@ -76,14 +76,14 @@ export default async function MarketplacePage({
 	}
 
 	// Parse search params
-	const page = Number(searchParams.page) || 1;
-	const limit = Number(searchParams.limit) || 25;
+	const page = Number(resolvedSearchParams.page) || 1;
+	const limit = Number(resolvedSearchParams.limit) || 25;
 	// Use category from URL if present (even if empty string), otherwise use preference
-	const categoryId = 'category' in searchParams && searchParams.category
-		? Number(searchParams.category)
+	const categoryId = 'category' in resolvedSearchParams && resolvedSearchParams.category
+		? Number(resolvedSearchParams.category)
 		: defaultCategoryId;
-	const sortBy = (searchParams.sort || 'createdAt') as 'name' | 'createdAt';
-	const search = searchParams.search || '';
+	const sortBy = (resolvedSearchParams.sort || 'createdAt') as 'name' | 'createdAt';
+	const search = resolvedSearchParams.search || '';
 
 	// Fetch initial data
 	const [companiesData, categories] = await Promise.all([

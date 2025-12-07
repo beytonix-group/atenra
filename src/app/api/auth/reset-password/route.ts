@@ -5,7 +5,6 @@ import { eq, and, gt } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-export const runtime = "edge";
 
 const resetPasswordSchema = z.object({
 	token: z.string().min(1, "Token is required"),

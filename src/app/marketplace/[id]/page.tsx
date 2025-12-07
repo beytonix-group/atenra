@@ -6,12 +6,11 @@ import { isSuperAdmin, hasCompanyAccess, hasCompanyManagementAccess } from "@/li
 import { fetchCompanyById, fetchCompanyEmployees } from "../actions";
 import { CompanyDetailContent } from "@/components/marketplace/CompanyDetailContent";
 
-export const runtime = "edge";
 
 export default async function CompanyDetailPage({
 	params,
 }: {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
 	const session = await auth();
 
@@ -19,7 +18,8 @@ export default async function CompanyDetailPage({
 		redirect("/auth/signin");
 	}
 
-	const companyId = Number(params.id);
+	const { id } = await params;
+	const companyId = Number(id);
 	const isAdmin = await isSuperAdmin();
 
 	// Use different layout based on user role
@@ -57,9 +57,10 @@ export default async function CompanyDetailPage({
 export async function generateMetadata({
 	params,
 }: {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
-	const company = await fetchCompanyById(Number(params.id));
+	const { id } = await params;
+	const company = await fetchCompanyById(Number(id));
 
 	if (!company) {
 		return {

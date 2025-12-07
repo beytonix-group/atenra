@@ -1,7 +1,6 @@
 import { PricingSection } from "@/components/landing/PricingSection";
 import { Navigation } from "@/components/landing/Navigation";
 
-export const runtime = "edge";
 
 export const metadata = {
 	title: "Pricing - Atenra",

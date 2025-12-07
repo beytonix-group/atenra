@@ -3,7 +3,6 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PayPalSubscriptionPage } from "@/components/paypal/paypal-subscription-page";
 
-export const runtime = "edge";
 
 /**
  * PayPal Subscription Page

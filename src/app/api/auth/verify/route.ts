@@ -4,7 +4,6 @@ import { users } from "@/server/db/schema";
 import { emailVerificationTokens } from "@/server/db/verification-tokens";
 import { eq, and, gt } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function GET(request: NextRequest) {
 	try {

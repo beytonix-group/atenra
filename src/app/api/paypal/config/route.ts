@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "edge";
 
 /**
  * GET /api/paypal/config
@@ -13,7 +12,7 @@ export const runtime = "edge";
  */
 export async function GET(): Promise<NextResponse> {
 	try {
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 
 		const planId = env.PAYPAL_SUBSCRIPTION_PLAN_ID || process.env.PAYPAL_SUBSCRIPTION_PLAN_ID;
 

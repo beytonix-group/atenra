@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { checkSuperAdmin } from "@/lib/auth-helpers";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "edge";
 
 interface CreateCompanyRequest {
 	name: string;
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		const body = await request.json() as CreateCompanyRequest;

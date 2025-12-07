@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getPayPalAccessToken, getPayPalSubscription, getPayPalPlanId, mapPayPalStatus } from "@/lib/paypal";
 import { upsertSubscription } from "@/lib/subscriptions";
 
-export const runtime = "edge";
 
 /**
  * POST /api/paypal/subscription/attach
@@ -60,7 +59,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		}
 
 		// Get database connection
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		// Get internal user ID from auth user ID

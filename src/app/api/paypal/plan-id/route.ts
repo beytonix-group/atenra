@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "edge";
 
 /**
  * GET /api/paypal/plan-id?planId=123
@@ -28,7 +27,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 			return NextResponse.json({ error: "Missing planId parameter" }, { status: 400 });
 		}
 
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		// Fetch the plan's PayPal plan ID from database

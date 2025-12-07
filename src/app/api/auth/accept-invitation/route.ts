@@ -5,7 +5,6 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { hashPasswordEdge } from "@/lib/password-utils";
 
-export const runtime = "edge";
 
 const acceptInvitationSchema = z.object({
   token: z.string().uuid("Invalid token format"),

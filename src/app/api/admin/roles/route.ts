@@ -3,7 +3,6 @@ import { db } from "@/server/db";
 import { roles } from "@/server/db/schema";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 export async function GET() {
 	try {

@@ -6,7 +6,6 @@ import { db } from "@/server/db";
 import { users, userServicePreferences } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export const metadata = {
   title: "Set Your Preferences - Atenra",

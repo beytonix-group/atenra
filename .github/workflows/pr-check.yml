@@ -31,18 +31,18 @@ jobs:
       - name: Build Next.js application
         run: bun run build
 
-      - name: Build Cloudflare Pages
-        run: bun run pages:build
+      - name: Build with OpenNext
+        run: bunx opennextjs-cloudflare build
 
       - name: Verify build output
         run: |
-          if [ ! -d ".vercel/output/static" ]; then
-            echo "❌ Cloudflare Pages build output not found"
+          if [ ! -d ".open-next" ]; then
+            echo "❌ OpenNext build output not found"
             exit 1
           fi
-          echo "✅ Cloudflare Pages build successful"
+          echo "✅ OpenNext build successful"
 
       - name: Check build size
         run: |
-          OUTPUT_SIZE=$(du -sh .vercel/output/static | cut -f1)
+          OUTPUT_SIZE=$(du -sh .open-next | cut -f1)
           echo "📦 Build output size: $OUTPUT_SIZE"

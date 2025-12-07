@@ -4,14 +4,16 @@ A comprehensive SaaS platform for professional service matching, subscription ma
 
 ## Tech Stack
 
-- **Next.js 14.2.5** with App Router and Edge Runtime
-- **Cloudflare Pages** for hosting and global deployment
+- **Next.js 15.5** with App Router
+- **OpenNext for Cloudflare** (`@opennextjs/cloudflare`) for deployment to Cloudflare Workers
+- **Cloudflare Workers** for hosting and global edge deployment
 - **Cloudflare D1** serverless SQLite database (local + production)
 - **Drizzle ORM 0.44.5** for type-safe database operations
 - **NextAuth v5** for authentication (Google OAuth)
 - **Shadcn UI + Radix UI + Tailwind CSS** for modern component library
 - **TypeScript 5** for type safety
 - **Bun 1.1.0+** for package management and runtime
+- **React 19** for UI rendering
 
 ## Features
 
@@ -22,7 +24,7 @@ A comprehensive SaaS platform for professional service matching, subscription ma
 - 👤 **User profile management** - Comprehensive profile forms with validation
 - 🎨 **Dark/light theme** - System preference detection with manual toggle
 - 📱 **Fully responsive design** - Mobile-first approach for all pages and dashboards
-- 🚀 **Edge runtime optimized** - Built for Cloudflare Workers/Pages
+- 🚀 **Cloudflare Workers optimized** - Built with OpenNext for Cloudflare
 
 ### Business Features
 
@@ -111,12 +113,13 @@ bun run db:query:prod    # Execute SQL on remote D1 database (requires .env)
 ### Building & Deployment
 
 ```bash
-bun run pages:build      # Build for Cloudflare Pages (@cloudflare/next-on-pages)
-bun run preview          # Preview built app locally with Wrangler
-bun run deploy           # Deploy to Cloudflare Pages
+bunx opennextjs-cloudflare build    # Build for Cloudflare Workers (OpenNext)
+bun run preview                     # Build and preview locally with Wrangler
+bun run deploy                      # Build and deploy to Cloudflare Workers
+bun run upload                      # Build and upload to Cloudflare (without deployment)
 ```
 
-#### Deployment to Cloudflare Pages
+#### Deployment to Cloudflare Workers
 
 1. **Setup database on Cloudflare:**
 
@@ -124,7 +127,7 @@ bun run deploy           # Deploy to Cloudflare Pages
    bunx wrangler d1 create atenra-prod-db
    ```
 
-2. **Update `wrangler.toml`** with the new database ID
+2. **Update `wrangler.jsonc`** with the new database ID in the `d1_databases` section
 
 3. **Apply migrations to production:**
 
@@ -142,6 +145,12 @@ bun run deploy           # Deploy to Cloudflare Pages
    ```bash
    bun run deploy
    ```
+
+#### Build Output
+
+The OpenNext build generates output in the `.open-next` directory:
+- `.open-next/worker.js` - The Cloudflare Worker bundle
+- `.open-next/assets` - Static assets for the CDN
 
 ## Environment Configuration
 
@@ -190,7 +199,7 @@ SUPER_USER_EMAIL=admin@example.com                   # Optional: Super admin ema
 ```
 src/
 ├── app/                      # Next.js App Router pages
-│   ├── api/                 # API routes (edge runtime)
+│   ├── api/                 # API routes
 │   │   ├── auth/           # NextAuth endpoints
 │   │   ├── plans/          # Subscription plan endpoints
 │   │   ├── profile/        # User profile endpoints
@@ -232,6 +241,11 @@ drizzle/                     # Database migrations
 ├── 0000_setup.sql          # Local database setup
 ├── 0000_setup_remote.sql   # Production database setup
 └── meta/                   # Migration metadata
+
+# Configuration files
+wrangler.jsonc               # Cloudflare Workers configuration (D1 bindings, assets)
+open-next.config.ts          # OpenNext configuration for Cloudflare
+next.config.mjs              # Next.js configuration
 ```
 
 ## Authentication Setup
@@ -260,7 +274,8 @@ drizzle/                     # Database migrations
 
 - **TypeScript strict mode** - All code must pass strict type checking
 - **Mobile-first responsive** - Design for mobile, enhance for desktop
-- **Edge runtime compatibility** - Avoid Node.js-specific APIs
+- **Cloudflare Workers compatibility** - Use `getCloudflareContext()` from `@opennextjs/cloudflare` for accessing D1 and other bindings
+- **Next.js 15 async params** - Page `params` and `searchParams` are Promises and must be awaited
 - **Use Shadcn UI components** - Maintain consistent design system
 - **Internationalize all text** - Add translations for new UI text
 

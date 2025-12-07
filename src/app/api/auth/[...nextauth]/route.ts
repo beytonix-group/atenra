@@ -8,7 +8,6 @@ import { eq } from "drizzle-orm";
 import { verifyPasswordPBKDF2 } from "@/lib/password-utils";
 import { getEnv } from "@/lib/env-edge";
 
-export const runtime = "edge";
 
 const auth = NextAuth({
     secret: getEnv("AUTH_SECRET"),

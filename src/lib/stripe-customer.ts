@@ -1,4 +1,4 @@
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { stripe } from "./stripe";
 
 export interface User {
@@ -17,7 +17,7 @@ export interface User {
  * @returns Stripe customer ID
  */
 export async function getOrCreateStripeCustomer(userId: number): Promise<string> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	// Get user from database
@@ -75,7 +75,7 @@ export async function getOrCreateStripeCustomer(userId: number): Promise<string>
  * Get Stripe customer ID for a user (throws if not found)
  */
 export async function getStripeCustomerId(userId: number): Promise<string> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const user = await db

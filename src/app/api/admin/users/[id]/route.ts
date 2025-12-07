@@ -7,7 +7,6 @@ import { z } from "zod";
 import { trackActivity } from "@/lib/server-activity-tracker";
 import { auth } from "@/server/auth";
 
-export const runtime = "edge";
 
 const updateUserSchema = z.object({
 	email: z.string().email("Invalid email address"),
@@ -42,7 +41,7 @@ interface UpdateUserBody {
 
 export async function PATCH(
 	request: Request,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const isAdmin = await isSuperAdmin();
@@ -50,7 +49,8 @@ export async function PATCH(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 		}
 
-		const userId = parseInt(params.id);
+		const { id } = await params;
+		const userId = parseInt(id);
 		const body = await request.json();
 		
 		// Validate the request body

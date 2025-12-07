@@ -5,7 +5,6 @@ import { eq, and, desc, lt, gt, asc, sql } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { z } from "zod";
 
-export const runtime = "edge";
 
 const sendMessageSchema = z.object({
 	content: z.string().min(1).max(10000),
@@ -15,7 +14,7 @@ const sendMessageSchema = z.object({
 // GET - Get messages for a conversation (with pagination)
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const currentUser = await getCurrentUser();
@@ -23,7 +22,8 @@ export async function GET(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const conversationId = parseInt(params.id);
+		const { id } = await params;
+		const conversationId = parseInt(id);
 		if (isNaN(conversationId)) {
 			return NextResponse.json({ error: "Invalid conversation ID" }, { status: 400 });
 		}
@@ -129,7 +129,7 @@ export async function GET(
 // POST - Send a message
 export async function POST(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const currentUser = await getCurrentUser();
@@ -137,7 +137,8 @@ export async function POST(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const conversationId = parseInt(params.id);
+		const { id } = await params;
+		const conversationId = parseInt(id);
 		if (isNaN(conversationId)) {
 			return NextResponse.json({ error: "Invalid conversation ID" }, { status: 400 });
 		}

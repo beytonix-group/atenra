@@ -8,7 +8,6 @@ import { z } from "zod";
 import { trackActivity } from "@/lib/server-activity-tracker";
 import { auth } from "@/server/auth";
 
-export const runtime = "edge";
 
 const createUserSchema = z.object({
 	email: z.string().email("Invalid email address"),

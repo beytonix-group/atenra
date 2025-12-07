@@ -5,7 +5,6 @@ import { paymentMethods, users } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 
-export const runtime = "edge";
 
 export async function POST(request: NextRequest) {
 	try {

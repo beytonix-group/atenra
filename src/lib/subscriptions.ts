@@ -1,4 +1,4 @@
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { type PlanSlug } from "./plans";
 
 export interface Subscription {
@@ -24,7 +24,7 @@ export interface Subscription {
  * Get user's active subscription
  */
 export async function getUserActiveSubscription(userId: number): Promise<Subscription | null> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const subscription = await db
@@ -65,7 +65,7 @@ export async function getUserActiveSubscription(userId: number): Promise<Subscri
 export async function getSubscriptionByProviderSubscriptionId(
 	providerSubscriptionId: string
 ): Promise<Subscription | null> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const subscription = await db
@@ -118,7 +118,7 @@ export async function getEffectivePlan(userId: number): Promise<{
 	}
 
 	// Get plan name from database
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const plan = await db
@@ -186,7 +186,7 @@ export async function upsertSubscription(data: {
 	canceledAt?: number;
 	stripeCheckoutSessionId?: string;
 }): Promise<void> {
-	const env = getRequestContext().env;
+	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
 	const now = Math.floor(Date.now() / 1000);

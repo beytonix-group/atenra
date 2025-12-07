@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { checkSuperAdmin } from "@/lib/auth-helpers";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { stripe } from "@/lib/stripe";
 
-export const runtime = "edge";
 
 interface UpdatePlanBody {
 	price?: number;
@@ -16,7 +15,7 @@ interface UpdatePlanBody {
  * GET /api/admin/plans/[id]
  * Get a specific plan details
  */
-export async function GET(request: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
 	try {
 		// Check super admin access
 		const adminCheck = await checkSuperAdmin();
@@ -24,12 +23,13 @@ export async function GET(request: Request, { params }: { params: { id: string }
 			return adminCheck.response!;
 		}
 
-		const planId = parseInt(params.id);
+		const { id } = await params;
+		const planId = parseInt(id);
 		if (isNaN(planId)) {
 			return NextResponse.json({ error: "Invalid plan ID" }, { status: 400 });
 		}
 
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		const plan = await db
@@ -60,7 +60,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
  * PATCH /api/admin/plans/[id]
  * Update plan details (creates new Stripe Price if price changes)
  */
-export async function PATCH(request: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
 	try {
 		// Check super admin access
 		const adminCheck = await checkSuperAdmin();
@@ -68,14 +68,15 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 			return adminCheck.response!;
 		}
 
-		const planId = parseInt(params.id);
+		const { id } = await params;
+		const planId = parseInt(id);
 		if (isNaN(planId)) {
 			return NextResponse.json({ error: "Invalid plan ID" }, { status: 400 });
 		}
 
 		const body = (await request.json()) as UpdatePlanBody;
 
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
 
 		// Get current plan

@@ -4,12 +4,11 @@ import { conversationParticipants } from "@/server/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 // POST - Mark conversation as read
 export async function POST(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const currentUser = await getCurrentUser();
@@ -17,7 +16,8 @@ export async function POST(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const conversationId = parseInt(params.id);
+		const { id } = await params;
+		const conversationId = parseInt(id);
 		if (isNaN(conversationId)) {
 			return NextResponse.json({ error: "Invalid conversation ID" }, { status: 400 });
 		}

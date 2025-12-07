@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkSuperAdmin } from "@/lib/auth-helpers";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "edge";
 
 interface SetPlanPriceBody {
 	name: "Essentials" | "Premium" | "Executive";
@@ -55,7 +54,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		}
 
 		// Access D1 database directly for raw SQL execution
-		const env = getRequestContext().env;
+		const env = getCloudflareContext().env;
 		const d1Database = env.DATABASE as D1Database;
 
 		if (!d1Database) {

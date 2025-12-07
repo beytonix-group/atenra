@@ -1,7 +1,6 @@
 import { Navigation } from "@/components/landing/Navigation";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 
-export const runtime = "edge";
 
 export const metadata = {
 	title: "Reset Password - Atenra",

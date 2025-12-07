@@ -4,7 +4,6 @@ import { conversations, conversationParticipants, messages, users } from "@/serv
 import { eq, and, desc, sql, inArray, gt } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 // GET - Poll for updates since a given timestamp
 export async function GET(request: NextRequest) {

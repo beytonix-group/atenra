@@ -5,7 +5,6 @@ import { CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export const runtime = "edge";
 
 interface SearchParams {
 	session_id?: string;
@@ -14,7 +13,7 @@ interface SearchParams {
 export default async function BillingSuccessPage({
 	searchParams,
 }: {
-	searchParams: SearchParams;
+	searchParams: Promise<SearchParams>;
 }) {
 	const session = await auth();
 
@@ -22,7 +21,8 @@ export default async function BillingSuccessPage({
 		redirect("/login");
 	}
 
-	const sessionId = searchParams.session_id;
+	const resolvedSearchParams = await searchParams;
+	const sessionId = resolvedSearchParams.session_id;
 
 	return (
 		<DashboardLayout user={session.user}>

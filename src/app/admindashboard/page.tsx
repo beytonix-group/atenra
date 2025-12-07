@@ -4,7 +4,6 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 export default async function DashboardPage() {
   const session = await auth();

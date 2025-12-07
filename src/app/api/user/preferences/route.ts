@@ -6,7 +6,6 @@ import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
-export const runtime = "edge";
 
 const savePreferencesSchema = z.object({
   categoryIds: z.array(z.number()).min(1, "Please select at least one service category"),

@@ -6,7 +6,6 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { trackActivity } from "@/lib/server-activity-tracker";
 
-export const runtime = "edge";
 
 const registerSchema = z.object({
 	name: z.string().min(2, "Name must be at least 2 characters"),
