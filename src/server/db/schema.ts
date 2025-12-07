@@ -191,6 +191,7 @@ export const userServicePreferences = sqliteTable('user_service_preferences', {
 export const companies = sqliteTable('companies', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
+  einNumber: text('ein_number').notNull(),
   email: text('email'),
   phone: text('phone'),
   websiteUrl: text('website_url'),

@@ -7,6 +7,7 @@ export const runtime = "edge";
 
 interface CreateCompanyRequest {
 	name: string;
+	einNumber: string;
 	description?: string;
 	websiteUrl?: string;
 	logoUrl?: string;
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
 		const body = await request.json() as CreateCompanyRequest;
 		const {
 			name,
+			einNumber,
 			description,
 			websiteUrl,
 			logoUrl,
@@ -71,6 +73,22 @@ export async function POST(request: NextRequest) {
 		if (!name) {
 			return NextResponse.json(
 				{ error: "Company name is required" },
+				{ status: 400 }
+			);
+		}
+
+		if (!einNumber) {
+			return NextResponse.json(
+				{ error: "EIN number is required" },
+				{ status: 400 }
+			);
+		}
+
+		// Validate EIN format (XX-XXXXXXX)
+		const einPattern = /^\d{2}-\d{7}$/;
+		if (!einPattern.test(einNumber)) {
+			return NextResponse.json(
+				{ error: "EIN must be in format XX-XXXXXXX (9 digits)" },
 				{ status: 400 }
 			);
 		}
@@ -126,6 +144,7 @@ export async function POST(request: NextRequest) {
 				`
 				INSERT INTO companies (
 					name,
+					ein_number,
 					slug,
 					description,
 					website_url,
@@ -146,11 +165,12 @@ export async function POST(request: NextRequest) {
 					created_by_user_id,
 					created_at,
 					updated_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 			`
 			)
 			.bind(
 				name,
+				einNumber,
 				slug,
 				description || null,
 				websiteUrl || null,

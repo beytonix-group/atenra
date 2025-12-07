@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2, Clock, Send, X } from 'lucide-react';
+import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2, Clock, Send, X, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -294,6 +294,40 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 							</div>
 						</div>
 					</div>
+
+					{/* Admin-Only Business Information */}
+					{isAdmin && (
+						<div className="mt-6 pt-4 border-t">
+							<h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
+								<FileText className="h-4 w-4" />
+								Business Information (Admin Only)
+							</h3>
+							<div className="grid md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+								<div className="flex items-center gap-2">
+									<span className="text-muted-foreground">EIN:</span>
+									<span className="font-mono">{company.einNumber || 'Not provided'}</span>
+								</div>
+								{company.licenseNumber && (
+									<div className="flex items-center gap-2">
+										<span className="text-muted-foreground">License #:</span>
+										<span>{company.licenseNumber}</span>
+									</div>
+								)}
+								{company.insuranceNumber && (
+									<div className="flex items-center gap-2">
+										<span className="text-muted-foreground">Insurance #:</span>
+										<span>{company.insuranceNumber}</span>
+									</div>
+								)}
+								{company.memo && (
+									<div className="col-span-2 mt-2">
+										<span className="text-muted-foreground">Internal Memo:</span>
+										<p className="mt-1 text-sm bg-muted/50 p-2 rounded">{company.memo}</p>
+									</div>
+								)}
+							</div>
+						</div>
+					)}
 
 					{/* Member Since - Footer */}
 					<div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 pt-4 border-t">

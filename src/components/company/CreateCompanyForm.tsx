@@ -25,6 +25,7 @@ interface CreateCompanyFormProps {
 
 interface FormData {
 	name: string;
+	einNumber: string;
 	description: string;
 	websiteUrl: string;
 	logoUrl: string;
@@ -55,6 +56,7 @@ export function CreateCompanyForm({ categories }: CreateCompanyFormProps) {
 
 	const [formData, setFormData] = useState<FormData>({
 		name: "",
+		einNumber: "",
 		description: "",
 		websiteUrl: "",
 		logoUrl: "",
@@ -231,20 +233,49 @@ export function CreateCompanyForm({ categories }: CreateCompanyFormProps) {
 					<CardDescription>Enter the company&apos;s core details</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="name">
-							Company Name <span className="text-red-500">*</span>
-						</Label>
-						<Input
-							id="name"
-							value={formData.name}
-							onChange={(e) => handleInputChange("name", e.target.value)}
-							placeholder="e.g., Acme Corporation"
-							required
-						/>
-						<p className="text-xs text-muted-foreground">
-							A URL-friendly slug will be automatically generated from the company name
-						</p>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<Label htmlFor="name">
+								Company Name <span className="text-red-500">*</span>
+							</Label>
+							<Input
+								id="name"
+								value={formData.name}
+								onChange={(e) => handleInputChange("name", e.target.value)}
+								placeholder="e.g., Acme Corporation"
+								required
+							/>
+							<p className="text-xs text-muted-foreground">
+								A URL-friendly slug will be automatically generated from the company name
+							</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="einNumber">
+								EIN Number <span className="text-red-500">*</span>
+							</Label>
+							<Input
+								id="einNumber"
+								value={formData.einNumber}
+								onChange={(e) => {
+									// Format EIN as XX-XXXXXXX
+									const value = e.target.value.replace(/\D/g, "");
+									let formatted = value;
+									if (value.length > 2) {
+										formatted = `${value.slice(0, 2)}-${value.slice(2, 9)}`;
+									}
+									handleInputChange("einNumber", formatted);
+								}}
+								placeholder="XX-XXXXXXX"
+								maxLength={10}
+								required
+								pattern="\d{2}-\d{7}"
+								title="EIN must be in format XX-XXXXXXX (9 digits)"
+							/>
+							<p className="text-xs text-muted-foreground">
+								Employer Identification Number (Format: XX-XXXXXXX)
+							</p>
+						</div>
 					</div>
 
 					<div className="space-y-2">
