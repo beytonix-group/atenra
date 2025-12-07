@@ -2,13 +2,15 @@
 
 import { Message, formatMessageTime } from '@/lib/messages';
 import { cn } from '@/lib/utils';
+import { StatusIndicator } from '@/components/ui/status-indicator';
 
 interface MessageBubbleProps {
 	message: Message;
 	showSender?: boolean;
+	senderIsOnline?: boolean;  // For group chats - show sender's online status
 }
 
-export function MessageBubble({ message, showSender = false }: MessageBubbleProps) {
+export function MessageBubble({ message, showSender = false, senderIsOnline }: MessageBubbleProps) {
 	if (message.isDeleted) {
 		return (
 			<div className={cn(
@@ -55,8 +57,11 @@ export function MessageBubble({ message, showSender = false }: MessageBubbleProp
 		<div className="flex flex-col items-start">
 			{/* Name and timestamp row */}
 			<div className="flex items-center gap-2 mb-1">
-				<span className="font-semibold text-sm text-foreground">
+				<span className="font-semibold text-sm text-foreground flex items-center gap-1.5">
 					{message.sender.displayName}
+					{senderIsOnline !== undefined && (
+						<StatusIndicator isOnline={senderIsOnline} size="sm" />
+					)}
 				</span>
 				<span className="text-xs text-muted-foreground">
 					{formatMessageTime(message.createdAt)}

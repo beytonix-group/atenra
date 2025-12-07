@@ -15,6 +15,8 @@ import { MessageDateGroup } from './MessageDateGroup';
 import { MessageInput } from './MessageInput';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { StatusIndicator } from '@/components/ui/status-indicator';
+import { useUserPresence, useUsersPresence } from '@/hooks/use-user-presence';
 import {
 	MoreHorizontal,
 	Users,
@@ -71,6 +73,22 @@ export function ConversationThread({
 
 	const displayName = getConversationDisplayName(conversation, currentUserId);
 	const otherParticipants = conversation.participants.filter(p => p.id !== currentUserId);
+
+	// Get first participant for 1-on-1 conversations
+	const firstParticipant = otherParticipants[0];
+	const showStatusIndicator = !conversation.isGroup && firstParticipant;
+	const { isOnline } = useUserPresence(showStatusIndicator ? firstParticipant.id : null);
+
+	// Get presence for all participants in group chats
+	const participantIds = conversation.isGroup
+		? otherParticipants.map(p => p.id)
+		: [];
+	const { statuses: participantStatuses } = useUsersPresence(participantIds);
+
+	// Count online participants for group chat header
+	const onlineCount = conversation.isGroup
+		? Array.from(participantStatuses.values()).filter(s => s.isOnline).length
+		: 0;
 
 	// Load messages
 	const loadMessages = useCallback(async (before?: number) => {
@@ -195,10 +213,26 @@ export function ConversationThread({
 
 				<div className="flex-1 min-w-0">
 					<h3 className="font-semibold truncate">{displayName}</h3>
-					<p className="text-xs text-muted-foreground">
-						{conversation.isGroup
-							? `${conversation.participants.length} participants`
-							: 'Direct message'}
+					<p className="text-xs text-muted-foreground flex items-center gap-1.5">
+						{conversation.isGroup ? (
+							<>
+								<span>{conversation.participants.length} participants</span>
+								{onlineCount > 0 && (
+									<>
+										<span className="text-muted-foreground/50">•</span>
+										<StatusIndicator isOnline={true} size="sm" />
+										<span>{onlineCount} online</span>
+									</>
+								)}
+							</>
+						) : showStatusIndicator ? (
+							<>
+								<StatusIndicator isOnline={isOnline} size="sm" />
+								<span>{isOnline ? 'Online' : 'Offline'}</span>
+							</>
+						) : (
+							'Direct message'
+						)}
 					</p>
 				</div>
 
@@ -267,6 +301,11 @@ export function ConversationThread({
 											key={message.id}
 											message={message}
 											showSender={conversation.isGroup}
+											senderIsOnline={
+												conversation.isGroup && !message.isOwn
+													? participantStatuses.get(message.sender.id)?.isOnline
+													: undefined
+											}
 										/>
 									))}
 								</div>

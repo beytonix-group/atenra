@@ -3,6 +3,8 @@
 import { Conversation, formatMessageTime, getConversationDisplayName, truncateContent } from '@/lib/messages';
 import { cn } from '@/lib/utils';
 import { Users } from 'lucide-react';
+import { StatusIndicator } from '@/components/ui/status-indicator';
+import { useUserPresence } from '@/hooks/use-user-presence';
 
 interface ConversationItemProps {
 	conversation: Conversation;
@@ -20,6 +22,10 @@ export function ConversationItem({
 	const displayName = getConversationDisplayName(conversation, currentUserId);
 	const otherParticipants = conversation.participants.filter(p => p.id !== currentUserId);
 	const firstParticipant = otherParticipants[0];
+
+	// Only show status indicator for 1-on-1 conversations
+	const showStatusIndicator = !conversation.isGroup && firstParticipant;
+	const { isOnline } = useUserPresence(showStatusIndicator ? firstParticipant.id : null);
 
 	return (
 		<button
@@ -49,10 +55,19 @@ export function ConversationItem({
 						</span>
 					</div>
 				)}
+				{/* Unread count badge */}
 				{conversation.unreadCount > 0 && (
 					<span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 flex items-center justify-center bg-primary text-primary-foreground text-xs font-medium rounded-full">
 						{conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
 					</span>
+				)}
+				{/* Online status indicator */}
+				{showStatusIndicator && (
+					<StatusIndicator
+						isOnline={isOnline}
+						size="sm"
+						className="absolute bottom-0 right-0"
+					/>
 				)}
 			</div>
 
