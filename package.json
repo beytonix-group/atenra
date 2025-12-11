@@ -2,9 +2,9 @@
   "name": "cloudflare-saas-stack",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "bun@1.1.0",
+  "packageManager": "bun@1.2.21",
   "engines": {
-    "bun": ">=1.1.0"
+    "bun": ">=1.2.21"
   },
   "scripts": {
     "dev": "next dev",
