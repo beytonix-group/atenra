@@ -35,6 +35,7 @@ export function HeroSection() {
 						{/* Tagline */}
 						<p className="text-xl md:text-2xl lg:text-3xl text-foreground font-light mt-4 max-w-3xl mx-auto">
 							{nt.hero.tagline}
+							{'test'}
 						</p>
 
 						{/* Subheadline */}
