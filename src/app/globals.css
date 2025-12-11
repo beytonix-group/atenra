@@ -2,7 +2,7 @@
 
 @plugin "tailwindcss-animate";
 
-@custom-variant dark (&:is(.dark, [data-theme='dark'] *));
+@custom-variant dark (&:is(.dark *, .dark&, [data-theme='dark'] *, [data-theme='dark']&));
 
 @theme {
   --radius-lg: var(--radius);

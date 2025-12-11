@@ -260,7 +260,10 @@ export function MarketplaceContent({
         {isPending ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <Card key={i} className="overflow-hidden bg-white dark:bg-gray-800">
+              <Card
+                key={i}
+                className="overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700"
+              >
                 <Skeleton className="h-40 md:h-48 w-full" />
                 <div className="p-3 md:p-4 space-y-2">
                   <Skeleton className="h-5 md:h-6 w-3/4" />
@@ -274,10 +277,12 @@ export function MarketplaceContent({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {companies.map((company) => (
               <Link key={company.id} href={`/marketplace/${company.id}`}>
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <Card
+                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700"
+                >
                   {/* Company Logo Placeholder */}
-                  <div className="h-40 md:h-48 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900 dark:to-blue-800 flex items-center justify-center relative">
-                    <Building2 className="h-16 w-16 md:h-20 md:w-20 text-blue-300 dark:text-blue-400" />
+                  <div className="h-40 md:h-48 flex items-center justify-center relative bg-gray-100 dark:bg-gray-800">
+                    <Building2 className="h-16 w-16 md:h-20 md:w-20 text-gray-400 dark:text-gray-500" />
                     {company.status === 'pending_verification' && (
                       <Badge className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
                         Pending
