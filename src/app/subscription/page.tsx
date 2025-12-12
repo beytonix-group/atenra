@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { BillingContent } from "@/components/billing/BillingContent";
+import { isSuperAdmin } from "@/lib/auth-helpers";
 
 
 export default async function BillingPage() {
@@ -11,9 +13,12 @@ export default async function BillingPage() {
 		redirect("/login");
 	}
 
+	const isAdmin = await isSuperAdmin();
+	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
+
 	return (
-		<DashboardLayout user={session.user}>
+		<Layout user={session.user}>
 			<BillingContent />
-		</DashboardLayout>
+		</Layout>
 	);
 }

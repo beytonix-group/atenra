@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { BillingContent } from "@/components/billing/BillingContent";
+import { isSuperAdmin } from "@/lib/auth-helpers";
 
 
 export default async function BillingPage() {
@@ -11,8 +13,11 @@ export default async function BillingPage() {
 		redirect("/login");
 	}
 
+	const isAdmin = await isSuperAdmin();
+	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
+
 	return (
-		<DashboardLayout user={session.user}>
+		<Layout user={session.user}>
 			<div className="container mx-auto py-8">
 				<div className="mb-6">
 					<h1 className="text-3xl font-bold">Billing & Invoices</h1>
@@ -22,6 +27,6 @@ export default async function BillingPage() {
 				</div>
 				<BillingContent />
 			</div>
-		</DashboardLayout>
+		</Layout>
 	);
 }

@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { XCircle, ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { isSuperAdmin } from "@/lib/auth-helpers";
 
 
 export default async function BillingCancelPage() {
@@ -13,8 +15,11 @@ export default async function BillingCancelPage() {
 		redirect("/login");
 	}
 
+	const isAdmin = await isSuperAdmin();
+	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
+
 	return (
-		<DashboardLayout user={session.user}>
+		<Layout user={session.user}>
 			<div className="max-w-2xl mx-auto py-16 px-4">
 				<div className="text-center space-y-6">
 					{/* Cancel Icon */}
@@ -87,6 +92,6 @@ export default async function BillingCancelPage() {
 					</div>
 				</div>
 			</div>
-		</DashboardLayout>
+		</Layout>
 	);
 }

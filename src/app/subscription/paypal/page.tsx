@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { PayPalSubscriptionPage } from "@/components/paypal/paypal-subscription-page";
+import { isSuperAdmin } from "@/lib/auth-helpers";
 
 
 /**
@@ -19,9 +21,12 @@ export default async function PayPalSubscription() {
 		redirect("/login");
 	}
 
+	const isAdmin = await isSuperAdmin();
+	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
+
 	return (
-		<DashboardLayout user={session.user}>
+		<Layout user={session.user}>
 			<PayPalSubscriptionPage />
-		</DashboardLayout>
+		</Layout>
 	);
 }
