@@ -123,7 +123,7 @@ export function PaymentMethodSelector({
 						</div>
 
 						{/* PayPal buttons container - light background for PayPal's white buttons */}
-						<div className="rounded-lg bg-white p-3">
+						<div className="rounded-lg bg-white dark:bg-gray-50 p-3">
 							<PayPalProvider>
 								<PayPalSubscriptionButton
 									planId={planId}

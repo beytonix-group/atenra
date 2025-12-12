@@ -85,7 +85,6 @@ export function ServicePreferencesForm() {
         setSuccess("Preferences saved successfully!");
         setTimeout(() => {
           router.push("/upgrade");
-          router.refresh();
         }, 1000);
       } else {
         const data = await response.json() as { error?: string };

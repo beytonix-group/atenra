@@ -95,11 +95,11 @@ export default async function middleware(request: NextRequest) {
 			.select({ status: subscriptions.status })
 			.from(subscriptions)
 			.where(eq(subscriptions.userId, user.id))
-			.all();
+			.limit(1)
+			.get();
 
-		const hasActivePlan = activeSubscription.some(
-			s => s.status === 'active' || s.status === 'trialing'
-		);
+		const hasActivePlan = activeSubscription &&
+			(activeSubscription.status === 'active' || activeSubscription.status === 'trialing');
 
 		if (hasActivePlan) {
 			return NextResponse.next();
