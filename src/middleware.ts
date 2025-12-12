@@ -1,42 +1,131 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "@/server/auth";
+import { db } from "@/server/db";
+import { users, subscriptions, userRoles, roles, userServicePreferences } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
+
+// Routes that don't require paywall check (even for authenticated users)
+const paywallExemptRoutes = [
+	"/preferences",
+	"/upgrade",
+	"/billing",
+	"/login",
+	"/register",
+	"/auth",
+	"/api",
+	"/403",
+	"/404",
+];
+
+// Admin-only routes - auth check handled by page components
+const adminOnlyRoutes = [
+	"/admindashboard",
+	"/admin"
+];
+
+// All routes that require authentication
+const protectedRoutes = [
+	"/profile",
+	"/marketplace",
+	"/preferences",
+	"/upgrade",
+	"/billing",
+	"/admindashboard",
+	"/admin",
+];
 
 export default async function middleware(request: NextRequest) {
 	const session = await auth();
 	const pathname = request.nextUrl.pathname;
 
-	// Shared authenticated routes (all logged-in users can access)
-	const sharedAuthRoutes = ["/profile", "/marketplace", "/preferences"];
-
-	// Admin-only routes - auth check handled by page components, not middleware
-	// This avoids self-referencing fetch issues on Cloudflare Workers
-	const adminOnlyRoutes = [
-		"/admindashboard",
-		"/admin"
-	];
-
-	// Check if user is authenticated
 	const isAuthenticated = !!session?.user;
 
-	// Handle authentication redirects
+	// Handle unauthenticated users
 	if (!isAuthenticated) {
-		// Redirect to login if trying to access protected routes
-		if (sharedAuthRoutes.some(route => pathname.startsWith(route)) ||
-		    adminOnlyRoutes.some(route => pathname.startsWith(route))) {
+		if (protectedRoutes.some(route => pathname.startsWith(route))) {
 			return NextResponse.redirect(new URL("/login", request.url));
 		}
-	} else {
-		// User is authenticated
-
-		// Redirect authenticated users from root/dashboard to marketplace
-		// Admin users will be redirected to admindashboard by the page component
-		if (pathname === "/" || pathname === "/dashboard") {
-			return NextResponse.redirect(new URL("/marketplace", request.url));
-		}
+		return NextResponse.next();
 	}
 
-	return NextResponse.next();
+	// User is authenticated - handle root/dashboard redirect
+	if (pathname === "/" || pathname === "/dashboard") {
+		return NextResponse.redirect(new URL("/marketplace", request.url));
+	}
+
+	// Skip paywall check for exempt routes
+	if (paywallExemptRoutes.some(route => pathname.startsWith(route))) {
+		return NextResponse.next();
+	}
+
+	// Paywall enforcement for non-exempt routes
+	try {
+		const authUserId = session.user?.id;
+		if (!authUserId) {
+			return NextResponse.next();
+		}
+
+		// Get user from database
+		const user = await db
+			.select({ id: users.id })
+			.from(users)
+			.where(eq(users.authUserId, authUserId))
+			.get();
+
+		if (!user) {
+			// User not in database yet - let them proceed (will be created on page load)
+			return NextResponse.next();
+		}
+
+		// Check if user is exempt from paywall (super_admin or employee)
+		const userRole = await db
+			.select({ roleName: roles.name })
+			.from(userRoles)
+			.innerJoin(roles, eq(userRoles.roleId, roles.id))
+			.where(eq(userRoles.userId, user.id))
+			.get();
+
+		if (userRole?.roleName === 'super_admin' || userRole?.roleName === 'employee') {
+			return NextResponse.next();
+		}
+
+		// Check if user has active subscription
+		const activeSubscription = await db
+			.select({ status: subscriptions.status })
+			.from(subscriptions)
+			.where(eq(subscriptions.userId, user.id))
+			.all();
+
+		const hasActivePlan = activeSubscription.some(
+			s => s.status === 'active' || s.status === 'trialing'
+		);
+
+		if (hasActivePlan) {
+			return NextResponse.next();
+		}
+
+		// No active plan - check if user has preferences
+		const hasPreferences = await db
+			.select({ categoryId: userServicePreferences.categoryId })
+			.from(userServicePreferences)
+			.where(eq(userServicePreferences.userId, user.id))
+			.limit(1)
+			.get();
+
+		if (!hasPreferences) {
+			// No preferences - redirect to preferences page
+			return NextResponse.redirect(new URL("/preferences", request.url));
+		}
+
+		// Has preferences but no plan - redirect to upgrade page
+		return NextResponse.redirect(new URL("/upgrade", request.url));
+	} catch (error) {
+		// If DB check fails, let the request through
+		// Page components will handle paywall as fallback
+		console.error("Middleware paywall check error:", error);
+		return NextResponse.next();
+	}
 }
 
 export const config = {

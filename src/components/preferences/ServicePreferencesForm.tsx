@@ -84,7 +84,7 @@ export function ServicePreferencesForm() {
       if (response.ok) {
         setSuccess("Preferences saved successfully!");
         setTimeout(() => {
-          router.push("/dashboard");
+          router.push("/upgrade");
           router.refresh();
         }, 1000);
       } else {
