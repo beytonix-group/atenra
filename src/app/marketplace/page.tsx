@@ -42,10 +42,11 @@ export default async function MarketplacePage({
 
 	// Get user preferences for default filtering (only for non-admin users)
 	// Only apply preferences if category param is not in URL at all
+	// Note: Paywall/preferences redirect is handled by middleware
 	let defaultCategoryId: number | undefined = undefined;
 	let isUsingPreferences = false;
 
-	if (!isAdmin && !('category' in resolvedSearchParams) && session.user.id) {
+	if (!isAdmin && session.user.id) {
 		try {
 			// Get user's database ID
 			const user = await db
@@ -55,18 +56,20 @@ export default async function MarketplacePage({
 				.get();
 
 			if (user) {
-				// Get user's top preference (ordered by priority)
-				const topPreference = await db
-					.select({ categoryId: userServicePreferences.categoryId })
-					.from(userServicePreferences)
-					.where(eq(userServicePreferences.userId, user.id))
-					.orderBy(asc(userServicePreferences.priority))
-					.limit(1)
-					.get();
+				// Get user's top preference for default filtering (if no category in URL)
+				if (!('category' in resolvedSearchParams)) {
+					const topPreference = await db
+						.select({ categoryId: userServicePreferences.categoryId })
+						.from(userServicePreferences)
+						.where(eq(userServicePreferences.userId, user.id))
+						.orderBy(asc(userServicePreferences.priority))
+						.limit(1)
+						.get();
 
-				if (topPreference) {
-					defaultCategoryId = topPreference.categoryId;
-					isUsingPreferences = true;
+					if (topPreference) {
+						defaultCategoryId = topPreference.categoryId;
+						isUsingPreferences = true;
+					}
 				}
 			}
 		} catch (error) {

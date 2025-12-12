@@ -34,7 +34,11 @@ interface CurrentSubscription {
 
 type PlanType = 'student' | 'regular' | 'business';
 
-export function UpgradeContent() {
+interface UpgradeContentProps {
+	isOnboarding?: boolean;
+}
+
+export function UpgradeContent({ isOnboarding = false }: UpgradeContentProps) {
 	const router = useRouter();
 	const [selectedType, setSelectedType] = useState<PlanType>('regular');
 	const [plans, setPlans] = useState<Plan[]>([]);
@@ -210,18 +214,24 @@ export function UpgradeContent() {
 			)}
 
 			{/* Header */}
-			<div className="flex items-center gap-4">
-				<Button
-					variant="ghost"
-					size="icon"
-					onClick={() => router.back()}
-				>
-					<ArrowLeft className="h-5 w-5" />
-				</Button>
+			<div className={isOnboarding ? "text-center" : "flex items-center gap-4"}>
+				{!isOnboarding && (
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => router.back()}
+					>
+						<ArrowLeft className="h-5 w-5" />
+					</Button>
+				)}
 				<div>
-					<h1 className="text-3xl font-bold">Choose Your Plan</h1>
+					<h1 className="text-3xl font-bold">
+						{isOnboarding ? "Complete Your Setup" : "Choose Your Plan"}
+					</h1>
 					<p className="text-muted-foreground mt-1">
-						Select the plan that best fits your needs
+						{isOnboarding
+							? "Select a plan to get started with full access"
+							: "Select the plan that best fits your needs"}
 					</p>
 				</div>
 			</div>

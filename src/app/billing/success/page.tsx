@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { isSuperAdmin } from "@/lib/auth-helpers";
 
 
 interface SearchParams {
@@ -24,8 +26,11 @@ export default async function BillingSuccessPage({
 	const resolvedSearchParams = await searchParams;
 	const sessionId = resolvedSearchParams.session_id;
 
+	const isAdmin = await isSuperAdmin();
+	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
+
 	return (
-		<DashboardLayout user={session.user}>
+		<Layout user={session.user}>
 			<div className="max-w-2xl mx-auto py-16 px-4">
 				<div className="text-center space-y-6">
 					{/* Success Icon */}
@@ -75,8 +80,8 @@ export default async function BillingSuccessPage({
 					{/* Action Buttons */}
 					<div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
 						<Button asChild>
-							<Link href="/dashboard">
-								Go to Dashboard
+							<Link href="/marketplace">
+								Go to Marketplace
 								<ArrowRight className="ml-2 h-4 w-4" />
 							</Link>
 						</Button>
@@ -86,6 +91,6 @@ export default async function BillingSuccessPage({
 					</div>
 				</div>
 			</div>
-		</DashboardLayout>
+		</Layout>
 	);
 }

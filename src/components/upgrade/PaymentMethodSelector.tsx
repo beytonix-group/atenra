@@ -55,13 +55,13 @@ export function PaymentMethodSelector({
 
 				<div className="grid gap-4 py-4">
 					{/* Stripe Option */}
-					<div className="rounded-lg border-2 border-gray-200 p-6 hover:border-primary/50 transition-colors bg-white">
+					<div className="rounded-lg border-2 border-border p-6 hover:border-primary/50 transition-colors bg-card">
 						<div className="flex items-center gap-3 mb-4">
-							<div className="rounded-full bg-blue-100 p-2">
-								<CreditCard className="h-6 w-6 text-blue-600" />
+							<div className="rounded-full bg-blue-100 dark:bg-blue-900/30 p-2">
+								<CreditCard className="h-6 w-6 text-blue-600 dark:text-blue-400" />
 							</div>
 							<div>
-								<h3 className="font-semibold text-lg">Credit or Debit Card</h3>
+								<h3 className="font-semibold text-lg text-foreground">Credit or Debit Card</h3>
 								<p className="text-sm text-muted-foreground">
 									Secure payment with Stripe
 								</p>
@@ -90,7 +90,7 @@ export function PaymentMethodSelector({
 					{/* Divider */}
 					<div className="relative">
 						<div className="absolute inset-0 flex items-center">
-							<span className="w-full border-t" />
+							<span className="w-full border-t border-border" />
 						</div>
 						<div className="relative flex justify-center text-xs uppercase">
 							<span className="bg-background px-2 text-muted-foreground font-medium">
@@ -100,9 +100,9 @@ export function PaymentMethodSelector({
 					</div>
 
 					{/* PayPal Option */}
-					<div className="rounded-lg border-2 border-gray-200 p-6 hover:border-primary/50 transition-colors bg-white">
+					<div className="rounded-lg border-2 border-border p-6 hover:border-primary/50 transition-colors bg-card">
 						<div className="flex items-center gap-3 mb-4">
-							<div className="rounded-full bg-blue-50 p-2">
+							<div className="rounded-full bg-blue-50 dark:bg-blue-900/20 p-2">
 								<svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
 									<path
 										d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.77.77 0 0 1 .758-.653h8.49c.87 0 1.638.084 2.287.25 1.858.479 2.914 1.677 2.914 3.475 0 .267-.024.54-.073.817a5.473 5.473 0 0 1-.512 1.598c-.656 1.29-1.798 2.316-3.197 2.862a9.58 9.58 0 0 1-1.565.377 13.935 13.935 0 0 1-2.164.162H9.77a.77.77 0 0 0-.758.653l-.803 5.093-.012.076a.384.384 0 0 1-.38.327z"
@@ -115,35 +115,38 @@ export function PaymentMethodSelector({
 								</svg>
 							</div>
 							<div>
-								<h3 className="font-semibold text-lg">PayPal</h3>
+								<h3 className="font-semibold text-lg text-foreground">PayPal</h3>
 								<p className="text-sm text-muted-foreground">
 									Pay with your PayPal account
 								</p>
 							</div>
 						</div>
 
-						<PayPalProvider>
-							<PayPalSubscriptionButton
-								planId={planId}
-								onSuccess={(subscriptionId) => {
-									console.log("PayPal subscription created:", subscriptionId);
-									onClose();
-									// Success page will be handled by PayPalSubscriptionButton
-								}}
-								onError={(error) => {
-									console.error("PayPal error:", error);
-									// Error handling is done in PayPalSubscriptionButton
-								}}
-							/>
-						</PayPalProvider>
+						{/* PayPal buttons container - light background for PayPal's white buttons */}
+						<div className="rounded-lg bg-white p-3">
+							<PayPalProvider>
+								<PayPalSubscriptionButton
+									planId={planId}
+									onSuccess={(subscriptionId) => {
+										console.log("PayPal subscription created:", subscriptionId);
+										onClose();
+										// Success page will be handled by PayPalSubscriptionButton
+									}}
+									onError={(error) => {
+										console.error("PayPal error:", error);
+										// Error handling is done in PayPalSubscriptionButton
+									}}
+								/>
+							</PayPalProvider>
+						</div>
 
-						<p className="text-xs text-center text-muted-foreground mt-2">
+						<p className="text-xs text-center text-muted-foreground mt-3">
 							PayPal balance, credit/debit card via PayPal
 						</p>
 					</div>
 				</div>
 
-				<div className="flex items-center justify-center gap-4 pt-4 border-t">
+				<div className="flex items-center justify-center gap-4 pt-4 border-t border-border">
 					<div className="flex items-center gap-2">
 						<svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path

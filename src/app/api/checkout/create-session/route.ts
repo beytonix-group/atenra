@@ -182,7 +182,8 @@ export async function POST(request: Request): Promise<NextResponse> {
 		let checkoutSession: Stripe.Checkout.Session;
 
 		try {
-			checkoutSession = await stripe.checkout.sessions.create({
+			// Build session params - can't have both allow_promotion_codes and discounts
+			const sessionParams: Stripe.Checkout.SessionCreateParams = {
 				customer: customerId,
 				mode: "subscription",
 				line_items: [
@@ -193,16 +194,23 @@ export async function POST(request: Request): Promise<NextResponse> {
 				],
 				success_url: `${appUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
 				cancel_url: `${appUrl}/billing/cancel`,
-				allow_promotion_codes: true,
 				payment_method_types: ['card'],
 				billing_address_collection: 'auto',
 				subscription_data: subscriptionData,
-				discounts: discounts,
 				metadata: {
 					user_id: user.id.toString(),
 					plan_id: plan.id.toString(),
 				},
-			});
+			};
+
+			// Add either discounts OR allow_promotion_codes (not both)
+			if (discounts && discounts.length > 0) {
+				sessionParams.discounts = discounts;
+			} else {
+				sessionParams.allow_promotion_codes = true;
+			}
+
+			checkoutSession = await stripe.checkout.sessions.create(sessionParams);
 		} catch (error: any) {
 			console.error("Stripe checkout session creation error:", error);
 
