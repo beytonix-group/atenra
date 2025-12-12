@@ -3,22 +3,11 @@ import { subscriptions, userRoles, roles, userServicePreferences } from "@/serve
 import { eq, inArray } from "drizzle-orm";
 
 /**
- * Check if a user has an active paid subscription (monthly or yearly)
+ * Check if a user has an active paid subscription
  * Returns true if user has status 'active' or 'trialing'
  */
 export async function hasActivePaidPlan(userId: number): Promise<boolean> {
 	try {
-		const activeSubscription = await db
-			.select({ id: subscriptions.id })
-			.from(subscriptions)
-			.where(eq(subscriptions.userId, userId))
-			.get();
-
-		if (!activeSubscription) {
-			return false;
-		}
-
-		// Check if any subscription has active or trialing status
 		const subscription = await db
 			.select({ status: subscriptions.status })
 			.from(subscriptions)
