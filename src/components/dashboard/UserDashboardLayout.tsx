@@ -15,6 +15,8 @@ import {
   HelpCircle,
   MessageSquare,
   Bot,
+  Settings,
+  CreditCard,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -65,11 +67,18 @@ const navigationItems = [
     icon: Bot,
     badge: null,
   },
+];
+
+const settingsMenuItems = [
   {
     title: "Profile",
     href: "/profile",
     icon: User,
-    badge: null,
+  },
+  {
+    title: "Billing",
+    href: "/billing",
+    icon: CreditCard,
   },
 ];
 
@@ -193,8 +202,53 @@ export function UserDashboardLayout({ children, user }: UserDashboardLayoutProps
           </nav>
 
           {/* Bottom Navigation */}
-          <div className="border-t p-2">
+          <div className="border-t p-2 space-y-1">
             <TooltipProvider delayDuration={0}>
+              {/* Settings Dropdown */}
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start gap-3 px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                          sidebarCollapsed && "justify-center px-2"
+                        )}
+                      >
+                        <Settings className="h-5 w-5 flex-shrink-0" />
+                        {!sidebarCollapsed && <span>Settings</span>}
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  {sidebarCollapsed && (
+                    <TooltipContent side="right" sideOffset={10}>
+                      Settings
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+                <DropdownMenuContent
+                  align="end"
+                  side="top"
+                  className="w-56 mb-2"
+                  sideOffset={8}
+                >
+                  {settingsMenuItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Other Bottom Navigation Items */}
               {bottomNavigationItems.map((item) => {
                 const isActive = pathname === item.href;
                 const linkContent = (
