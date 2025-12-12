@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { MessagesLayout } from '@/components/messages/MessagesLayout';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { UserDashboardLayout } from '@/components/dashboard/UserDashboardLayout';
+import { PaywallGuard } from '@/components/auth/PaywallGuard';
 import { isSuperAdmin } from '@/lib/auth-helpers';
 
 
@@ -35,9 +36,16 @@ export default async function MessagesPage() {
 	const isAdmin = await isSuperAdmin();
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
 
-	return (
+	const content = (
 		<Layout user={session.user}>
 			<MessagesLayout currentUserId={currentUser.id} />
 		</Layout>
 	);
+
+	// Admin users bypass paywall, regular users go through PaywallGuard
+	if (isAdmin) {
+		return content;
+	}
+
+	return <PaywallGuard>{content}</PaywallGuard>;
 }

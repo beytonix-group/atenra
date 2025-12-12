@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
+import { PaywallGuard } from "@/components/auth/PaywallGuard";
 import { isSuperAdmin, hasCompanyAccess, hasCompanyManagementAccess } from "@/lib/auth-helpers";
 import { fetchCompanyById, fetchCompanyEmployees } from "../actions";
 import { CompanyDetailContent } from "@/components/marketplace/CompanyDetailContent";
@@ -41,7 +42,7 @@ export default async function CompanyDetailPage({
 	// Fetch company employees only if user has access
 	const employees = canViewEmployees ? await fetchCompanyEmployees(companyId) : [];
 
-	return (
+	const content = (
 		<Layout user={session.user}>
 			<CompanyDetailContent
 				company={company}
@@ -52,6 +53,13 @@ export default async function CompanyDetailPage({
 			/>
 		</Layout>
 	);
+
+	// Admin users bypass paywall, regular users go through PaywallGuard
+	if (isAdmin) {
+		return content;
+	}
+
+	return <PaywallGuard>{content}</PaywallGuard>;
 }
 
 export async function generateMetadata({

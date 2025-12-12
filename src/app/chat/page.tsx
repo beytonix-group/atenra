@@ -3,6 +3,7 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { ChatInterface } from "@/components/chat/ChatInterface";
+import { PaywallGuard } from "@/components/auth/PaywallGuard";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
 
@@ -23,7 +24,7 @@ export default async function ChatPage() {
 	// Use different layout based on user role
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
 
-	return (
+	const content = (
 		<Layout user={session.user}>
 			<div className="container mx-auto py-6">
 				<div className="mb-6">
@@ -37,4 +38,11 @@ export default async function ChatPage() {
 			</div>
 		</Layout>
 	);
+
+	// Admin users bypass paywall, regular users go through PaywallGuard
+	if (isAdmin) {
+		return content;
+	}
+
+	return <PaywallGuard>{content}</PaywallGuard>;
 }

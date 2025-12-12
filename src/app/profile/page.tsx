@@ -3,6 +3,7 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { ProfileForm } from "@/components/profile/ProfileForm";
+import { PaywallGuard } from "@/components/auth/PaywallGuard";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,17 +17,17 @@ export const metadata = {
 
 export default async function ProfilePage() {
 	const session = await auth();
-	
+
 	if (!session?.user) {
 		redirect("/auth/signin");
 	}
 
 	const isAdmin = await isSuperAdmin();
-	
+
 	// Use different layout based on user role
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
 
-	return (
+	const content = (
 		<Layout user={session.user}>
 			<div className="space-y-6">
 				<Suspense fallback={
@@ -41,4 +42,11 @@ export default async function ProfilePage() {
 			</div>
 		</Layout>
 	);
+
+	// Admin users bypass paywall, regular users go through PaywallGuard
+	if (isAdmin) {
+		return content;
+	}
+
+	return <PaywallGuard>{content}</PaywallGuard>;
 }

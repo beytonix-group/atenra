@@ -3,6 +3,7 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { MarketplaceContent } from "@/components/marketplace/MarketplaceContent";
+import { PaywallGuard } from "@/components/auth/PaywallGuard";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import { fetchCompanies, fetchServiceCategories } from "./actions";
 import { db } from "@/server/db";
@@ -42,7 +43,7 @@ export default async function MarketplacePage({
 
 	// Get user preferences for default filtering (only for non-admin users)
 	// Only apply preferences if category param is not in URL at all
-	// Note: Paywall/preferences redirect is handled by middleware
+	// Note: Paywall/preferences redirect is handled by PaywallGuard
 	let defaultCategoryId: number | undefined = undefined;
 	let isUsingPreferences = false;
 
@@ -101,7 +102,8 @@ export default async function MarketplacePage({
 		fetchServiceCategories()
 	]);
 
-	return (
+	// Wrap with PaywallGuard for non-admin users
+	const content = (
 		<Layout user={session.user}>
 			<MarketplaceContent
 				initialCompanies={companiesData.companies}
@@ -113,4 +115,11 @@ export default async function MarketplacePage({
 			/>
 		</Layout>
 	);
+
+	// Admin users bypass paywall, regular users go through PaywallGuard
+	if (isAdmin) {
+		return content;
+	}
+
+	return <PaywallGuard>{content}</PaywallGuard>;
 }
