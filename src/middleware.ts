@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "@/server/auth";
-import { db } from "@/server/db";
+import { drizzle } from "drizzle-orm/d1";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import * as schema from "@/server/db/schema";
 import { users, subscriptions, userRoles, roles, userServicePreferences } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
+
+// Get database lazily during request handling (not at module load time)
+// This is necessary for Cloudflare Workers middleware
+function getDb() {
+	const database = getCloudflareContext().env.DATABASE;
+	return drizzle(database, { schema });
+}
 
 // Routes that don't require paywall check (even for authenticated users)
 const paywallExemptRoutes = [
@@ -65,6 +74,9 @@ export default async function middleware(request: NextRequest) {
 		if (!authUserId) {
 			return NextResponse.next();
 		}
+
+		// Get database instance lazily (required for Cloudflare Workers)
+		const db = getDb();
 
 		// Get user from database
 		const user = await db
