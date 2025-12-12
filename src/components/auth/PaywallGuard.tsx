@@ -110,6 +110,10 @@ export async function PaywallGuard({ children }: PaywallGuardProps) {
 		// Has preferences but no plan - redirect to upgrade page
 		redirect("/upgrade");
 	} catch (error) {
+		// Re-throw redirect errors - they're expected and handled by Next.js
+		if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+			throw error;
+		}
 		console.error("PaywallGuard error:", error);
 		// On error, allow through - better UX than blocking
 		return <>{children}</>;
