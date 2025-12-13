@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { stripe, getAppUrl } from "@/lib/stripe";
+import { getStripe, getAppUrl } from "@/lib/stripe";
 import { getPlanBySlug, type PlanSlug } from "@/lib/plans";
 import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -16,6 +16,7 @@ interface CreateCheckoutSessionBody {
  */
 export async function POST(request: Request): Promise<NextResponse> {
 	try {
+		const stripe = getStripe();
 		// Require authentication
 		const session = await auth();
 		if (!session?.user?.id) {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkSuperAdmin } from "@/lib/auth-helpers";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 
 interface UpdatePlanBody {
@@ -62,6 +62,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
  */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
 	try {
+		const stripe = getStripe();
 		// Check super admin access
 		const adminCheck = await checkSuperAdmin();
 		if (!adminCheck.isAuthorized) {

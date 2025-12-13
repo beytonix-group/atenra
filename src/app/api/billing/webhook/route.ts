@@ -1,7 +1,24 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { handleStripeWebhook } from "@/lib/webhook-handler";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
+
+function getWebhookSecret(): string {
+	try {
+		const context = getCloudflareContext();
+		if (context?.env && typeof context.env === 'object' && 'STRIPE_WEBHOOK_SECRET' in context.env) {
+			const secret = (context.env as any).STRIPE_WEBHOOK_SECRET;
+			if (typeof secret === 'string') {
+				return secret;
+			}
+		}
+	} catch {
+		// Not in Cloudflare context
+	}
+	return process.env.STRIPE_WEBHOOK_SECRET || "";
+}
 
 
 /**
@@ -10,6 +27,7 @@ import { handleStripeWebhook } from "@/lib/webhook-handler";
  */
 export async function POST(request: Request): Promise<NextResponse> {
 	try {
+		const stripe = getStripe();
 		const body = await request.text();
 		const signature = request.headers.get("stripe-signature");
 
@@ -20,8 +38,8 @@ export async function POST(request: Request): Promise<NextResponse> {
 			return NextResponse.json({ error: "Missing signature" }, { status: 400 });
 		}
 
-		const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-		console.log("Webhook secret configured:", !!webhookSecret, "Length:", webhookSecret?.length);
+		const webhookSecret = getWebhookSecret();
+		console.log("Webhook secret configured:", !!webhookSecret);
 
 		if (!webhookSecret) {
 			console.error("STRIPE_WEBHOOK_SECRET not configured");

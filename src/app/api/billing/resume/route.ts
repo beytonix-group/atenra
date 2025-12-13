@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { getUserActiveSubscription } from "@/lib/subscriptions";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
@@ -11,6 +11,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  */
 export async function POST(request: Request): Promise<NextResponse> {
 	try {
+		const stripe = getStripe();
 		// Require authentication
 		const session = await auth();
 		if (!session?.user?.id) {

@@ -3,13 +3,13 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { stripe } from "@/lib/stripe";
+import { getStripe, getAppUrl } from "@/lib/stripe";
 import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
-import { getAppUrl } from "@/lib/stripe";
 
 
 export async function POST(request: NextRequest) {
 	try {
+		const stripe = getStripe();
 		const session = await auth();
 
 		if (!session?.user?.email) {

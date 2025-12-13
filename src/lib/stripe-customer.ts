@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { stripe } from "./stripe";
+import { getStripe } from "./stripe";
 
 export interface User {
 	id: number;
@@ -48,6 +48,7 @@ export async function getOrCreateStripeCustomer(userId: number): Promise<string>
 	}
 
 	// Create new Stripe customer
+	const stripe = getStripe();
 	const customer = await stripe.customers.create({
 		email: user.email,
 		name: user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || undefined,

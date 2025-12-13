@@ -1,4 +1,4 @@
-import { stripe } from "./stripe";
+import { getStripe } from "./stripe";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export interface PlanSyncResult {
@@ -28,6 +28,7 @@ export interface PlanToSync {
  */
 export async function syncPlanWithStripe(plan: PlanToSync): Promise<PlanSyncResult> {
 	try {
+		const stripe = getStripe();
 		let productId = plan.stripeProductId;
 		let priceId = plan.stripePriceId;
 
@@ -225,6 +226,7 @@ export async function syncAllPlansWithStripe(): Promise<PlanSyncResult[]> {
  * @param planId Database plan ID
  */
 export async function archiveStripePlanResources(planId: number): Promise<void> {
+	const stripe = getStripe();
 	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
