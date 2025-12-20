@@ -11,18 +11,31 @@ function getStripeSecretKey(): string {
 	try {
 		// Try Cloudflare context first (for Workers environment)
 		const context = getCloudflareContext();
-		if (context?.env && typeof context.env === 'object' && 'STRIPE_SECRET_KEY' in context.env) {
-			const secret = (context.env as any).STRIPE_SECRET_KEY;
-			if (typeof secret === 'string') {
-				return secret;
+		console.log("[Stripe] Cloudflare context available:", !!context);
+		console.log("[Stripe] context.env available:", !!context?.env);
+
+		if (context?.env && typeof context.env === 'object') {
+			const hasKey = 'STRIPE_SECRET_KEY' in context.env;
+			console.log("[Stripe] STRIPE_SECRET_KEY in env:", hasKey);
+
+			if (hasKey) {
+				const secret = (context.env as any).STRIPE_SECRET_KEY;
+				console.log("[Stripe] Secret type:", typeof secret, "Length:", secret?.length || 0);
+				if (typeof secret === 'string' && secret.length > 0) {
+					console.log("[Stripe] Using secret from Cloudflare context");
+					return secret;
+				}
 			}
 		}
-	} catch {
+	} catch (error) {
+		console.log("[Stripe] Error getting Cloudflare context:", error);
 		// Not in Cloudflare context, fall through to process.env
 	}
 
 	// Fallback to process.env (for local development)
-	return process.env.STRIPE_SECRET_KEY || "";
+	const envSecret = process.env.STRIPE_SECRET_KEY || "";
+	console.log("[Stripe] Falling back to process.env, has secret:", !!envSecret);
+	return envSecret;
 }
 
 /**
@@ -42,6 +55,8 @@ export function getStripe(): Stripe {
 	stripeInstance = new Stripe(secretKey, {
 		apiVersion: "2025-10-29.clover",
 		typescript: true,
+		// Use fetch-based HTTP client for Cloudflare Workers compatibility
+		httpClient: Stripe.createFetchHttpClient(),
 	});
 	return stripeInstance;
 }

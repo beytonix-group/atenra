@@ -24,23 +24,30 @@ async function isEventProcessed(stripeEventId: string): Promise<boolean> {
 }
 
 /**
- * Store webhook event in database
+ * Store webhook event in database (uses INSERT OR IGNORE to handle duplicates)
  */
-async function storeWebhookEvent(stripeEventId: string, eventType: string, eventData: string): Promise<number> {
+async function storeWebhookEvent(stripeEventId: string, eventType: string, eventData: string): Promise<number | null> {
 	const env = getCloudflareContext().env;
 	const db = env.DATABASE as D1Database;
 
-	const result = await db
+	// Use INSERT OR IGNORE to handle race conditions with duplicate events
+	await db
 		.prepare(
 			`
-			INSERT INTO stripe_webhook_events (stripe_event_id, event_type, event_data, received_at)
+			INSERT OR IGNORE INTO stripe_webhook_events (stripe_event_id, event_type, event_data, received_at)
 			VALUES (?, ?, ?, unixepoch())
 		`
 		)
 		.bind(stripeEventId, eventType, eventData)
 		.run();
 
-	return result.meta.last_row_id as number;
+	// Get the event ID (whether just inserted or already existed)
+	const event = await db
+		.prepare(`SELECT id FROM stripe_webhook_events WHERE stripe_event_id = ?`)
+		.bind(stripeEventId)
+		.first<{ id: number }>();
+
+	return event?.id || null;
 }
 
 /**
@@ -381,8 +388,14 @@ export async function handleStripeWebhook(event: Stripe.Event): Promise<void> {
 		return;
 	}
 
-	// Store event
+	// Store event (handles duplicates gracefully)
 	const eventId = await storeWebhookEvent(event.id, event.type, JSON.stringify(event.data.object));
+
+	// If we couldn't get an event ID, it means something went wrong
+	if (!eventId) {
+		console.log(`Event ${event.id} could not be stored, may already exist`);
+		return;
+	}
 
 	try {
 		// Handle different event types
