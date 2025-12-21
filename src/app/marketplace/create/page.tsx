@@ -14,10 +14,20 @@ export default async function CreateCompanyPage() {
 	}
 
 	// Check if user is super admin
-	const [isAdmin, ownedCompanies] = await Promise.all([
+	const [isAdminResult, ownedCompaniesResult] = await Promise.allSettled([
 		isSuperAdmin(),
 		getUserOwnedCompanies()
 	]);
+
+	const isAdmin = isAdminResult.status === 'fulfilled' ? isAdminResult.value : false;
+	const ownedCompanies = ownedCompaniesResult.status === 'fulfilled' ? ownedCompaniesResult.value : [];
+
+	if (isAdminResult.status === 'rejected') {
+		console.error("Failed to check admin status:", isAdminResult.reason);
+	}
+	if (ownedCompaniesResult.status === 'rejected') {
+		console.error("Failed to fetch owned companies:", ownedCompaniesResult.reason);
+	}
 
 	if (!isAdmin) {
 		redirect("/403");
