@@ -1,11 +1,3 @@
--- Add priority field to user_company_jobs
-ALTER TABLE user_company_jobs ADD COLUMN priority TEXT DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent'));
-ALTER TABLE user_company_jobs ADD COLUMN job_address_line2 TEXT;
-
--- Create indexes for user_company_jobs
-CREATE INDEX IF NOT EXISTS idx_user_company_jobs_priority ON user_company_jobs(priority);
-CREATE INDEX IF NOT EXISTS idx_ucj_company_status ON user_company_jobs(company_id, status);
-
 -- Create company_invoices table
 CREATE TABLE IF NOT EXISTS company_invoices (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,14 +33,14 @@ CREATE TABLE IF NOT EXISTS company_invoices (
 );
 
 -- Create indexes for company_invoices
-CREATE INDEX idx_ci_company ON company_invoices(company_id);
-CREATE INDEX idx_ci_customer ON company_invoices(customer_id);
-CREATE INDEX idx_ci_job ON company_invoices(job_id);
-CREATE INDEX idx_ci_status ON company_invoices(status);
-CREATE INDEX idx_ci_invoice_date ON company_invoices(invoice_date);
-CREATE INDEX idx_ci_company_invoice_date ON company_invoices(company_id, invoice_date);
-CREATE INDEX idx_ci_company_status ON company_invoices(company_id, status);
-CREATE UNIQUE INDEX unique_company_invoice_number ON company_invoices(company_id, invoice_number);
+CREATE INDEX IF NOT EXISTS idx_ci_company ON company_invoices(company_id);
+CREATE INDEX IF NOT EXISTS idx_ci_customer ON company_invoices(customer_id);
+CREATE INDEX IF NOT EXISTS idx_ci_job ON company_invoices(job_id);
+CREATE INDEX IF NOT EXISTS idx_ci_status ON company_invoices(status);
+CREATE INDEX IF NOT EXISTS idx_ci_invoice_date ON company_invoices(invoice_date);
+CREATE INDEX IF NOT EXISTS idx_ci_company_invoice_date ON company_invoices(company_id, invoice_date);
+CREATE INDEX IF NOT EXISTS idx_ci_company_status ON company_invoices(company_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_company_invoice_number ON company_invoices(company_id, invoice_number);
 
 -- Create company_invoice_line_items table
 CREATE TABLE IF NOT EXISTS company_invoice_line_items (
@@ -65,4 +57,4 @@ CREATE TABLE IF NOT EXISTS company_invoice_line_items (
 );
 
 -- Create index for company_invoice_line_items
-CREATE INDEX idx_cili_invoice ON company_invoice_line_items(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_cili_invoice ON company_invoice_line_items(invoice_id);
