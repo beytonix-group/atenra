@@ -3,7 +3,7 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { PaywallGuard } from "@/components/auth/PaywallGuard";
-import { isSuperAdmin, hasCompanyAccess, hasCompanyManagementAccess } from "@/lib/auth-helpers";
+import { isSuperAdmin, hasCompanyAccess, hasCompanyManagementAccess, getUserOwnedCompanies } from "@/lib/auth-helpers";
 import { fetchCompanyById, fetchCompanyEmployees } from "../actions";
 import { CompanyDetailContent } from "@/components/marketplace/CompanyDetailContent";
 
@@ -21,7 +21,16 @@ export default async function CompanyDetailPage({
 
 	const { id } = await params;
 	const companyId = Number(id);
-	const isAdmin = await isSuperAdmin();
+	const [isAdmin, ownedCompanies] = await Promise.all([
+		isSuperAdmin().catch((error) => {
+			console.error("Error checking admin status:", error);
+			return false;
+		}),
+		getUserOwnedCompanies().catch((error) => {
+			console.error("Error fetching owned companies:", error);
+			return [];
+		})
+	]);
 
 	// Use different layout based on user role
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
@@ -43,7 +52,7 @@ export default async function CompanyDetailPage({
 	const employees = canViewEmployees ? await fetchCompanyEmployees(companyId) : [];
 
 	const content = (
-		<Layout user={session.user}>
+		<Layout user={session.user} ownedCompanies={ownedCompanies}>
 			<CompanyDetailContent
 				company={company}
 				employees={employees}

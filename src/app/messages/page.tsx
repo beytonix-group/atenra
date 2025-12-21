@@ -7,7 +7,7 @@ import { MessagesLayout } from '@/components/messages/MessagesLayout';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { UserDashboardLayout } from '@/components/dashboard/UserDashboardLayout';
 import { PaywallGuard } from '@/components/auth/PaywallGuard';
-import { isSuperAdmin } from '@/lib/auth-helpers';
+import { isSuperAdmin, getUserOwnedCompanies } from '@/lib/auth-helpers';
 
 
 export const metadata = {
@@ -33,11 +33,20 @@ export default async function MessagesPage() {
 		redirect('/api/auth/signin');
 	}
 
-	const isAdmin = await isSuperAdmin();
+	const [isAdmin, ownedCompanies] = await Promise.all([
+		isSuperAdmin().catch((error) => {
+			console.error("Error checking admin status:", error);
+			return false;
+		}),
+		getUserOwnedCompanies().catch((error) => {
+			console.error("Error fetching owned companies:", error);
+			return [];
+		})
+	]);
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
 
 	const content = (
-		<Layout user={session.user}>
+		<Layout user={session.user} ownedCompanies={ownedCompanies}>
 			<MessagesLayout currentUserId={currentUser.id} />
 		</Layout>
 	);

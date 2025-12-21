@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BarChart3 } from "lucide-react";
+import { getUserOwnedCompanies } from "@/lib/auth-helpers";
 
 
 export default async function AnalyticsPage() {
@@ -11,8 +12,15 @@ export default async function AnalyticsPage() {
     redirect("/auth/signin");
   }
 
+  let ownedCompanies: Awaited<ReturnType<typeof getUserOwnedCompanies>> = [];
+  try {
+    ownedCompanies = await getUserOwnedCompanies();
+  } catch (error) {
+    console.error("Failed to fetch owned companies:", error);
+  }
+
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <BarChart3 className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />

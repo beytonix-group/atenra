@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { userActivities, users } from "@/server/db/schema";
-import { eq, desc, and, gte } from "drizzle-orm";
+import { eq, desc, and, gte, sql } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import { trackActivity } from "@/lib/server-activity-tracker";
 import { auth } from "@/server/auth";
@@ -26,8 +26,10 @@ export async function GET(
 
     // Get query parameters for filtering
     const searchParams = request.nextUrl.searchParams;
-    const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 500);
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const limitParam = parseInt(searchParams.get("limit") || "100", 10);
+    const offsetParam = parseInt(searchParams.get("offset") || "0", 10);
+    const limit = Math.min(Math.max(isNaN(limitParam) ? 100 : limitParam, 1), 500);
+    const offset = isNaN(offsetParam) || offsetParam < 0 ? 0 : offsetParam;
     const action = searchParams.get("action");
     const since = searchParams.get("since"); // Unix timestamp
 
@@ -74,12 +76,12 @@ export async function GET(
 
     // Get total count for pagination
     const countResult = await db
-      .select({ count: userActivities.id })
+      .select({ count: sql<number>`count(*)` })
       .from(userActivities)
       .where(and(...whereConditions))
-      .all();
-    
-    const totalCount = countResult.length;
+      .get();
+
+    const totalCount = countResult?.count ?? 0;
 
     // Parse metadata field for each activity
     const formattedActivities = activities.map(activity => {

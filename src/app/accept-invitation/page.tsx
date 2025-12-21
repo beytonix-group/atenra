@@ -65,7 +65,7 @@ async function AcceptInvitationContent({ token }: { token?: string }) {
     .where(eq(employeeInvitations.token, token))
     .get();
 
-  // Invalid token
+  // Invalid token - invitation may have been revoked/removed or never existed
   if (!invitation) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
@@ -73,19 +73,29 @@ async function AcceptInvitationContent({ token }: { token?: string }) {
           <CardHeader>
             <div className="flex items-center gap-2 text-red-600">
               <XCircle className="h-6 w-6" />
-              <CardTitle>Invalid Invitation</CardTitle>
+              <CardTitle>Invitation Not Found</CardTitle>
             </div>
             <CardDescription>
-              This invitation link is not valid.
+              This invitation link is no longer valid.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              The invitation token is invalid or does not exist. Please contact your company administrator for a new invitation.
-            </p>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                This could happen because:
+              </p>
+              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                <li>The invitation was revoked by an administrator</li>
+                <li>You were removed from the company</li>
+                <li>The invitation link is incorrect or incomplete</li>
+              </ul>
+              <p className="text-sm text-gray-600">
+                Please contact your company administrator if you believe this is an error.
+              </p>
+            </div>
             <Link
               href="/"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full mt-6"
             >
               Go to Home
             </Link>

@@ -257,11 +257,13 @@ export const userCompanyJobs = sqliteTable('user_company_jobs', {
   categoryId: integer('category_id').notNull().references(() => serviceCategories.id),
   description: text('description').notNull(),
   status: text('status', { enum: ['active', 'completed', 'cancelled'] }).notNull().default('active'),
+  priority: text('priority', { enum: ['low', 'medium', 'high', 'urgent'] }).notNull().default('medium'),
   startDate: integer('start_date'),
   endDate: integer('end_date'),
   notes: text('notes'),
   budgetCents: integer('budget_cents'),
   jobAddressLine1: text('job_address_line1'),
+  jobAddressLine2: text('job_address_line2'),
   jobCity: text('job_city'),
   jobState: text('job_state'),
   jobZip: text('job_zip'),
@@ -271,6 +273,8 @@ export const userCompanyJobs = sqliteTable('user_company_jobs', {
   userIdx: index('idx_user_company_jobs_user').on(table.userId),
   companyIdx: index('idx_user_company_jobs_company').on(table.companyId),
   statusIdx: index('idx_user_company_jobs_status').on(table.status),
+  priorityIdx: index('idx_user_company_jobs_priority').on(table.priority),
+  companyStatusIdx: index('idx_ucj_company_status').on(table.companyId, table.status),
 }));
 
 // ----------------------------------------------------------
@@ -457,6 +461,85 @@ export const paypalWebhookEvents = sqliteTable('paypal_webhook_events', {
 }));
 
 // ----------------------------------------------------------
+// Company Invoices (for tracking company earnings/revenue)
+// ----------------------------------------------------------
+
+export const companyInvoices = sqliteTable('company_invoices', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  jobId: integer('job_id').references(() => userCompanyJobs.id, { onDelete: 'set null' }),
+
+  // Invoice identification
+  invoiceNumber: text('invoice_number').notNull(),
+
+  // Customer information snapshot (denormalized for historical accuracy)
+  customerId: integer('customer_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  customerName: text('customer_name').notNull(),
+  customerEmail: text('customer_email'),
+  customerPhone: text('customer_phone'),
+  customerAddressLine1: text('customer_address_line1'),
+  customerAddressLine2: text('customer_address_line2'),
+  customerCity: text('customer_city'),
+  customerState: text('customer_state'),
+  customerZip: text('customer_zip'),
+
+  // Financial details (all in cents to avoid floating-point issues)
+  subtotalCents: integer('subtotal_cents').notNull(),
+  taxRateBps: integer('tax_rate_bps').default(0), // Basis points (e.g., 825 = 8.25%)
+  taxAmountCents: integer('tax_amount_cents').default(0),
+  discountCents: integer('discount_cents').default(0),
+  totalCents: integer('total_cents').notNull(),
+  amountPaidCents: integer('amount_paid_cents').notNull().default(0),
+
+  // Status tracking
+  status: text('status', {
+    enum: ['draft', 'sent', 'viewed', 'paid', 'partial', 'overdue', 'void', 'refunded']
+  }).notNull().default('draft'),
+
+  // Dates
+  invoiceDate: integer('invoice_date').notNull(),
+  dueDate: integer('due_date'),
+  paidAt: integer('paid_at'),
+
+  // Optional payment tracking (if processed through Stripe/PayPal)
+  paymentProvider: text('payment_provider', { enum: ['stripe', 'paypal', 'manual', 'cash', 'check'] }),
+  externalPaymentId: text('external_payment_id'),
+
+  // Notes and descriptions
+  description: text('description'),
+  notes: text('notes'), // Internal notes
+  terms: text('terms'), // Payment terms
+
+  // Metadata
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  companyIdx: index('idx_ci_company').on(table.companyId),
+  customerIdx: index('idx_ci_customer').on(table.customerId),
+  jobIdx: index('idx_ci_job').on(table.jobId),
+  statusIdx: index('idx_ci_status').on(table.status),
+  invoiceDateIdx: index('idx_ci_invoice_date').on(table.invoiceDate),
+  companyInvoiceDateIdx: index('idx_ci_company_invoice_date').on(table.companyId, table.invoiceDate),
+  companyStatusIdx: index('idx_ci_company_status').on(table.companyId, table.status),
+  uniqueInvoiceNumber: uniqueIndex('unique_company_invoice_number').on(table.companyId, table.invoiceNumber),
+}));
+
+export const companyInvoiceLineItems = sqliteTable('company_invoice_line_items', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  invoiceId: integer('invoice_id').notNull().references(() => companyInvoices.id, { onDelete: 'cascade' }),
+  description: text('description').notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  unitPriceCents: integer('unit_price_cents').notNull(),
+  totalCents: integer('total_cents').notNull(),
+  categoryId: integer('category_id').references(() => serviceCategories.id, { onDelete: 'set null' }),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  invoiceIdx: index('idx_cili_invoice').on(table.invoiceId),
+}));
+
+// ----------------------------------------------------------
 // Content Management
 // ----------------------------------------------------------
 
@@ -631,6 +714,7 @@ export const companiesRelations = relations(companies, ({ one, many }) => ({
   serviceCategories: many(companyServiceCategories),
   jobRequests: many(userCompanyJobs),
   subscriptions: many(subscriptions),
+  companyInvoices: many(companyInvoices),
 }));
 
 export const companyUsersRelations = relations(companyUsers, ({ one }) => ({
@@ -878,6 +962,33 @@ export const paymentTransactionsRelations = relations(paymentTransactions, ({ on
   }),
 }));
 
+export const companyInvoicesRelations = relations(companyInvoices, ({ one, many }) => ({
+  company: one(companies, {
+    fields: [companyInvoices.companyId],
+    references: [companies.id],
+  }),
+  job: one(userCompanyJobs, {
+    fields: [companyInvoices.jobId],
+    references: [userCompanyJobs.id],
+  }),
+  customer: one(users, {
+    fields: [companyInvoices.customerId],
+    references: [users.id],
+  }),
+  lineItems: many(companyInvoiceLineItems),
+}));
+
+export const companyInvoiceLineItemsRelations = relations(companyInvoiceLineItems, ({ one }) => ({
+  invoice: one(companyInvoices, {
+    fields: [companyInvoiceLineItems.invoiceId],
+    references: [companyInvoices.id],
+  }),
+  category: one(serviceCategories, {
+    fields: [companyInvoiceLineItems.categoryId],
+    references: [serviceCategories.id],
+  }),
+}));
+
 // ----------------------------------------------------------
 // Messaging System
 // ----------------------------------------------------------
@@ -1003,6 +1114,12 @@ export type NewStripeWebhookEvent = typeof stripeWebhookEvents.$inferInsert;
 
 export type PayPalWebhookEvent = typeof paypalWebhookEvents.$inferSelect;
 export type NewPayPalWebhookEvent = typeof paypalWebhookEvents.$inferInsert;
+
+export type CompanyInvoice = typeof companyInvoices.$inferSelect;
+export type NewCompanyInvoice = typeof companyInvoices.$inferInsert;
+
+export type CompanyInvoiceLineItem = typeof companyInvoiceLineItems.$inferSelect;
+export type NewCompanyInvoiceLineItem = typeof companyInvoiceLineItems.$inferInsert;
 
 export type Conversation = typeof conversations.$inferSelect;
 export type NewConversation = typeof conversations.$inferInsert;

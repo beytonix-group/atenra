@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { isSuperAdmin } from "@/lib/auth-helpers";
+import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Activity, 
-  CreditCard, 
-  DollarSign, 
+import {
+  Activity,
+  CreditCard,
+  DollarSign,
   Users,
   Package,
   TrendingUp,
@@ -20,20 +20,33 @@ import {
 
 export default async function DashboardPage() {
   const session = await auth();
-  
+
   if (!session?.user) {
     redirect("/auth/signin");
   }
 
-  const isAdmin = await isSuperAdmin();
-  
+  const [isAdminResult, ownedCompaniesResult] = await Promise.allSettled([
+    isSuperAdmin(),
+    getUserOwnedCompanies()
+  ]);
+
+  const isAdmin = isAdminResult.status === 'fulfilled' ? isAdminResult.value : false;
+  const ownedCompanies = ownedCompaniesResult.status === 'fulfilled' ? ownedCompaniesResult.value : [];
+
+  if (isAdminResult.status === 'rejected') {
+    console.error("Failed to check admin status:", isAdminResult.reason);
+  }
+  if (ownedCompaniesResult.status === 'rejected') {
+    console.error("Failed to fetch owned companies:", ownedCompaniesResult.reason);
+  }
+
   // If user is admin, redirect to admin dashboard
   if (isAdmin) {
     redirect("/admindashboard");
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
       <div className="space-y-4 md:space-y-6">
         {/* Welcome Header */}
         <div>
