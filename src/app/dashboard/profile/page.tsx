@@ -5,7 +5,7 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
-import { isSuperAdmin } from "@/lib/auth-helpers";
+import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";
 
 
 export const metadata = {
@@ -15,20 +15,23 @@ export const metadata = {
 
 export default async function ProfilePage() {
 	const session = await auth();
-	
+
 	if (!session?.user) {
 		redirect("/auth/signin");
 	}
 
-	const isAdmin = await isSuperAdmin();
-	
+	const [isAdmin, ownedCompanies] = await Promise.all([
+		isSuperAdmin(),
+		getUserOwnedCompanies()
+	]);
+
 	// If user is admin, redirect to admin profile
 	if (isAdmin) {
 		redirect("/admindashboard/profile");
 	}
 
 	return (
-		<DashboardLayout user={session.user}>
+		<DashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
 			<div className="space-y-6">
 				<Suspense fallback={
 					<Card>

@@ -7,7 +7,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatsCard, JobStatusBadge, JobPriorityBadge, InvoiceStatusBadge } from "@/components/company-dashboard";
-import { Briefcase, FileText, DollarSign, Clock, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 interface DashboardPageProps {
 	params: Promise<{ companyId: string }>;
@@ -161,25 +161,25 @@ export default async function CompanyDashboardPage({ params }: DashboardPageProp
 					title="Total Jobs"
 					value={stats.jobs.total}
 					subtitle={`${stats.jobs.active} active`}
-					icon={Briefcase}
+					icon="briefcase"
 				/>
 				<StatsCard
 					title="Completed Jobs"
 					value={stats.jobs.completed}
 					subtitle="All time"
-					icon={Briefcase}
+					icon="briefcase"
 				/>
 				<StatsCard
 					title="Revenue This Month"
 					value={formatCurrency(stats.revenue.currentMonth)}
 					subtitle={`${formatCurrency(stats.revenue.collected)} collected`}
-					icon={DollarSign}
+					icon="dollarSign"
 				/>
 				<StatsCard
 					title="Pending Invoices"
 					value={stats.pendingInvoices.count}
 					subtitle={`${formatCurrency(stats.pendingInvoices.totalDue)} outstanding`}
-					icon={Clock}
+					icon="clock"
 				/>
 			</div>
 

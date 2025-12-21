@@ -23,6 +23,7 @@ import {
   Package,
   MessageSquare,
   Bot,
+  Building2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -58,10 +59,19 @@ interface DashboardLayoutProps {
     email?: string | null;
     image?: string | null;
   };
-  ownedCompanies?: OwnedCompany[];  // Accepted but not used (admin has full access)
+  ownedCompanies?: OwnedCompany[];
 }
 
-const navigationItems = [
+// Navigation item type
+interface NavigationItem {
+  title: string;
+  href: string;
+  icon: typeof LayoutDashboard;
+  badge: string | null;
+}
+
+// Base navigation items for admin users
+const baseNavigationItems: NavigationItem[] = [
   {
     title: "Dashboard",
     href: "/admindashboard",
@@ -106,6 +116,26 @@ const navigationItems = [
   },
 ];
 
+// Get navigation items with conditional company dashboard
+const getNavigationItems = (ownedCompanies?: OwnedCompany[]): NavigationItem[] => {
+  const items: NavigationItem[] = [...baseNavigationItems];
+
+  if (ownedCompanies && ownedCompanies.length > 0) {
+    // Insert company dashboard after "Dashboard" (at index 1)
+    const companyNavItem: NavigationItem = {
+      title: "Company Dashboard",
+      href: ownedCompanies.length === 1
+        ? `/company/${ownedCompanies[0].id}`
+        : "/company/select",
+      icon: Building2,
+      badge: ownedCompanies.length > 1 ? String(ownedCompanies.length) : null,
+    };
+    items.splice(1, 0, companyNavItem);
+  }
+
+  return items;
+};
+
 const settingsMenuItems = [
   {
     title: "Profile",
@@ -127,12 +157,15 @@ const bottomNavigationItems = [
   },
 ];
 
-export function DashboardLayout({ children, user }: DashboardLayoutProps) {
+export function DashboardLayout({ children, user, ownedCompanies }: DashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+
+  // Get navigation items based on owned companies
+  const navigationItems = getNavigationItems(ownedCompanies);
 
   useEffect(() => {
     setMounted(true);
@@ -163,19 +196,19 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen border-r bg-card transition-all duration-300",
+          "fixed left-0 top-0 z-40 h-screen border-r border-border/50 bg-sidebar transition-all duration-300",
           sidebarCollapsed ? "w-16" : "w-64",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex h-full flex-col overflow-hidden">
           {/* Logo Section */}
-          <div className="flex h-14 lg:h-16 items-center justify-between border-b px-4 flex-shrink-0">
+          <div className="flex h-14 lg:h-16 items-center justify-between border-b border-border/50 px-4 flex-shrink-0">
             <Link href="/admindashboard" className="flex items-center gap-2">
               {!sidebarCollapsed ? (
                 <>
                   <Logo className="h-6 lg:h-8 w-auto" />
-                  <span className="text-lg lg:text-xl font-semibold">Atenra</span>
+                  <span className="text-lg lg:text-xl font-semibold text-sidebar-foreground">Atenra</span>
                 </>
               ) : (
                 <Logo className="h-6 lg:h-8 w-6 lg:w-8" />
@@ -185,11 +218,11 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="hidden lg:flex"
+              className="hidden lg:flex hover:bg-secondary"
             >
               <ChevronLeft
                 className={cn(
-                  "h-4 w-4 transition-transform",
+                  "h-4 w-4 transition-transform text-muted-foreground",
                   sidebarCollapsed && "rotate-180"
                 )}
               />
@@ -206,12 +239,13 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                      isActive && "bg-accent text-accent-foreground",
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                      isActive && "bg-primary/15 text-primary dark:bg-primary/20 dark:text-primary",
                       sidebarCollapsed && "justify-center"
                     )}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />
                     {!sidebarCollapsed && (
                       <>
                         <span className="flex-1">{item.title}</span>
@@ -243,7 +277,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           <div className="hidden lg:flex lg:flex-1"></div>
 
           {/* Bottom Navigation - Always Visible */}
-          <div className="border-t p-2 flex-shrink-0 space-y-1">
+          <div className="border-t border-border/50 p-2 flex-shrink-0 space-y-1">
             <TooltipProvider delayDuration={0}>
               {/* Settings Dropdown */}
               <DropdownMenu>
@@ -253,7 +287,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                       <Button
                         variant="ghost"
                         className={cn(
-                          "w-full justify-start gap-3 px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                          "w-full justify-start gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground",
                           sidebarCollapsed && "justify-center px-2"
                         )}
                       >
@@ -297,12 +331,13 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                      isActive && "bg-accent text-accent-foreground",
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                      isActive && "bg-primary/15 text-primary dark:bg-primary/20 dark:text-primary",
                       sidebarCollapsed && "justify-center"
                     )}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />
                     {!sidebarCollapsed && <span>{item.title}</span>}
                   </Link>
                 );

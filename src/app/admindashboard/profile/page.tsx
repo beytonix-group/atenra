@@ -5,6 +5,7 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { getUserOwnedCompanies } from "@/lib/auth-helpers";
 
 
 export const metadata = {
@@ -14,13 +15,20 @@ export const metadata = {
 
 export default async function ProfilePage() {
 	const session = await auth();
-	
+
 	if (!session?.user) {
 		redirect("/auth/signin");
 	}
 
+	let ownedCompanies: Awaited<ReturnType<typeof getUserOwnedCompanies>> = [];
+	try {
+		ownedCompanies = await getUserOwnedCompanies();
+	} catch (error) {
+		console.error("Failed to fetch owned companies:", error);
+	}
+
 	return (
-		<DashboardLayout user={session.user}>
+		<DashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
 			<div className="space-y-6">
 				<Suspense fallback={
 					<Card>

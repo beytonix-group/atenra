@@ -166,19 +166,19 @@ export function UserDashboardLayout({ children, user, ownedCompanies }: UserDash
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen border-r bg-card transition-all duration-300",
+          "fixed left-0 top-0 z-40 h-screen border-r border-border/50 bg-sidebar transition-all duration-300",
           sidebarCollapsed ? "w-16" : "w-64",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex h-full flex-col">
           {/* Logo Section */}
-          <div className="flex h-16 items-center justify-between border-b px-4">
+          <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
             <Link href="/marketplace" className="flex items-center gap-2">
               {!sidebarCollapsed ? (
                 <>
                   <Logo className="h-8 w-auto" />
-                  <span className="text-xl font-semibold">Atenra</span>
+                  <span className="text-xl font-semibold text-sidebar-foreground">Atenra</span>
                 </>
               ) : (
                 <Logo className="h-8 w-8" />
@@ -188,11 +188,11 @@ export function UserDashboardLayout({ children, user, ownedCompanies }: UserDash
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="hidden lg:flex"
+              className="hidden lg:flex hover:bg-secondary"
             >
               <ChevronLeft
                 className={cn(
-                  "h-4 w-4 transition-transform",
+                  "h-4 w-4 transition-transform text-muted-foreground",
                   sidebarCollapsed && "rotate-180"
                 )}
               />
@@ -208,12 +208,13 @@ export function UserDashboardLayout({ children, user, ownedCompanies }: UserDash
                   <Link
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                      isActive && "bg-accent text-accent-foreground",
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                      isActive && "bg-primary/15 text-primary dark:bg-primary/20 dark:text-primary",
                       sidebarCollapsed && "justify-center"
                     )}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />
                     {!sidebarCollapsed && (
                       <>
                         <span className="flex-1">{item.title}</span>
@@ -242,7 +243,7 @@ export function UserDashboardLayout({ children, user, ownedCompanies }: UserDash
           </nav>
 
           {/* Bottom Navigation */}
-          <div className="border-t p-2 space-y-1">
+          <div className="border-t border-border/50 p-2 space-y-1">
             <TooltipProvider delayDuration={0}>
               {/* Settings Dropdown */}
               <DropdownMenu>
@@ -252,7 +253,7 @@ export function UserDashboardLayout({ children, user, ownedCompanies }: UserDash
                       <Button
                         variant="ghost"
                         className={cn(
-                          "w-full justify-start gap-3 px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                          "w-full justify-start gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground",
                           sidebarCollapsed && "justify-center px-2"
                         )}
                       >
@@ -295,12 +296,13 @@ export function UserDashboardLayout({ children, user, ownedCompanies }: UserDash
                   <Link
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                      isActive && "bg-accent text-accent-foreground",
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                      isActive && "bg-primary/15 text-primary dark:bg-primary/20 dark:text-primary",
                       sidebarCollapsed && "justify-center"
                     )}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />
                     {!sidebarCollapsed && <span>{item.title}</span>}
                   </Link>
                 );

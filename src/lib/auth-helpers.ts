@@ -1,7 +1,7 @@
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { users, userRoles, roles, companyUsers, companies, type Company } from "@/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function checkSuperAdmin() {
@@ -243,7 +243,7 @@ export async function getCurrentUser() {
 }
 
 /**
- * Get all companies where the current user is an owner
+ * Get all companies where the current user is an owner or manager
  * Used for conditional navigation and company dashboard access
  */
 export async function getUserOwnedCompanies(): Promise<Company[]> {
@@ -292,7 +292,7 @@ export async function getUserOwnedCompanies(): Promise<Company[]> {
 		.where(
 			and(
 				eq(companyUsers.userId, user.id),
-				eq(companyUsers.role, 'owner')
+				inArray(companyUsers.role, ['owner', 'manager'])
 			)
 		)
 		.all();

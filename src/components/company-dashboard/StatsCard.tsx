@@ -2,13 +2,26 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Briefcase, DollarSign, Clock, FileText, Users, Building2 } from "lucide-react";
+
+// Map of icon names to Lucide components
+const iconMap = {
+	briefcase: Briefcase,
+	dollarSign: DollarSign,
+	clock: Clock,
+	fileText: FileText,
+	users: Users,
+	building: Building2,
+	trendingUp: TrendingUp,
+} as const;
+
+type IconName = keyof typeof iconMap;
 
 interface StatsCardProps {
 	title: string;
 	value: string | number;
 	subtitle?: string;
-	icon?: LucideIcon;
+	icon?: IconName;
 	trend?: {
 		value: number;
 		label?: string;
@@ -20,11 +33,12 @@ export function StatsCard({
 	title,
 	value,
 	subtitle,
-	icon: Icon,
+	icon,
 	trend,
 	className,
 }: StatsCardProps) {
 	const isPositiveTrend = trend && trend.value >= 0;
+	const Icon = icon ? iconMap[icon] : null;
 
 	return (
 		<Card className={cn("relative overflow-hidden", className)}>

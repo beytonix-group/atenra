@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { isSuperAdmin } from "@/lib/auth-helpers";
+import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Activity, 
-  CreditCard, 
-  DollarSign, 
+import {
+  Activity,
+  CreditCard,
+  DollarSign,
   Users,
   Package,
   TrendingUp,
@@ -20,20 +20,23 @@ import {
 
 export default async function DashboardPage() {
   const session = await auth();
-  
+
   if (!session?.user) {
     redirect("/auth/signin");
   }
 
-  const isAdmin = await isSuperAdmin();
-  
+  const [isAdmin, ownedCompanies] = await Promise.all([
+    isSuperAdmin(),
+    getUserOwnedCompanies()
+  ]);
+
   // If user is admin, redirect to admin dashboard
   if (isAdmin) {
     redirect("/admindashboard");
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
       <div className="space-y-4 md:space-y-6">
         {/* Welcome Header */}
         <div>

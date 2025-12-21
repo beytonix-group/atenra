@@ -4,7 +4,7 @@ import { companyInvoices } from "@/server/db/schema";
 import { eq, and, sql, gte, lte, lt } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { StatsCard, RevenueChart } from "@/components/company-dashboard";
-import { DollarSign, TrendingUp, TrendingDown, FileText, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 interface ReportsPageProps {
 	params: Promise<{ companyId: string }>;
@@ -187,7 +187,7 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
 					title="Revenue This Month"
 					value={formatCurrency(stats.currentMonth.revenue)}
 					subtitle={`${stats.currentMonth.count} invoices`}
-					icon={DollarSign}
+					icon="dollarSign"
 					trend={{
 						value: stats.growthPercentage,
 						label: "vs last month",
@@ -197,19 +197,19 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
 					title="Collected This Month"
 					value={formatCurrency(stats.currentMonth.collected)}
 					subtitle="Amount received"
-					icon={DollarSign}
+					icon="dollarSign"
 				/>
 				<StatsCard
 					title="Annual Revenue"
 					value={formatCurrency(stats.year.revenue)}
 					subtitle={`${stats.year.count} invoices (12 months)`}
-					icon={TrendingUp}
+					icon="trendingUp"
 				/>
 				<StatsCard
 					title="Annual Collected"
 					value={formatCurrency(stats.year.collected)}
 					subtitle="Total received (12 months)"
-					icon={FileText}
+					icon="fileText"
 				/>
 			</div>
 

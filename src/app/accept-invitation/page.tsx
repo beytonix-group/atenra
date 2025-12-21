@@ -93,20 +93,12 @@ async function AcceptInvitationContent({ token }: { token?: string }) {
                 Please contact your company administrator if you believe this is an error.
               </p>
             </div>
-            <div className="mt-6 space-y-2">
-              <Link
-                href="/api/auth/signin"
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
-              >
-                Go to Sign In
-              </Link>
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
-              >
-                Go to Home
-              </Link>
-            </div>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full mt-6"
+            >
+              Go to Home
+            </Link>
           </CardContent>
         </Card>
       </div>

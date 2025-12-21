@@ -147,19 +147,19 @@ export function CompanyDashboardLayout({
 			{/* Sidebar */}
 			<aside
 				className={cn(
-					"fixed left-0 top-0 z-40 h-screen border-r bg-card transition-all duration-300",
+					"fixed left-0 top-0 z-40 h-screen border-r border-border/50 bg-sidebar transition-all duration-300",
 					sidebarCollapsed ? "w-16" : "w-64",
 					mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
 				)}
 			>
 				<div className="flex h-full flex-col overflow-hidden">
 					{/* Logo Section */}
-					<div className="flex h-14 lg:h-16 items-center justify-between border-b px-4 flex-shrink-0">
+					<div className="flex h-14 lg:h-16 items-center justify-between border-b border-border/50 px-4 flex-shrink-0">
 						<Link href={`/company/${company.id}`} className="flex items-center gap-2">
 							{!sidebarCollapsed ? (
 								<>
 									<Logo className="h-6 lg:h-8 w-auto" />
-									<span className="text-lg lg:text-xl font-semibold truncate">
+									<span className="text-lg lg:text-xl font-semibold truncate text-sidebar-foreground">
 										{company.name}
 									</span>
 								</>
@@ -171,11 +171,11 @@ export function CompanyDashboardLayout({
 							variant="ghost"
 							size="icon"
 							onClick={toggleSidebar}
-							className="hidden lg:flex"
+							className="hidden lg:flex hover:bg-secondary"
 						>
 							<ChevronLeft
 								className={cn(
-									"h-4 w-4 transition-transform",
+									"h-4 w-4 transition-transform text-muted-foreground",
 									sidebarCollapsed && "rotate-180"
 								)}
 							/>
@@ -183,14 +183,14 @@ export function CompanyDashboardLayout({
 					</div>
 
 					{/* Back to Marketplace Link */}
-					<div className="p-2 border-b">
+					<div className="p-2 border-b border-border/50">
 						<TooltipProvider delayDuration={0}>
 							{sidebarCollapsed ? (
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<Link
 											href="/marketplace"
-											className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground justify-center"
+											className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground justify-center"
 										>
 											<ArrowLeft className="h-5 w-5 flex-shrink-0" />
 										</Link>
@@ -202,7 +202,7 @@ export function CompanyDashboardLayout({
 							) : (
 								<Link
 									href="/marketplace"
-									className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+									className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
 								>
 									<ArrowLeft className="h-5 w-5 flex-shrink-0" />
 									<span>Back to Marketplace</span>
@@ -221,12 +221,13 @@ export function CompanyDashboardLayout({
 										href={item.href}
 										onClick={() => setMobileMenuOpen(false)}
 										className={cn(
-											"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-											active && "bg-accent text-accent-foreground",
+											"flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+											"text-muted-foreground hover:bg-secondary hover:text-foreground",
+											active && "bg-primary/15 text-primary dark:bg-primary/20 dark:text-primary",
 											sidebarCollapsed && "justify-center"
 										)}
 									>
-										<item.icon className="h-5 w-5 flex-shrink-0" />
+										<item.icon className={cn("h-5 w-5 flex-shrink-0", active && "text-primary")} />
 										{!sidebarCollapsed && (
 											<>
 												<span className="flex-1">{item.title}</span>
@@ -258,7 +259,7 @@ export function CompanyDashboardLayout({
 					<div className="hidden lg:flex lg:flex-1"></div>
 
 					{/* Bottom Navigation */}
-					<div className="border-t p-2 flex-shrink-0 space-y-1">
+					<div className="border-t border-border/50 p-2 flex-shrink-0 space-y-1">
 						<TooltipProvider delayDuration={0}>
 							{/* Settings Dropdown */}
 							<DropdownMenu>
@@ -268,7 +269,7 @@ export function CompanyDashboardLayout({
 											<Button
 												variant="ghost"
 												className={cn(
-													"w-full justify-start gap-3 px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+													"w-full justify-start gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground",
 													sidebarCollapsed && "justify-center px-2"
 												)}
 											>
@@ -310,7 +311,7 @@ export function CompanyDashboardLayout({
 									<TooltipTrigger asChild>
 										<Link
 											href="/help"
-											className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground justify-center"
+											className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground justify-center"
 										>
 											<HelpCircle className="h-5 w-5 flex-shrink-0" />
 										</Link>
@@ -322,7 +323,7 @@ export function CompanyDashboardLayout({
 							) : (
 								<Link
 									href="/help"
-									className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+									className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
 								>
 									<HelpCircle className="h-5 w-5 flex-shrink-0" />
 									<span>Help & Support</span>
