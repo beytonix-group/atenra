@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { UpgradeContent } from "@/components/upgrade/UpgradeContent";
 import { SignOutButton } from "@/components/auth/SignOutButton";
-import { isSuperAdmin } from "@/lib/auth-helpers";
+import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";
 import { db } from "@/server/db";
 import { users, subscriptions } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
@@ -19,7 +19,10 @@ export default async function UpgradePage() {
 
 	// Check if user has an active subscription (not in paywall flow)
 	let hasActiveSubscription = false;
-	const isAdmin = await isSuperAdmin();
+	const isAdmin = await isSuperAdmin().catch((error) => {
+		console.error("Error checking admin status:", error);
+		return false;
+	});
 
 	if (session.user.id) {
 		try {
@@ -65,9 +68,15 @@ export default async function UpgradePage() {
 
 	// Existing subscriber or admin: full dashboard layout
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
+	let ownedCompanies: Awaited<ReturnType<typeof getUserOwnedCompanies>> = [];
+	try {
+		ownedCompanies = await getUserOwnedCompanies();
+	} catch (error) {
+		console.error("Error fetching owned companies:", error);
+	}
 
 	return (
-		<Layout user={session.user}>
+		<Layout user={session.user} ownedCompanies={ownedCompanies}>
 			<UpgradeContent />
 		</Layout>
 	);

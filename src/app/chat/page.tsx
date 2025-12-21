@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { ChatInterface } from "@/components/chat/ChatInterface";
 import { PaywallGuard } from "@/components/auth/PaywallGuard";
-import { isSuperAdmin } from "@/lib/auth-helpers";
+import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";
 
 
 export const metadata = {
@@ -19,13 +19,22 @@ export default async function ChatPage() {
 		redirect("/auth/signin");
 	}
 
-	const isAdmin = await isSuperAdmin();
+	const [isAdmin, ownedCompanies] = await Promise.all([
+		isSuperAdmin().catch((error) => {
+			console.error("Error checking admin status:", error);
+			return false;
+		}),
+		getUserOwnedCompanies().catch((error) => {
+			console.error("Error fetching owned companies:", error);
+			return [];
+		})
+	]);
 
 	// Use different layout based on user role
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
 
 	const content = (
-		<Layout user={session.user}>
+		<Layout user={session.user} ownedCompanies={ownedCompanies}>
 			<div className="container mx-auto py-6">
 				<div className="mb-6">
 					<h1 className="text-3xl font-bold">AI Chat Assistant</h1>

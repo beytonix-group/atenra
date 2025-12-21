@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { MarketplaceContent } from "@/components/marketplace/MarketplaceContent";
 import { PaywallGuard } from "@/components/auth/PaywallGuard";
-import { isSuperAdmin } from "@/lib/auth-helpers";
+import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";
 import { fetchCompanies, fetchServiceCategories } from "./actions";
 import { db } from "@/server/db";
 import { users, userServicePreferences } from "@/server/db/schema";
@@ -36,7 +36,16 @@ export default async function MarketplacePage({
 	}
 
 	const resolvedSearchParams = await searchParams;
-	const isAdmin = await isSuperAdmin();
+	const [isAdmin, ownedCompanies] = await Promise.all([
+		isSuperAdmin().catch((error) => {
+			console.error("Error checking admin status:", error);
+			return false;
+		}),
+		getUserOwnedCompanies().catch((error) => {
+			console.error("Error fetching owned companies:", error);
+			return [];
+		})
+	]);
 
 	// Use different layout based on user role
 	const Layout = isAdmin ? DashboardLayout : UserDashboardLayout;
@@ -104,7 +113,7 @@ export default async function MarketplacePage({
 
 	// Wrap with PaywallGuard for non-admin users
 	const content = (
-		<Layout user={session.user}>
+		<Layout user={session.user} ownedCompanies={ownedCompanies}>
 			<MarketplaceContent
 				initialCompanies={companiesData.companies}
 				initialCategories={categories}

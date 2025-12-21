@@ -17,6 +17,7 @@ import {
   Bot,
   Settings,
   CreditCard,
+  Building2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -38,6 +39,13 @@ import { useTheme } from "next-themes";
 import { signOut } from "next-auth/react";
 import { Logo } from "@/components/ui/logo";
 
+interface OwnedCompany {
+  id: number;
+  name: string;
+  city?: string | null;
+  state?: string | null;
+}
+
 interface UserDashboardLayoutProps {
   children: React.ReactNode;
   user?: {
@@ -45,10 +53,19 @@ interface UserDashboardLayoutProps {
     email?: string | null;
     image?: string | null;
   };
+  ownedCompanies?: OwnedCompany[];
 }
 
-// Limited navigation for regular users
-const navigationItems = [
+// Navigation item type
+interface NavigationItem {
+  title: string;
+  href: string;
+  icon: typeof ShoppingBag;
+  badge: string | null;
+}
+
+// Base navigation items for regular users
+const baseNavigationItems: NavigationItem[] = [
   {
     title: "Marketplace",
     href: "/marketplace",
@@ -68,6 +85,26 @@ const navigationItems = [
     badge: null,
   },
 ];
+
+// Get navigation items with conditional company dashboard
+const getNavigationItems = (ownedCompanies?: OwnedCompany[]): NavigationItem[] => {
+  const items: NavigationItem[] = [...baseNavigationItems];
+
+  if (ownedCompanies && ownedCompanies.length > 0) {
+    // Add company dashboard at the beginning
+    const companyNavItem: NavigationItem = {
+      title: "Company Dashboard",
+      href: ownedCompanies.length === 1
+        ? `/company/${ownedCompanies[0].id}`
+        : "/company/select",
+      icon: Building2,
+      badge: ownedCompanies.length > 1 ? String(ownedCompanies.length) : null,
+    };
+    items.unshift(companyNavItem);
+  }
+
+  return items;
+};
 
 const settingsMenuItems = [
   {
@@ -90,12 +127,15 @@ const bottomNavigationItems = [
   },
 ];
 
-export function UserDashboardLayout({ children, user }: UserDashboardLayoutProps) {
+export function UserDashboardLayout({ children, user, ownedCompanies }: UserDashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+
+  // Get navigation items based on owned companies
+  const navigationItems = getNavigationItems(ownedCompanies);
 
   useEffect(() => {
     setMounted(true);

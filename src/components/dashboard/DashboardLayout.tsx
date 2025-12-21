@@ -44,6 +44,13 @@ import { useTheme } from "next-themes";
 import { signOut } from "next-auth/react";
 import { Logo } from "@/components/ui/logo";
 
+interface OwnedCompany {
+  id: number;
+  name: string;
+  city?: string | null;
+  state?: string | null;
+}
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
   user?: {
@@ -51,6 +58,7 @@ interface DashboardLayoutProps {
     email?: string | null;
     image?: string | null;
   };
+  ownedCompanies?: OwnedCompany[];  // Accepted but not used (admin has full access)
 }
 
 const navigationItems = [

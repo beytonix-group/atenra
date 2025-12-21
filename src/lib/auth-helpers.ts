@@ -1,6 +1,6 @@
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { users, userRoles, roles, companyUsers } from "@/server/db/schema";
+import { users, userRoles, roles, companyUsers, companies, type Company } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -240,4 +240,70 @@ export async function getCurrentUser() {
 		.get();
 
 	return user || null;
+}
+
+/**
+ * Get all companies where the current user is an owner
+ * Used for conditional navigation and company dashboard access
+ */
+export async function getUserOwnedCompanies(): Promise<Company[]> {
+	const session = await auth();
+
+	if (!session?.user?.id) {
+		return [];
+	}
+
+	const user = await db
+		.select()
+		.from(users)
+		.where(eq(users.authUserId, session.user.id))
+		.get();
+
+	if (!user) {
+		return [];
+	}
+
+	const results = await db
+		.select({
+			id: companies.id,
+			name: companies.name,
+			einNumber: companies.einNumber,
+			email: companies.email,
+			phone: companies.phone,
+			websiteUrl: companies.websiteUrl,
+			addressLine1: companies.addressLine1,
+			addressLine2: companies.addressLine2,
+			city: companies.city,
+			state: companies.state,
+			zipCode: companies.zipCode,
+			country: companies.country,
+			description: companies.description,
+			licenseNumber: companies.licenseNumber,
+			insuranceNumber: companies.insuranceNumber,
+			isPublic: companies.isPublic,
+			memo: companies.memo,
+			createdByUserId: companies.createdByUserId,
+			status: companies.status,
+			createdAt: companies.createdAt,
+			updatedAt: companies.updatedAt,
+		})
+		.from(companies)
+		.innerJoin(companyUsers, eq(companies.id, companyUsers.companyId))
+		.where(
+			and(
+				eq(companyUsers.userId, user.id),
+				eq(companyUsers.role, 'owner')
+			)
+		)
+		.all();
+
+	return results;
+}
+
+/**
+ * Check if the current user is an owner of a specific company
+ */
+export async function isCompanyOwner(companyId: number): Promise<boolean> {
+	const role = await getUserCompanyRole(companyId);
+	return role === 'owner';
 }

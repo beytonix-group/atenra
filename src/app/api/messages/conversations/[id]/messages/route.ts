@@ -46,9 +46,12 @@ export async function GET(
 
 		// Get pagination params
 		const { searchParams } = new URL(request.url);
-		const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
-		const beforeId = searchParams.get('before') ? parseInt(searchParams.get('before')!) : null;
-		const afterId = searchParams.get('after') ? parseInt(searchParams.get('after')!) : null;
+		const limitParam = parseInt(searchParams.get('limit') || '50', 10);
+		const limit = Math.min(Math.max(isNaN(limitParam) ? 50 : limitParam, 1), 100);
+		const beforeIdParam = searchParams.get('before') ? parseInt(searchParams.get('before')!, 10) : null;
+		const afterIdParam = searchParams.get('after') ? parseInt(searchParams.get('after')!, 10) : null;
+		const beforeId = beforeIdParam !== null && isNaN(beforeIdParam) ? null : beforeIdParam;
+		const afterId = afterIdParam !== null && isNaN(afterIdParam) ? null : afterIdParam;
 
 		// Build query - handle "after" (new messages) vs "before" (older messages)
 		let whereClause;
