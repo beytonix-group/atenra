@@ -34,10 +34,10 @@ export async function POST(request: NextRequest) {
       .where(eq(employeeInvitations.token, token))
       .get();
 
-    // Check if invitation exists
+    // Check if invitation exists (may have been revoked/removed)
     if (!invitation) {
       return NextResponse.json(
-        { error: "Invalid invitation token" },
+        { error: "This invitation is no longer valid. It may have been revoked or removed." },
         { status: 404 }
       );
     }

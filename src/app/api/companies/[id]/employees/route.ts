@@ -24,6 +24,7 @@ const createEmployeeSchema = z.object({
 	country: z.string().max(50).optional(),
 	companyRole: z.enum(["owner", "manager", "staff"]),
 	systemRoleId: z.number().int().positive().optional(),
+	isExistingUser: z.boolean().optional(),
 });
 
 // GET - Fetch all employees for a company
@@ -146,6 +147,7 @@ export async function POST(
 			country,
 			companyRole,
 			systemRoleId,
+			isExistingUser,
 		} = validatedData;
 
 		// Check if user with email already exists
@@ -175,6 +177,66 @@ export async function POST(
 					{ error: "This user is already an employee of this company" },
 					{ status: 400 }
 				);
+			}
+
+			// For existing users: ONLY create association, no invitation, no email
+			if (isExistingUser) {
+				// Check if there's already a pending invitation for this email and company
+				const existingInvitation = await db
+					.select()
+					.from(employeeInvitations)
+					.where(
+						and(
+							eq(employeeInvitations.email, email.toLowerCase()),
+							eq(employeeInvitations.companyId, companyId),
+							eq(employeeInvitations.status, "pending")
+						)
+					)
+					.get();
+
+				if (existingInvitation) {
+					return NextResponse.json(
+						{ error: "An invitation has already been sent to this email for this company" },
+						{ status: 400 }
+					);
+				}
+
+				// Create company relationship only
+				await db
+					.insert(companyUsers)
+					.values({
+						companyId,
+						userId: existingUser.id,
+						role: companyRole,
+						isDefault: 0,
+					});
+
+				// Track activity
+				const session = await auth();
+				if (session?.user?.id) {
+					await trackActivity({
+						authUserId: session.user.id,
+						action: "add_existing_employee",
+						info: {
+							companyId,
+							companyName: company.name,
+							userId: existingUser.id,
+							email: email.toLowerCase(),
+							role: companyRole,
+						},
+						request,
+					});
+				}
+
+				return NextResponse.json({
+					success: true,
+					isExistingUser: true,
+					employee: {
+						userId: existingUser.id,
+						email: existingUser.email,
+						role: companyRole,
+					},
+				});
 			}
 
 			// Check if there's already a pending invitation for this email and company
@@ -409,7 +471,7 @@ export async function DELETE(
 			return NextResponse.json({ error: "User ID is required" }, { status: 400 });
 		}
 
-		// Delete the company-user relationship
+		// Delete the company-user relationship (keeps user account intact)
 		const deleted = await db
 			.delete(companyUsers)
 			.where(
@@ -426,6 +488,26 @@ export async function DELETE(
 				{ error: "Employee not found in this company" },
 				{ status: 404 }
 			);
+		}
+
+		// Get user email for invitation cleanup
+		const user = await db
+			.select({ email: users.email })
+			.from(users)
+			.where(eq(users.id, userId))
+			.get();
+
+		// Clean up any pending invitations for this user at this company
+		if (user) {
+			await db
+				.delete(employeeInvitations)
+				.where(
+					and(
+						eq(employeeInvitations.email, user.email.toLowerCase()),
+						eq(employeeInvitations.companyId, companyId),
+						eq(employeeInvitations.status, "pending")
+					)
+				);
 		}
 
 		// Track activity

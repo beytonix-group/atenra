@@ -93,13 +93,30 @@ export function AddEmployeeDialog({
 				const response = await fetch('/api/admin/users/check-email', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ email: formData.email }),
+					body: JSON.stringify({ email: formData.email, companyId }),
 				});
 
 				if (response.ok) {
 					const data = await response.json() as { exists: boolean; user?: any };
 					setEmailExists(data.exists);
 					setExistingUser(data.user || null);
+
+					// Pre-populate form fields with existing user data
+					if (data.exists && data.user) {
+						setFormData(prev => ({
+							...prev,
+							firstName: data.user.firstName || '',
+							lastName: data.user.lastName || '',
+							displayName: data.user.displayName || '',
+							phone: data.user.phone || '',
+							addressLine1: data.user.addressLine1 || '',
+							addressLine2: data.user.addressLine2 || '',
+							city: data.user.city || '',
+							state: data.user.state || '',
+							zipCode: data.user.zipCode || '',
+							country: data.user.country || 'US',
+						}));
+					}
 				}
 			} catch (error) {
 				console.error('Error checking email:', error);
@@ -109,7 +126,7 @@ export function AddEmployeeDialog({
 		}, 500);
 
 		return () => clearTimeout(timer);
-	}, [formData.email]);
+	}, [formData.email, companyId]);
 
 	const handleInputChange = (field: keyof FormData, value: string) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
@@ -120,11 +137,6 @@ export function AddEmployeeDialog({
 
 		if (!formData.email || !formData.companyRole) {
 			toast.error('Email and Company Role are required fields.');
-			return;
-		}
-
-		if (emailExists) {
-			toast.error('This email address is already registered. Please use a different email.');
 			return;
 		}
 
@@ -147,16 +159,19 @@ export function AddEmployeeDialog({
 					zipCode: formData.zipCode || undefined,
 					country: formData.country || 'US',
 					companyRole: formData.companyRole,
+					isExistingUser: emailExists,
 				}),
 			});
 
-			const data = await response.json() as { success?: boolean; emailSent?: boolean; error?: string };
+			const data = await response.json() as { success?: boolean; emailSent?: boolean; isExistingUser?: boolean; error?: string };
 
 			if (!response.ok) {
 				throw new Error(data.error || 'Failed to create employee');
 			}
 
-			if (data.emailSent) {
+			if (data.isExistingUser) {
+				toast.success(`${formData.email} has been added to the company as ${formData.companyRole}.`);
+			} else if (data.emailSent) {
 				toast.success(`Invitation sent to ${formData.email}. They will receive an email with instructions to set up their account.`);
 			} else {
 				toast.success(`Employee added: ${formData.email}. Warning: Invitation email failed to send.`, {
@@ -227,12 +242,15 @@ export function AddEmployeeDialog({
 							)}
 						</div>
 						{emailExists && existingUser && (
-							<div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-								<AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+							<div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+								<AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
 								<div className="text-sm">
-									<p className="font-medium text-yellow-800">Email Already Exists</p>
-									<p className="text-yellow-700">
-										This email is registered to: {existingUser.displayName || existingUser.email}
+									<p className="font-medium text-blue-800">Existing User Account</p>
+									<p className="text-blue-700">
+										This email belongs to: {existingUser.displayName || `${existingUser.firstName || ''} ${existingUser.lastName || ''}`.trim() || existingUser.email}
+									</p>
+									<p className="text-blue-600 text-xs mt-1">
+										Their profile information is shown below. Select a company role to add them.
 									</p>
 								</div>
 							</div>
@@ -249,6 +267,8 @@ export function AddEmployeeDialog({
 								onChange={(e) => handleInputChange('firstName', e.target.value)}
 								placeholder="John"
 								maxLength={30}
+								disabled={emailExists}
+								className={emailExists ? 'bg-muted' : ''}
 							/>
 						</div>
 						<div className="space-y-2">
@@ -259,6 +279,8 @@ export function AddEmployeeDialog({
 								onChange={(e) => handleInputChange('lastName', e.target.value)}
 								placeholder="Doe"
 								maxLength={30}
+								disabled={emailExists}
+								className={emailExists ? 'bg-muted' : ''}
 							/>
 						</div>
 					</div>
@@ -272,6 +294,8 @@ export function AddEmployeeDialog({
 							onChange={(e) => handleInputChange('displayName', e.target.value)}
 							placeholder="John D."
 							maxLength={65}
+							disabled={emailExists}
+							className={emailExists ? 'bg-muted' : ''}
 						/>
 					</div>
 
@@ -285,6 +309,8 @@ export function AddEmployeeDialog({
 							onChange={(e) => handleInputChange('phone', e.target.value)}
 							placeholder="(555) 123-4567"
 							maxLength={14}
+							disabled={emailExists}
+							className={emailExists ? 'bg-muted' : ''}
 						/>
 					</div>
 
@@ -297,6 +323,8 @@ export function AddEmployeeDialog({
 							onChange={(e) => handleInputChange('addressLine1', e.target.value)}
 							placeholder="123 Main St"
 							maxLength={50}
+							disabled={emailExists}
+							className={emailExists ? 'bg-muted' : ''}
 						/>
 					</div>
 
@@ -308,6 +336,8 @@ export function AddEmployeeDialog({
 							onChange={(e) => handleInputChange('addressLine2', e.target.value)}
 							placeholder="Apt 4B"
 							maxLength={50}
+							disabled={emailExists}
+							className={emailExists ? 'bg-muted' : ''}
 						/>
 					</div>
 
@@ -321,6 +351,8 @@ export function AddEmployeeDialog({
 								onChange={(e) => handleInputChange('city', e.target.value)}
 								placeholder="New York"
 								maxLength={50}
+								disabled={emailExists}
+								className={emailExists ? 'bg-muted' : ''}
 							/>
 						</div>
 						<div className="space-y-2">
@@ -331,6 +363,8 @@ export function AddEmployeeDialog({
 								onChange={(e) => handleInputChange('state', e.target.value)}
 								placeholder="NY"
 								maxLength={50}
+								disabled={emailExists}
+								className={emailExists ? 'bg-muted' : ''}
 							/>
 						</div>
 						<div className="space-y-2">
@@ -342,6 +376,8 @@ export function AddEmployeeDialog({
 								placeholder="10001"
 								maxLength={5}
 								pattern="[0-9]{5}"
+								disabled={emailExists}
+								className={emailExists ? 'bg-muted' : ''}
 							/>
 						</div>
 					</div>
@@ -355,6 +391,8 @@ export function AddEmployeeDialog({
 							onChange={(e) => handleInputChange('country', e.target.value)}
 							placeholder="US"
 							maxLength={50}
+							disabled={emailExists}
+							className={emailExists ? 'bg-muted' : ''}
 						/>
 					</div>
 
@@ -388,14 +426,14 @@ export function AddEmployeeDialog({
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isSubmitting || emailExists}>
+						<Button type="submit" disabled={isSubmitting}>
 							{isSubmitting ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Creating...
+									{emailExists ? 'Adding...' : 'Creating...'}
 								</>
 							) : (
-								'Add Employee'
+								emailExists ? 'Add to Company' : 'Add Employee'
 							)}
 						</Button>
 					</DialogFooter>
