@@ -39,7 +39,7 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [removingEmployeeId, setRemovingEmployeeId] = useState<number | null>(null);
 	const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([]);
-	const [setLoadingInvitations] = useState(false);
+	const [_loadingInvitations, setLoadingInvitations] = useState(false);
 	const [resendingInvitationId, setResendingInvitationId] = useState<number | null>(null);
 	const [cancellingInvitationId, setCancellingInvitationId] = useState<number | null>(null);
 
