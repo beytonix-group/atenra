@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/server/db";
 import { companyInvoices } from "@/server/db/schema";
-import { eq, and, sql, gte, lte, lt } from "drizzle-orm";
+import { eq, and, sql, gte, lt } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { StatsCard, RevenueChart } from "@/components/company-dashboard";
 import { MapPin } from "lucide-react";
@@ -169,8 +169,6 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
 		getRevenueByState(companyIdNum),
 		getMonthlyRevenue(companyIdNum),
 	]);
-
-	const isPositiveGrowth = stats.growthPercentage >= 0;
 
 	return (
 		<div className="space-y-6">

@@ -39,7 +39,7 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [removingEmployeeId, setRemovingEmployeeId] = useState<number | null>(null);
 	const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([]);
-	const [loadingInvitations, setLoadingInvitations] = useState(false);
+	const [_loadingInvitations, setLoadingInvitations] = useState(false);
 	const [resendingInvitationId, setResendingInvitationId] = useState<number | null>(null);
 	const [cancellingInvitationId, setCancellingInvitationId] = useState<number | null>(null);
 
@@ -354,89 +354,89 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 							)}
 						</div>
 					</CardHeader>
-				<CardContent>
-					{employees.length === 0 ? (
-						<div className="text-center py-8 text-muted-foreground">
-							<Users className="h-12 w-12 mx-auto mb-3 opacity-20" />
-							<p>No employees have been added to this company yet.</p>
-							{canManageEmployees && (
-								<Button
-									onClick={() => setIsDialogOpen(true)}
-									variant="outline"
-									size="sm"
-									className="mt-4"
-								>
-									Add First Employee
-								</Button>
-							)}
-						</div>
-					) : (
-						<div className="space-y-4">
-							{employees.map((employee) => (
-								<div
-									key={employee.userId}
-									className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-								>
-									<div className="flex-1">
-										<div className="flex items-center gap-3 mb-2">
-											<h4 className="font-medium">
-												{employee.displayName ||
-													`${employee.firstName || ''} ${employee.lastName || ''}`.trim() ||
-													'Unnamed Employee'}
-											</h4>
-											<Badge variant="outline" className="capitalize">
-												{employee.companyRole}
-											</Badge>
-											{employee.systemRoleName && (
-												<RoleBadge role={employee.systemRoleName} />
-											)}
-										</div>
-										<div className="space-y-1 text-sm text-muted-foreground">
-											<div className="flex items-center gap-2">
-												<Mail className="h-3 w-3" />
-												<span>{employee.email}</span>
+					<CardContent>
+						{employees.length === 0 ? (
+							<div className="text-center py-8 text-muted-foreground">
+								<Users className="h-12 w-12 mx-auto mb-3 opacity-20" />
+								<p>No employees have been added to this company yet.</p>
+								{canManageEmployees && (
+									<Button
+										onClick={() => setIsDialogOpen(true)}
+										variant="outline"
+										size="sm"
+										className="mt-4"
+									>
+										Add First Employee
+									</Button>
+								)}
+							</div>
+						) : (
+							<div className="space-y-4">
+								{employees.map((employee) => (
+									<div
+										key={employee.userId}
+										className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+									>
+										<div className="flex-1">
+											<div className="flex items-center gap-3 mb-2">
+												<h4 className="font-medium">
+													{employee.displayName ||
+														`${employee.firstName || ''} ${employee.lastName || ''}`.trim() ||
+														'Unnamed Employee'}
+												</h4>
+												<Badge variant="outline" className="capitalize">
+													{employee.companyRole}
+												</Badge>
+												{employee.systemRoleName && (
+													<RoleBadge role={employee.systemRoleName} />
+												)}
 											</div>
-											{employee.phone && (
+											<div className="space-y-1 text-sm text-muted-foreground">
 												<div className="flex items-center gap-2">
-													<Phone className="h-3 w-3" />
-													<span>{employee.phone}</span>
+													<Mail className="h-3 w-3" />
+													<span>{employee.email}</span>
 												</div>
-											)}
-											{(employee.city || employee.state) && (
-												<div className="flex items-center gap-2">
-													<MapPin className="h-3 w-3" />
-													<span>
-														{[employee.city, employee.state].filter(Boolean).join(', ')}
-													</span>
-												</div>
+												{employee.phone && (
+													<div className="flex items-center gap-2">
+														<Phone className="h-3 w-3" />
+														<span>{employee.phone}</span>
+													</div>
+												)}
+												{(employee.city || employee.state) && (
+													<div className="flex items-center gap-2">
+														<MapPin className="h-3 w-3" />
+														<span>
+															{[employee.city, employee.state].filter(Boolean).join(', ')}
+														</span>
+													</div>
+												)}
+											</div>
+										</div>
+										<div className="flex items-center gap-2">
+											<SendMessageButton
+												userId={employee.userId}
+												userName={employee.displayName || employee.email}
+												variant="outline"
+												size="sm"
+											/>
+											{canManageEmployees && (
+												<Button
+													variant="ghost"
+													size="icon"
+													onClick={() => handleRemoveEmployee(employee.userId, employee.email)}
+													disabled={removingEmployeeId === employee.userId}
+													className="text-destructive hover:text-destructive hover:bg-destructive/10"
+												>
+													<Trash2 className="h-4 w-4" />
+												</Button>
 											)}
 										</div>
 									</div>
-									<div className="flex items-center gap-2">
-									<SendMessageButton
-										userId={employee.userId}
-										userName={employee.displayName || employee.email}
-										variant="outline"
-										size="sm"
-									/>
-									{canManageEmployees && (
-										<Button
-											variant="ghost"
-											size="icon"
-											onClick={() => handleRemoveEmployee(employee.userId, employee.email)}
-											disabled={removingEmployeeId === employee.userId}
-											className="text-destructive hover:text-destructive hover:bg-destructive/10"
-										>
-											<Trash2 className="h-4 w-4" />
-										</Button>
-									)}
-								</div>
-								</div>
-							))}
-						</div>
-					)}
-				</CardContent>
-			</Card>
+								))}
+							</div>
+						)}
+					</CardContent>
+				</Card>
 			)}
 
 			{/* Pending Invitations Section - Only visible to managers/owners/admins */}

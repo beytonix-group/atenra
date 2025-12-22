@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { users, userActivities, userRoles, roles } from "@/server/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
 

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ProfileForm } from "@/components/profile/ProfileForm";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";

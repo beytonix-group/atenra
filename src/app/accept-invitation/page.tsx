@@ -2,10 +2,9 @@ import { Suspense } from "react";
 import { db } from "@/server/db";
 import { employeeInvitations, companies, users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 import SetPasswordForm from "@/components/auth/SetPasswordForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock } from "lucide-react";
 import Link from "next/link";
 
 interface PageProps {

@@ -111,7 +111,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 		// Prepare updates
 		const updates: { [key: string]: any } = {};
 		let newStripePriceId = currentPlan.stripe_price_id;
-		let newStripeProductId = currentPlan.stripe_product_id;
 
 		// Handle price change
 		if (body.price !== undefined && body.price !== currentPlan.price) {

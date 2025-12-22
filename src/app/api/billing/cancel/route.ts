@@ -9,7 +9,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  * POST /api/billing/cancel
  * Cancel user's subscription at period end
  */
-export async function POST(request: Request): Promise<NextResponse> {
+export async function POST(_request: Request): Promise<NextResponse> {
 	try {
 		const stripe = getStripe();
 		// Require authentication

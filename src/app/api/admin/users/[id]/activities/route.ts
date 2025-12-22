@@ -90,7 +90,7 @@ export async function GET(
         if (activity.metadata) {
           parsedMetadata = JSON.parse(activity.metadata);
         }
-      } catch (e) {
+      } catch {
         // If metadata is not valid JSON, treat it as a string
         parsedMetadata = { raw: activity.metadata };
       }

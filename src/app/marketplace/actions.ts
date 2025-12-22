@@ -2,8 +2,7 @@
 
 import { db } from '@/server/db';
 import { companies, serviceCategories, companyServiceCategories, companyUsers, users, userRoles, roles } from '@/server/db/schema';
-import { eq, and, sql, desc, asc, inArray, or, like } from 'drizzle-orm';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { eq, and, asc, inArray } from 'drizzle-orm';
 
 export type CompanyWithCategories = typeof companies.$inferSelect & {
   categories: Array<{
@@ -163,7 +162,7 @@ export async function fetchCompanies({
     }
 
     // Convert to array and sort
-    let companiesArray = Array.from(companyMap.values());
+    const companiesArray = Array.from(companyMap.values());
 
     // Sort companies
     if (sortBy === 'name') {

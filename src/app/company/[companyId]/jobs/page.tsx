@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/server/db";
 import { userCompanyJobs, users, serviceCategories } from "@/server/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
 	Table,

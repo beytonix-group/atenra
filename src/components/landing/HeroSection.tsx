@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Logo } from "@/components/ui/logo";
-import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
 export function HeroSection() {

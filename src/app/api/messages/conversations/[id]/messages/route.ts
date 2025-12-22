@@ -71,7 +71,7 @@ export async function GET(
 			whereClause = eq(messages.conversationId, conversationId);
 		}
 
-		let messagesQuery = db
+		const messagesQuery = db
 			.select({
 				id: messages.id,
 				content: messages.content,

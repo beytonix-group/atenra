@@ -6,7 +6,7 @@ import { userCompanyJobs, companyInvoices } from "@/server/db/schema";
 import { eq, and, gte, sql } from "drizzle-orm";
 
 export async function GET(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ companyId: string }> }
 ) {
 	try {
@@ -51,7 +51,6 @@ export async function GET(
 			.get();
 
 		// Calculate current month timestamps
-		const now = Math.floor(Date.now() / 1000);
 		const startOfMonth = new Date();
 		startOfMonth.setDate(1);
 		startOfMonth.setHours(0, 0, 0, 0);

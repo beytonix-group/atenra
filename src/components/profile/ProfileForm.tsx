@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { sanitizeAvatarUrl } from "@/lib/utils/avatar";
 import { formatStatus, getStatusBadgeVariant } from "@/lib/utils/format";
 import { formatPhoneNumber, formatZipCode } from "@/lib/utils/input-format";
-import { User, Save, Loader2, Mail, Phone, MapPin, Calendar, Shield, CheckCircle } from "lucide-react";
+import { Save, Loader2, Mail, Phone, MapPin, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,13 +39,13 @@ export function ProfileForm() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [message, setMessage] = useState("");
-	
+
 	useEffect(() => {
 		if (session?.user) {
 			fetchProfile();
 		}
 	}, [session]);
-	
+
 	const fetchProfile = async () => {
 		try {
 			const response = await fetch("/api/profile");
@@ -59,14 +59,14 @@ export function ProfileForm() {
 			setIsLoading(false);
 		}
 	};
-	
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!profile) return;
-		
+
 		setIsSaving(true);
 		setMessage("");
-		
+
 		try {
 			const response = await fetch("/api/profile", {
 				method: "PATCH",
@@ -84,7 +84,7 @@ export function ProfileForm() {
 					country: profile.country || "",
 				}),
 			});
-			
+
 			if (response.ok) {
 				setMessage("Profile updated successfully!");
 				setTimeout(() => setMessage(""), 3000);
@@ -165,7 +165,7 @@ export function ProfileForm() {
 					</div>
 				</CardHeader>
 			</Card>
-			
+
 			{message && (
 				<Alert className={message.includes('successfully') ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-200' : 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200'}>
 					<AlertDescription className="text-sm">{message}</AlertDescription>
@@ -183,7 +183,7 @@ export function ProfileForm() {
 								<Input
 									id="firstName"
 									value={profile.firstName || ""}
-									onChange={(e) => setProfile({...profile, firstName: e.target.value.slice(0, 30)})}
+									onChange={(e) => setProfile({ ...profile, firstName: e.target.value.slice(0, 30) })}
 									placeholder="Enter first name"
 									maxLength={30}
 									className="text-sm"
@@ -194,7 +194,7 @@ export function ProfileForm() {
 								<Input
 									id="lastName"
 									value={profile.lastName || ""}
-									onChange={(e) => setProfile({...profile, lastName: e.target.value.slice(0, 30)})}
+									onChange={(e) => setProfile({ ...profile, lastName: e.target.value.slice(0, 30) })}
 									placeholder="Enter last name"
 									maxLength={30}
 									className="text-sm"
@@ -207,7 +207,7 @@ export function ProfileForm() {
 							<Input
 								id="displayName"
 								value={profile.displayName || ""}
-								onChange={(e) => setProfile({...profile, displayName: e.target.value.slice(0, 65)})}
+								onChange={(e) => setProfile({ ...profile, displayName: e.target.value.slice(0, 65) })}
 								placeholder="Enter display name"
 								maxLength={65}
 								className="text-sm"
@@ -237,7 +237,7 @@ export function ProfileForm() {
 										value={profile.phone || ""}
 										onChange={(e) => {
 											const formatted = formatPhoneNumber(e.target.value);
-											setProfile({...profile, phone: formatted});
+											setProfile({ ...profile, phone: formatted });
 										}}
 										placeholder="(555) 555-5555"
 										type="tel"
@@ -254,7 +254,7 @@ export function ProfileForm() {
 								<Input
 									id="addressLine1"
 									value={profile.addressLine1 || ""}
-									onChange={(e) => setProfile({...profile, addressLine1: e.target.value.slice(0, 50)})}
+									onChange={(e) => setProfile({ ...profile, addressLine1: e.target.value.slice(0, 50) })}
 									placeholder="Enter street address"
 									maxLength={50}
 									className="text-sm"
@@ -265,7 +265,7 @@ export function ProfileForm() {
 								<Input
 									id="addressLine2"
 									value={profile.addressLine2 || ""}
-									onChange={(e) => setProfile({...profile, addressLine2: e.target.value.slice(0, 50)})}
+									onChange={(e) => setProfile({ ...profile, addressLine2: e.target.value.slice(0, 50) })}
 									placeholder="Apt, suite, etc."
 									maxLength={50}
 									className="text-sm"
@@ -279,7 +279,7 @@ export function ProfileForm() {
 								<Input
 									id="city"
 									value={profile.city || ""}
-									onChange={(e) => setProfile({...profile, city: e.target.value})}
+									onChange={(e) => setProfile({ ...profile, city: e.target.value })}
 									placeholder="Enter city"
 									className="text-sm"
 								/>
@@ -289,7 +289,7 @@ export function ProfileForm() {
 								<Input
 									id="state"
 									value={profile.state || ""}
-									onChange={(e) => setProfile({...profile, state: e.target.value})}
+									onChange={(e) => setProfile({ ...profile, state: e.target.value })}
 									placeholder="Enter state"
 									className="text-sm"
 								/>
@@ -301,7 +301,7 @@ export function ProfileForm() {
 									value={profile.zipCode || ""}
 									onChange={(e) => {
 										const formatted = formatZipCode(e.target.value);
-										setProfile({...profile, zipCode: formatted});
+										setProfile({ ...profile, zipCode: formatted });
 									}}
 									placeholder="12345"
 									maxLength={5}
@@ -318,7 +318,7 @@ export function ProfileForm() {
 								<Input
 									id="country"
 									value={profile.country || ""}
-									onChange={(e) => setProfile({...profile, country: e.target.value})}
+									onChange={(e) => setProfile({ ...profile, country: e.target.value })}
 									placeholder="Enter country"
 									className="pl-10 text-sm"
 								/>

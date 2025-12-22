@@ -10,7 +10,7 @@ interface MessageBubbleProps {
 	senderIsOnline?: boolean;  // For group chats - show sender's online status
 }
 
-export function MessageBubble({ message, showSender = false, senderIsOnline }: MessageBubbleProps) {
+export function MessageBubble({ message, senderIsOnline }: MessageBubbleProps) {
 	if (message.isDeleted) {
 		return (
 			<div className={cn(

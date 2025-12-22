@@ -2,7 +2,7 @@
 
 import { Navigation } from "@/components/landing/Navigation";
 import { FooterSection } from "@/components/landing/FooterSection";
-import { Globe, TrendingUp, Users, Award, Code, Palette, Megaphone, Scale, Headphones, ExternalLink, Check } from "lucide-react";
+import { Code, Palette, Megaphone, Scale, Headphones, ExternalLink, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";

@@ -8,7 +8,6 @@ import {
   Activity,
   CreditCard,
   DollarSign,
-  Users,
   Package,
   TrendingUp,
   Calendar,

@@ -2,12 +2,10 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { logPageView, wireActivityAutoFlush } from "@/lib/activity-tracker";
 
 export default function ActivityProvider() {
   const pathname = usePathname();
-  const { data: session } = useSession();
 
   useEffect(() => {
     // Set up lifecycle event handlers once

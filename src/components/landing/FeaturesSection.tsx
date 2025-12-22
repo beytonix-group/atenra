@@ -2,11 +2,8 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, UserCheck, Zap, Award, HeartHandshake, TrendingUp } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function FeaturesSection() {
-	const { t } = useLanguage();
-
 	const features = [
 		{
 			icon: Shield,

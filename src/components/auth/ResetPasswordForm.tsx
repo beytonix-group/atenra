@@ -4,14 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Lock, ArrowLeft, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 function ResetPasswordFormContent() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [passwordReset, setPasswordReset] = useState(false);
 	const [error, setError] = useState("");
 	const [validToken, setValidToken] = useState<boolean | null>(null);
-	const router = useRouter();
 	const searchParams = useSearchParams();
 	const token = searchParams.get("token");
 
@@ -66,7 +65,7 @@ function ResetPasswordFormContent() {
 				const result = await response.json() as { message?: string };
 				setError(result.message || "Something went wrong");
 			}
-		} catch (error) {
+		} catch {
 			setError("Something went wrong. Please try again.");
 		} finally {
 			setIsLoading(false);
@@ -164,8 +163,8 @@ function ResetPasswordFormContent() {
 					/>
 				</div>
 
-				<Button 
-					type="submit" 
+				<Button
+					type="submit"
 					className="w-full font-semibold h-12"
 					disabled={isLoading}
 				>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
-import { OnApproveData, OnApproveActions, CreateSubscriptionActions } from "@paypal/paypal-js";
+import { OnApproveData, CreateSubscriptionActions } from "@paypal/paypal-js";
 
 /**
  * PayPal Subscription Button Component
@@ -115,7 +115,7 @@ export function PayPalSubscriptionButton({
 	 * Handle subscription approval
 	 * This is called after the user approves the subscription on PayPal
 	 */
-	const onApprove = async (data: OnApproveData, actions: OnApproveActions): Promise<void> => {
+	const onApprove = async (data: OnApproveData): Promise<void> => {
 		try {
 			setLoading(true);
 			setError(null);

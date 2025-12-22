@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 
 

@@ -123,23 +123,6 @@ export async function GET() {
 	}
 }
 
-interface CreateUserBody {
-	email: string;
-	firstName?: string;
-	lastName?: string;
-	displayName?: string;
-	phone?: string;
-	addressLine1?: string;
-	addressLine2?: string;
-	city?: string;
-	state?: string;
-	zipCode?: string;
-	country?: string;
-	status?: "active" | "suspended" | "deleted";
-	emailVerified?: boolean;
-	roleId?: number;
-}
-
 export async function POST(request: NextRequest) {
 	try {
 		const isAdmin = await isSuperAdmin();

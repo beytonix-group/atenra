@@ -41,7 +41,7 @@ export function SignInForm() {
 					window.location.href = "/";
 				}, 100);
 			}
-		} catch (error) {
+		} catch {
 			setError(t.auth.signIn.errors.somethingWentWrong);
 		} finally {
 			setIsLoading(false);
@@ -52,7 +52,7 @@ export function SignInForm() {
 		setIsLoading(true);
 		try {
 			await signIn("google", { callbackUrl: "/" });
-		} catch (error) {
+		} catch {
 			setError(t.auth.signIn.errors.googleSignInFailed);
 			setIsLoading(false);
 		}
@@ -127,8 +127,8 @@ export function SignInForm() {
 					</Link>
 				</div>
 
-				<Button 
-					type="submit" 
+				<Button
+					type="submit"
 					className="w-full font-semibold h-12"
 					disabled={isLoading}
 				>

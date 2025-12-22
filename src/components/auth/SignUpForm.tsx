@@ -85,7 +85,7 @@ export function SignUpForm() {
 			} else {
 				setEmailSent(true);
 			}
-		} catch (error) {
+		} catch {
 			setErrors({ general: t.auth.signUp.errors.somethingWentWrong });
 		} finally {
 			setIsLoading(false);
@@ -96,7 +96,7 @@ export function SignUpForm() {
 		setIsLoading(true);
 		try {
 			await signIn("google", { redirectTo: "/" });
-		} catch (error) {
+		} catch {
 			setErrors({ general: t.auth.signUp.errors.googleSignInFailed });
 			setIsLoading(false);
 		}
@@ -237,11 +237,11 @@ export function SignUpForm() {
 				</div>
 
 				<div className="flex items-start space-x-2">
-					<input 
-						type="checkbox" 
-						id="terms" 
-						required 
-						className="mt-1 rounded border-border" 
+					<input
+						type="checkbox"
+						id="terms"
+						required
+						className="mt-1 rounded border-border"
 					/>
 					<label htmlFor="terms" className="text-sm text-muted-foreground">
 						{t.auth.signUp.agreeToTerms}{" "}
@@ -255,8 +255,8 @@ export function SignUpForm() {
 					</label>
 				</div>
 
-				<Button 
-					type="submit" 
+				<Button
+					type="submit"
 					className="w-full font-semibold h-12"
 					disabled={isLoading}
 				>
