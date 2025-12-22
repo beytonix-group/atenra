@@ -14,7 +14,7 @@ const createConversationSchema = z.object({
 });
 
 // GET - List all conversations for current user
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
 	try {
 		const currentUser = await getCurrentUser();
 		if (!currentUser) {

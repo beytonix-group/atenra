@@ -5,13 +5,6 @@ import { db } from "@/server/db";
 import { companyInvoices } from "@/server/db/schema";
 import { eq, and, gte, lte, sql } from "drizzle-orm";
 
-interface RevenueDataPoint {
-	period: string;
-	revenueCents: number;
-	collectedCents: number;
-	invoiceCount: number;
-}
-
 interface GeographicDataPoint {
 	state: string | null;
 	revenueCents: number;

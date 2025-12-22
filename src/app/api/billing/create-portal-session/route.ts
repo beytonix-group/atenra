@@ -9,7 +9,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  * POST /api/billing/create-portal-session
  * Create a Stripe Billing Portal Session
  */
-export async function POST(request: Request): Promise<NextResponse> {
+export async function POST(_request: Request): Promise<NextResponse> {
 	try {
 		const stripe = getStripe();
 		// Require authentication

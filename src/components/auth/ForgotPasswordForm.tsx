@@ -31,7 +31,7 @@ export function ForgotPasswordForm() {
 				const result = await response.json() as { message?: string };
 				setError(result.message || "Something went wrong");
 			}
-		} catch (error) {
+		} catch {
 			setError("Something went wrong. Please try again.");
 		} finally {
 			setIsLoading(false);
@@ -89,8 +89,8 @@ export function ForgotPasswordForm() {
 					/>
 				</div>
 
-				<Button 
-					type="submit" 
+				<Button
+					type="submit"
 					className="w-full font-semibold h-12"
 					disabled={isLoading}
 				>

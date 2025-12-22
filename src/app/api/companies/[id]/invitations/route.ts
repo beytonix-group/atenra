@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/server/db";
-import { employeeInvitations, companies, users, companyUsers } from "@/server/db/schema";
+import { employeeInvitations, companies, users } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import { sendInvitationEmail } from "@/lib/email-service";

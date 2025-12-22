@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { users, userRoles } from "@/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { isSuperAdmin } from "@/lib/auth-helpers";
 import { z } from "zod";
 import { trackActivity } from "@/lib/server-activity-tracker";
@@ -28,16 +28,6 @@ const updateUserSchema = z.object({
 	})).optional()
 });
 
-interface UpdateUserBody {
-	email: string;
-	firstName: string | null;
-	lastName: string | null;
-	displayName: string | null;
-	phone: string | null;
-	status: "active" | "suspended" | "deleted";
-	emailVerified: number;
-	roles?: { roleId: number; roleName: string }[];
-}
 
 export async function PATCH(
 	request: Request,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { hasCompanyAccess, hasCompanyManagementAccess } from "@/lib/auth-helpers";
 import { db } from "@/server/db";
-import { companyInvoices, companyInvoiceLineItems, users } from "@/server/db/schema";
+import { companyInvoices, companyInvoiceLineItems } from "@/server/db/schema";
 import { eq, and, desc, asc, sql, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 

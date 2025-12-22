@@ -16,7 +16,6 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
 	createPayPalPlan,
 	getPayPalPlan,
-	updatePayPalPlanPricing,
 	deactivatePayPalPlan,
 	getPayPalAccessToken,
 } from "./paypal";

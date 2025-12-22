@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Mail, User, MessageCircle, Send } from "lucide-react";
+import { Mail, User, Send } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -29,23 +29,36 @@ export function ContactForm() {
 		return () => observer.disconnect();
 	}, []);
 
+	const [error, setError] = useState<string | null>(null);
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsSubmitting(true);
-		
+		setError(null);
+
 		const formData = new FormData(e.currentTarget);
 		const data = {
-			name: formData.get('name'),
-			email: formData.get('email'),
-			message: formData.get('message')
+			name: formData.get('name') as string,
+			email: formData.get('email') as string,
+			message: formData.get('message') as string
 		};
 
 		try {
-			// Simulate form submission - replace with actual API call
-			await new Promise(resolve => setTimeout(resolve, 1000));
+			const response = await fetch('/api/contact', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data),
+			});
+
+			if (!response.ok) {
+				const result = await response.json() as { error?: string };
+				throw new Error(result.error || 'Failed to send message');
+			}
+
 			setSubmitted(true);
-		} catch (error) {
-			console.error('Form submission error:', error);
+		} catch (err) {
+			console.error('Form submission error:', err);
+			setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -61,7 +74,7 @@ export function ContactForm() {
 				<p className="text-muted-foreground mb-6">
 					{t.contact.form.successMessage}
 				</p>
-				<Button 
+				<Button
 					onClick={() => setSubmitted(false)}
 					variant="outline"
 				>
@@ -91,7 +104,7 @@ export function ContactForm() {
 							placeholder="Your full name"
 						/>
 					</div>
-					
+
 					<div>
 						<label htmlFor="email" className="block text-sm font-medium mb-2">
 							<Mail className="inline h-4 w-4 mr-2" />
@@ -122,8 +135,14 @@ export function ContactForm() {
 					/>
 				</div>
 
-				<Button 
-					type="submit" 
+				{error && (
+					<div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+						{error}
+					</div>
+				)}
+
+				<Button
+					type="submit"
 					className="w-full font-semibold h-12"
 					disabled={isSubmitting}
 				>

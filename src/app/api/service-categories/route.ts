@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { serviceCategories } from "@/server/db/schema";
-import { eq, asc, isNull } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 
 
 // GET - Fetch all active service categories with hierarchy

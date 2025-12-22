@@ -21,8 +21,7 @@ function getEnvVar(name: string): string {
 	return value;
 }
 
-// Get the URL for NextAuth
-const url = process.env.NEXTAUTH_URL || "https://atenra.com";
+// NextAuth URL is set via environment variable NEXTAUTH_URL
 
 export const {
 	auth,
@@ -149,7 +148,7 @@ export const {
 		})
 	],
 	events: {
-		async signIn({ user, account, profile }) {
+		async signIn({ user, account, profile: _profile }) {
 			try {
 				// Only run this for OAuth providers (Google), not for credentials login
 				if (account?.provider === 'credentials') {

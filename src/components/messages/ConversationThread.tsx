@@ -292,11 +292,11 @@ export function ConversationThread({
 							</p>
 						</div>
 					) : (
-						messageGroups.map((group, groupIndex) => (
+						messageGroups.map((group) => (
 							<div key={group.date}>
 								<MessageDateGroup date={group.date} />
 								<div className="space-y-3">
-									{group.messages.map((message, messageIndex) => (
+									{group.messages.map((message) => (
 										<MessageBubble
 											key={message.id}
 											message={message}

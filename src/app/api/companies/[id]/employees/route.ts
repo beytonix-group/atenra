@@ -2,8 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { users, companyUsers, companies, userRoles, roles, employeeInvitations } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
-import { isSuperAdmin, hasCompanyManagementAccess } from "@/lib/auth-helpers";
-import bcrypt from "bcryptjs";
+import { hasCompanyManagementAccess } from "@/lib/auth-helpers";
 import { z } from "zod";
 import { trackActivity } from "@/lib/server-activity-tracker";
 import { auth } from "@/server/auth";
@@ -146,7 +145,7 @@ export async function POST(
 			zipCode,
 			country,
 			companyRole,
-			systemRoleId,
+			systemRoleId: _systemRoleId,
 			isExistingUser,
 		} = validatedData;
 
@@ -336,7 +335,7 @@ export async function POST(
 		}
 
 		// Link user to company
-		const companyRelationship = await db
+		await db
 			.insert(companyUsers)
 			.values({
 				companyId,

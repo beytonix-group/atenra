@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { hasCompanyAccess, hasCompanyManagementAccess, getCurrentUser } from "@/lib/auth-helpers";
+import { hasCompanyAccess, hasCompanyManagementAccess } from "@/lib/auth-helpers";
 import { db } from "@/server/db";
 import { userCompanyJobs, users, serviceCategories, companyServiceCategories } from "@/server/db/schema";
 import { eq, and, desc, asc, sql } from "drizzle-orm";

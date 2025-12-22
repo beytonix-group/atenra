@@ -209,7 +209,7 @@ async function processPayPalWebhookEvent(event: any, db: D1Database): Promise<vo
 /**
  * Handle BILLING.SUBSCRIPTION.ACTIVATED
  */
-async function handleSubscriptionActivated(subscription: PayPalSubscription, db: D1Database): Promise<void> {
+async function handleSubscriptionActivated(subscription: PayPalSubscription, _db: D1Database): Promise<void> {
 	console.log(`[PayPal Webhook] Subscription activated: ${subscription.id}`);
 
 	// Get existing subscription to find user and plan
@@ -243,7 +243,7 @@ async function handleSubscriptionActivated(subscription: PayPalSubscription, db:
 /**
  * Handle BILLING.SUBSCRIPTION.CANCELLED
  */
-async function handleSubscriptionCancelled(subscription: PayPalSubscription, db: D1Database): Promise<void> {
+async function handleSubscriptionCancelled(subscription: PayPalSubscription, _db: D1Database): Promise<void> {
 	console.log(`[PayPal Webhook] Subscription cancelled: ${subscription.id}`);
 
 	const existing = await getSubscriptionByProviderSubscriptionId(subscription.id);
@@ -271,7 +271,7 @@ async function handleSubscriptionCancelled(subscription: PayPalSubscription, db:
 /**
  * Handle BILLING.SUBSCRIPTION.SUSPENDED
  */
-async function handleSubscriptionSuspended(subscription: PayPalSubscription, db: D1Database): Promise<void> {
+async function handleSubscriptionSuspended(subscription: PayPalSubscription, _db: D1Database): Promise<void> {
 	console.log(`[PayPal Webhook] Subscription suspended: ${subscription.id}`);
 
 	const existing = await getSubscriptionByProviderSubscriptionId(subscription.id);
@@ -296,7 +296,7 @@ async function handleSubscriptionSuspended(subscription: PayPalSubscription, db:
 /**
  * Handle BILLING.SUBSCRIPTION.UPDATED
  */
-async function handleSubscriptionUpdated(subscription: PayPalSubscription, db: D1Database): Promise<void> {
+async function handleSubscriptionUpdated(subscription: PayPalSubscription, _db: D1Database): Promise<void> {
 	console.log(`[PayPal Webhook] Subscription updated: ${subscription.id}`);
 
 	const existing = await getSubscriptionByProviderSubscriptionId(subscription.id);
@@ -331,7 +331,7 @@ async function handleSubscriptionUpdated(subscription: PayPalSubscription, db: D
 /**
  * Handle BILLING.SUBSCRIPTION.EXPIRED
  */
-async function handleSubscriptionExpired(subscription: PayPalSubscription, db: D1Database): Promise<void> {
+async function handleSubscriptionExpired(subscription: PayPalSubscription, _db: D1Database): Promise<void> {
 	console.log(`[PayPal Webhook] Subscription expired: ${subscription.id}`);
 
 	const existing = await getSubscriptionByProviderSubscriptionId(subscription.id);
@@ -360,7 +360,7 @@ async function handleSubscriptionExpired(subscription: PayPalSubscription, db: D
  * Handle PAYMENT.SALE.COMPLETED
  * Update next billing date when a recurring payment succeeds
  */
-async function handlePaymentCompleted(payment: any, db: D1Database): Promise<void> {
+async function handlePaymentCompleted(payment: any, _db: D1Database): Promise<void> {
 	const billingAgreementId = payment.billing_agreement_id;
 
 	if (!billingAgreementId) {
@@ -379,7 +379,7 @@ async function handlePaymentCompleted(payment: any, db: D1Database): Promise<voi
  * Handle PAYMENT.SALE.DENIED
  * Mark subscription as past_due if payment fails
  */
-async function handlePaymentDenied(payment: any, db: D1Database): Promise<void> {
+async function handlePaymentDenied(payment: any, _db: D1Database): Promise<void> {
 	const billingAgreementId = payment.billing_agreement_id;
 
 	if (!billingAgreementId) {

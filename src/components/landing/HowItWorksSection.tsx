@@ -2,11 +2,8 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MessageSquare, CheckCircle2 } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function HowItWorksSection() {
-	const { t } = useLanguage();
-
 	const steps = [
 		{
 			icon: Search,

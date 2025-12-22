@@ -2,7 +2,6 @@
 
 import { ChevronDown, ChevronUp, Shield, MapPin, Lock } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import Link from "next/link";
 

@@ -1,8 +1,6 @@
 import { integer, sqliteTable, text, primaryKey, index, uniqueIndex } from "drizzle-orm/sqlite-core"
 import { relations, sql } from 'drizzle-orm';
-import { drizzle } from "drizzle-orm/libsql"
 import type { AdapterAccountType } from "next-auth/adapters"
-import { db } from "."
 
 // ----------------------------------------------------------
 // NextAuth Tables (for OAuth authentication)

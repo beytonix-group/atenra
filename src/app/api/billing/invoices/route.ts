@@ -5,7 +5,7 @@ import { invoices, users } from "@/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
 	try {
 		const session = await auth();
 

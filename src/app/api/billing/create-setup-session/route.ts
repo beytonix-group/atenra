@@ -7,7 +7,7 @@ import { getStripe, getAppUrl } from "@/lib/stripe";
 import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
 
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
 	try {
 		const stripe = getStripe();
 		const session = await auth();

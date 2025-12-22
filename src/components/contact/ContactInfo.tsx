@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useEffect, useRef, useState } from "react";
 
@@ -25,7 +25,7 @@ export function ContactInfo() {
 
 		return () => observer.disconnect();
 	}, []);
-	
+
 	return (
 		<div ref={sectionRef}>
 			<h2 className={`text-3xl font-light mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>

@@ -19,10 +19,10 @@ export function Navigation() {
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
 	const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 	const [isAdmin, setIsAdmin] = useState(false);
-	const { theme, setTheme, resolvedTheme } = useTheme();
+	const { setTheme, resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 	const { t } = useLanguage();
-	const { data: session, status } = useSession();
+	const { data: session } = useSession();
 
 	useEffect(() => {
 		setMounted(true);
@@ -155,9 +155,9 @@ export function Navigation() {
 								<div className="h-5 w-5" />
 							)}
 						</button>
-						
+
 						<LanguageSelector />
-						
+
 						{session?.user ? (
 							<div className="relative dropdown-container">
 								<button
@@ -166,8 +166,8 @@ export function Navigation() {
 								>
 									{sanitizeAvatarUrl(session.user.image) ? (
 										<>
-											<img 
-												src={sanitizeAvatarUrl(session.user.image)!} 
+											<img
+												src={sanitizeAvatarUrl(session.user.image)!}
 												alt={session.user.name || "User"}
 												className="w-8 h-8 rounded-full object-cover"
 												onError={(e) => {
@@ -186,7 +186,7 @@ export function Navigation() {
 										</div>
 									)}
 								</button>
-								
+
 								{userMenuOpen && (
 									<div className="absolute right-0 top-full mt-2 w-48 bg-card border rounded-lg shadow-lg z-50 py-2">
 										<div className="px-4 py-2 border-b border-border/50">
@@ -207,7 +207,7 @@ export function Navigation() {
 												</button>
 											</Link>
 										)}
-										<button 
+										<button
 											onClick={() => {
 												signOut({ redirect: true });
 												setUserMenuOpen(false);
@@ -323,9 +323,9 @@ export function Navigation() {
 											</Button>
 										</Link>
 									)}
-									<Button 
-										variant="ghost" 
-										size="sm" 
+									<Button
+										variant="ghost"
+										size="sm"
 										className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
 										onClick={() => {
 											signOut({ redirect: true });

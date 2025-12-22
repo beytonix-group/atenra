@@ -1,6 +1,6 @@
 import { db } from "@/server/db";
 import { subscriptions, userRoles, roles, userServicePreferences } from "@/server/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 /**
  * Check if a user has an active paid subscription

@@ -129,7 +129,7 @@ const auth = NextAuth({
       })
     ],
     events: {
-      async signIn({ user, account, profile }) {
+      async signIn({ user, account, profile: _profile }) {
         try {
           // Only run this for OAuth providers (Google), not for credentials login
           if (account?.provider === 'credentials') {

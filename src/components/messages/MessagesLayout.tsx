@@ -77,7 +77,7 @@ export function MessagesLayout({ currentUserId }: MessagesLayoutProps) {
 	}, [conversationIdParam, loadConversations, router]);
 
 	// Polling for updates
-	const { poll } = useMessagePolling({
+	useMessagePolling({
 		interval: 5000,
 		enabled: true,
 		onNewMessages: useCallback((updates: Array<{ id: number; newMessageCount: number; lastMessage: { id: number; content: string; createdAt: number; senderName: string } | null }>) => {

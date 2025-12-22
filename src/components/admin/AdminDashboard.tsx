@@ -3,20 +3,20 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-	Table, 
-	TableBody, 
-	TableCell, 
-	TableHead, 
-	TableHeader, 
-	TableRow 
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
 } from "@/components/ui/table";
-import { 
-	Dialog, 
-	DialogContent, 
-	DialogHeader, 
-	DialogTitle, 
-	DialogFooter 
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogFooter
 } from "@/components/ui/dialog";
 import {
 	Select,
@@ -36,13 +36,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { RoleBadge } from "@/components/ui/role-badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-	Users, 
-	Activity, 
-	Shield, 
-	Plus, 
-	Search, 
-	Edit, 
+import {
+	Users,
+	Shield,
+	Search,
 	Loader2,
 	TrendingUp,
 	TrendingDown,
@@ -50,16 +47,14 @@ import {
 	UserCheck,
 	MoreHorizontal,
 	Mail,
-	Phone,
 	MapPin,
 	Calendar,
-	ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
-import { 
-	formatRoleName, 
-	formatStatus, 
-	getStatusBadgeVariant 
+import {
+	formatRoleName,
+	formatStatus,
+	getStatusBadgeVariant
 } from "@/lib/utils/format";
 import { formatPhoneNumber, formatZipCode } from "@/lib/utils/input-format";
 import { ActivityTable } from "./ActivityTable";
@@ -130,7 +125,7 @@ export function AdminDashboard() {
 	const [saving, setSaving] = useState(false);
 	const [activeTab, setActiveTab] = useState("users");
 	const [usersWithActivity, setUsersWithActivity] = useState<any[]>([]);
-	
+
 	// New user form state
 	const [newUser, setNewUser] = useState<{
 		firstName: string;
@@ -168,12 +163,12 @@ export function AdminDashboard() {
 		fetchUsers();
 		fetchRoles();
 	}, []);
-	
+
 	useEffect(() => {
 		if (users.length > 0) {
 			fetchUsersWithActivity();
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [users]);
 
 
@@ -183,12 +178,12 @@ export function AdminDashboard() {
 			if (!response.ok) throw new Error("Failed to fetch users");
 			const data = await response.json() as User[];
 			setUsers(data);
-			
+
 			// Update stats
 			const total = data.length;
 			const active = data.filter(u => u.status === "active").length;
 			const admins = data.filter(u => u.roles.some(r => r.roleName === "super_admin")).length;
-			
+
 			setStats({
 				totalUsers: total,
 				activeUsers: active,
@@ -216,7 +211,7 @@ export function AdminDashboard() {
 			console.error(error);
 		}
 	};
-	
+
 	const fetchUsersWithActivity = async () => {
 		try {
 			const response = await fetch("/api/admin/users/activity-summary");
@@ -245,7 +240,7 @@ export function AdminDashboard() {
 
 	const handleSaveUser = async () => {
 		if (!selectedUser) return;
-		
+
 		setSaving(true);
 		try {
 			const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
@@ -253,9 +248,9 @@ export function AdminDashboard() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(selectedUser),
 			});
-			
+
 			if (!response.ok) throw new Error("Failed to update user");
-			
+
 			toast.success("User updated successfully");
 			setEditModalOpen(false);
 			fetchUsers();
@@ -275,9 +270,9 @@ export function AdminDashboard() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(newUser),
 			});
-			
+
 			if (!response.ok) throw new Error("Failed to create user");
-			
+
 			toast.success("User created successfully");
 			setCreateModalOpen(false);
 			fetchUsers();
@@ -322,7 +317,7 @@ export function AdminDashboard() {
 		}
 	};
 
-	const filteredUsers = users.filter(user => 
+	const filteredUsers = users.filter(user =>
 		user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
 		user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 		user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -721,7 +716,7 @@ export function AdminDashboard() {
 							</div>
 						</CardHeader>
 						<CardContent>
-							<ActivityTable 
+							<ActivityTable
 								users={usersWithActivity.length > 0 ? usersWithActivity : users.map(user => ({
 									id: user.id,
 									email: user.email,
@@ -767,7 +762,7 @@ export function AdminDashboard() {
 									/>
 								</div>
 							</div>
-							
+
 							<div className="space-y-2">
 								<Label htmlFor="edit-displayName">Display Name</Label>
 								<Input
@@ -927,7 +922,7 @@ export function AdminDashboard() {
 								<Checkbox
 									id="edit-emailVerified"
 									checked={selectedUser.emailVerified === 1}
-									onCheckedChange={(checked) => 
+									onCheckedChange={(checked) =>
 										updateUserField("emailVerified", checked ? 1 : 0)
 									}
 								/>
@@ -961,7 +956,7 @@ export function AdminDashboard() {
 								<Input
 									id="new-firstName"
 									value={newUser.firstName}
-									onChange={(e) => setNewUser({...newUser, firstName: e.target.value.slice(0, 30)})}
+									onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value.slice(0, 30) })}
 									placeholder="First name"
 									maxLength={30}
 								/>
@@ -971,19 +966,19 @@ export function AdminDashboard() {
 								<Input
 									id="new-lastName"
 									value={newUser.lastName}
-									onChange={(e) => setNewUser({...newUser, lastName: e.target.value.slice(0, 30)})}
+									onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value.slice(0, 30) })}
 									placeholder="Last name"
 									maxLength={30}
 								/>
 							</div>
 						</div>
-						
+
 						<div className="space-y-2">
 							<Label htmlFor="new-displayName">Display Name</Label>
 							<Input
 								id="new-displayName"
 								value={newUser.displayName}
-								onChange={(e) => setNewUser({...newUser, displayName: e.target.value.slice(0, 65)})}
+								onChange={(e) => setNewUser({ ...newUser, displayName: e.target.value.slice(0, 65) })}
 								placeholder="Display name"
 								maxLength={65}
 							/>
@@ -996,7 +991,7 @@ export function AdminDashboard() {
 									id="new-email"
 									type="email"
 									value={newUser.email}
-									onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+									onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
 									placeholder="user@example.com"
 									required
 									className="text-sm"
@@ -1009,7 +1004,7 @@ export function AdminDashboard() {
 									value={newUser.phone}
 									onChange={(e) => {
 										const formatted = formatPhoneNumber(e.target.value);
-										setNewUser({...newUser, phone: formatted});
+										setNewUser({ ...newUser, phone: formatted });
 									}}
 									placeholder="(555) 555-5555"
 									type="tel"
@@ -1024,7 +1019,7 @@ export function AdminDashboard() {
 								<Input
 									id="new-addressLine1"
 									value={newUser.addressLine1}
-									onChange={(e) => setNewUser({...newUser, addressLine1: e.target.value.slice(0, 50)})}
+									onChange={(e) => setNewUser({ ...newUser, addressLine1: e.target.value.slice(0, 50) })}
 									placeholder="Street address"
 									maxLength={50}
 									className="text-sm"
@@ -1035,7 +1030,7 @@ export function AdminDashboard() {
 								<Input
 									id="new-addressLine2"
 									value={newUser.addressLine2}
-									onChange={(e) => setNewUser({...newUser, addressLine2: e.target.value.slice(0, 50)})}
+									onChange={(e) => setNewUser({ ...newUser, addressLine2: e.target.value.slice(0, 50) })}
 									placeholder="Apt, suite, etc."
 									maxLength={50}
 									className="text-sm"
@@ -1049,7 +1044,7 @@ export function AdminDashboard() {
 								<Input
 									id="new-city"
 									value={newUser.city}
-									onChange={(e) => setNewUser({...newUser, city: e.target.value})}
+									onChange={(e) => setNewUser({ ...newUser, city: e.target.value })}
 									placeholder="City"
 									className="text-sm"
 								/>
@@ -1058,7 +1053,7 @@ export function AdminDashboard() {
 								<Label htmlFor="new-state" className="text-sm">State</Label>
 								<Select
 									value={newUser.state}
-									onValueChange={(value) => setNewUser({...newUser, state: value})}
+									onValueChange={(value) => setNewUser({ ...newUser, state: value })}
 								>
 									<SelectTrigger id="new-state" className="text-sm">
 										<SelectValue placeholder="Select state" />
@@ -1086,7 +1081,7 @@ export function AdminDashboard() {
 									value={newUser.zipCode}
 									onChange={(e) => {
 										const formatted = formatZipCode(e.target.value);
-										setNewUser({...newUser, zipCode: formatted});
+										setNewUser({ ...newUser, zipCode: formatted });
 									}}
 									placeholder="12345"
 									maxLength={5}
@@ -1099,7 +1094,7 @@ export function AdminDashboard() {
 								<Input
 									id="new-country"
 									value={newUser.country}
-									onChange={(e) => setNewUser({...newUser, country: e.target.value})}
+									onChange={(e) => setNewUser({ ...newUser, country: e.target.value })}
 									placeholder="Country"
 									className="text-sm"
 								/>
@@ -1112,7 +1107,7 @@ export function AdminDashboard() {
 								<Select
 									value={newUser.status}
 									onValueChange={(value: "active" | "suspended" | "deleted") =>
-										setNewUser({...newUser, status: value})
+										setNewUser({ ...newUser, status: value })
 									}
 								>
 									<SelectTrigger id="new-status" className="text-sm">
@@ -1128,7 +1123,7 @@ export function AdminDashboard() {
 								<Label htmlFor="new-role" className="text-sm">Role *</Label>
 								<Select
 									value={newUser.roleId.toString()}
-									onValueChange={(value) => setNewUser({...newUser, roleId: parseInt(value)})}
+									onValueChange={(value) => setNewUser({ ...newUser, roleId: parseInt(value) })}
 								>
 									<SelectTrigger id="new-role" className="text-sm">
 										<SelectValue placeholder="Select a role" />
@@ -1148,8 +1143,8 @@ export function AdminDashboard() {
 							<Checkbox
 								id="new-emailVerified"
 								checked={newUser.emailVerified}
-								onCheckedChange={(checked) => 
-									setNewUser({...newUser, emailVerified: checked as boolean})
+								onCheckedChange={(checked) =>
+									setNewUser({ ...newUser, emailVerified: checked as boolean })
 								}
 							/>
 							<Label htmlFor="new-emailVerified">Email Verified</Label>
@@ -1159,8 +1154,8 @@ export function AdminDashboard() {
 						<Button variant="outline" onClick={() => setCreateModalOpen(false)}>
 							Cancel
 						</Button>
-						<Button 
-							onClick={handleCreateUser} 
+						<Button
+							onClick={handleCreateUser}
 							disabled={saving || !newUser.email || newUser.roleId === 0}
 						>
 							{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

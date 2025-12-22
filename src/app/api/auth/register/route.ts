@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
 			.returning()
 			.get();
 
-		// Generate verification token
-		const verificationToken = crypto.randomUUID();
+		// TODO: Generate verification token
+		// const verificationToken = crypto.randomUUID();
 		
 		// Store verification token (you might want to create a separate table for this)
 		// For now, we'll return success and implement email sending
