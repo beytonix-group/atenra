@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   ShoppingBag,
-  Users,
   BarChart3,
   Settings,
   HelpCircle,
@@ -17,12 +16,10 @@ import {
   Sun,
   LogOut,
   User,
-  Activity,
   CreditCard,
   FileText,
   Package,
   MessageSquare,
-  Bot,
   Building2,
 } from "lucide-react";
 import {
@@ -88,12 +85,6 @@ const baseNavigationItems: NavigationItem[] = [
     title: "Messages",
     href: "/messages",
     icon: MessageSquare,
-    badge: null,
-  },
-  {
-    title: "AI Chatbot",
-    href: "/chat",
-    icon: Bot,
     badge: null,
   },
   {

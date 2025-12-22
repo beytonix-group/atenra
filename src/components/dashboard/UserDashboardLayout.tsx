@@ -14,7 +14,6 @@ import {
   User,
   HelpCircle,
   MessageSquare,
-  Bot,
   Settings,
   CreditCard,
   Building2,
@@ -76,12 +75,6 @@ const baseNavigationItems: NavigationItem[] = [
     title: "Messages",
     href: "/messages",
     icon: MessageSquare,
-    badge: null,
-  },
-  {
-    title: "AI Chatbot",
-    href: "/chat",
-    icon: Bot,
     badge: null,
   },
 ];
