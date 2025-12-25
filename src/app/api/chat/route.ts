@@ -65,6 +65,18 @@ You can help users with:
 - General questions about home services
 - Troubleshooting platform issues
 
+FORMATTING GUIDELINES:
+- Keep responses concise and scannable
+- For invoice/billing data, use a clean table-like format without markdown bullets or bold:
+  Example:
+  Invoice #INV-001
+  Customer: John Doe
+  Amount: $500.00 | Paid: $0.00 | Balance: $500.00
+  Status: Sent | Due: 12/25/2025
+- Use line breaks to separate sections, not bullet points
+- Avoid excessive markdown formatting (**, -, etc.)
+- For multiple invoices, show a brief summary then list each compactly
+
 When greeting the user, use their name if available and be friendly but professional.`;
 
 // Timeout for OpenAI API calls (30 seconds)
@@ -237,6 +249,7 @@ Please greet this user warmly and personally. Keep it brief and friendly.`;
     // Get function definitions from the registry
     const functions = getFunctionDefinitions();
 
+
     // Call OpenAI API with function calling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
@@ -282,6 +295,13 @@ Please greet this user warmly and personally. Keep it brief and friendly.`;
 
     let completion = await openaiRes.json() as OpenAIResponse;
     let assistantMessage = completion.choices[0]?.message;
+
+    console.log('[chat] GPT response:', {
+      hasContent: !!assistantMessage?.content,
+      hasFunctionCall: !!assistantMessage?.function_call,
+      functionName: assistantMessage?.function_call?.name,
+      finishReason: completion.choices[0]?.finish_reason,
+    });
 
     // Handle function call if GPT wants to call a function
     if (assistantMessage?.function_call) {

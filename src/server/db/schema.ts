@@ -250,9 +250,13 @@ export const companyServices = sqliteTable('company_services', {
 
 export const userCompanyJobs = sqliteTable('user_company_jobs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }), // Optional - for registered users
   companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
   categoryId: integer('category_id').notNull().references(() => serviceCategories.id),
+  // Customer info (for non-registered or any customer)
+  customerName: text('customer_name'),
+  customerEmail: text('customer_email'),
+  customerPhone: text('customer_phone'),
   description: text('description').notNull(),
   status: text('status', { enum: ['active', 'completed', 'cancelled'] }).notNull().default('active'),
   priority: text('priority', { enum: ['low', 'medium', 'high', 'urgent'] }).notNull().default('medium'),
@@ -471,7 +475,7 @@ export const companyInvoices = sqliteTable('company_invoices', {
   invoiceNumber: text('invoice_number').notNull(),
 
   // Customer information snapshot (denormalized for historical accuracy)
-  customerId: integer('customer_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  customerId: integer('customer_id').references(() => users.id, { onDelete: 'restrict' }), // Optional - for registered users
   customerName: text('customer_name').notNull(),
   customerEmail: text('customer_email'),
   customerPhone: text('customer_phone'),

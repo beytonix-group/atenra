@@ -1,6 +1,11 @@
 export { JobStatusBadge } from './JobStatusBadge';
 export { JobPriorityBadge } from './JobPriorityBadge';
 export { InvoiceStatusBadge } from './InvoiceStatusBadge';
+export { InvoiceQuickActions } from './InvoiceQuickActions';
 export { StatsCard } from './StatsCard';
 export { CompanyDashboardLayout } from './CompanyDashboardLayout';
 export { RevenueChart } from './RevenueChart';
+export { AddJobDialog } from './AddJobDialog';
+export { AddInvoiceDialog } from './AddInvoiceDialog';
+export { NewJobButton } from './NewJobButton';
+export { NewInvoiceButton } from './NewInvoiceButton';

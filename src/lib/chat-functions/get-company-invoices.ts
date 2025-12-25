@@ -2,21 +2,49 @@
  * Get Company Invoices Function
  *
  * Retrieves invoices for a specific company the user has access to.
- * Requires company specification and validates user authorization.
  */
 
 import { db } from '@/server/db';
 import { users, companies, companyUsers, companyInvoices } from '@/server/db/schema';
-import { eq, and, gte, lte, desc, like } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 import { isSuperAdmin } from '@/lib/auth-helpers';
 import type { ChatFunction, FunctionContext } from './types';
+
+/**
+ * Normalize string for comparison - handles punctuation, spaces, quotes, case
+ */
+function normalize(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/["'""'']/g, '')  // Remove all quote types (straight + curly)
+    .replace(/[.,]/g, '')       // Remove punctuation
+    .replace(/\s+/g, ' ');      // Normalize whitespace to single space
+}
+
+/**
+ * Escape LIKE wildcards for safe pattern matching
+ */
+function escapeLike(s: string): string {
+  return s.replace(/[%_\\]/g, (m) => `\\${m}`);
+}
 
 async function handler(
   args: Record<string, unknown>,
   context: FunctionContext
 ): Promise<Record<string, unknown>> {
   try {
-    const companyIdentifier = args.companyName as string | undefined;
+    // Defensive fallback for different argument names GPT might use
+    const companyIdentifier =
+      (args.companyName as string | undefined) ??
+      (args.company as string | undefined) ??
+      (args.name as string | undefined);
+
+    if (!companyIdentifier) {
+      return {
+        message: 'Please specify a company name to fetch invoices for.',
+      };
+    }
 
     // Get user
     const user = await db
@@ -29,68 +57,82 @@ async function handler(
       return { error: 'User not found' };
     }
 
-    // If no company specified, list available companies
-    if (!companyIdentifier) {
-      const userCompanies = await db
-        .select({ name: companies.name })
+    // Check if user is super admin (can access all companies)
+    const isAdmin = await isSuperAdmin().catch(() => false);
+
+    // Normalize input for matching (with wildcard escaping)
+    const normalizedInput = normalize(companyIdentifier);
+    const likePattern = `%${escapeLike(normalizedInput)}%`;
+
+    // SQL normalization: lower, trim, remove quotes/punctuation, collapse spaces
+    // Must match JS normalize() function which removes: " ' " " ' '
+    const normalizedDbName = sql`
+      replace(
+        replace(
+          replace(
+            replace(
+              replace(
+                replace(
+                  replace(
+                    replace(
+                      replace(
+                        replace(lower(trim(${companies.name})), '.', ''),
+                      ',', ''),
+                    '''', ''),
+                  '"', ''),
+                ''', ''),
+              ''', ''),
+            '"', ''),
+          '"', ''),
+        '  ', ' '),
+      '  ', ' ')
+    `;
+
+    // Search with normalized comparison on BOTH sides
+    let matchingCompanies: { id: number; name: string }[];
+
+    if (isAdmin) {
+      // Super admin can search all companies
+      matchingCompanies = await db
+        .select({ id: companies.id, name: companies.name })
+        .from(companies)
+        .where(sql`${normalizedDbName} LIKE ${likePattern} ESCAPE '\\'`)
+        .all();
+    } else {
+      // Regular users can only search companies they're members of
+      matchingCompanies = await db
+        .select({ id: companies.id, name: companies.name })
         .from(companyUsers)
         .innerJoin(companies, eq(companyUsers.companyId, companies.id))
-        .where(eq(companyUsers.userId, user.id))
+        .where(
+          and(
+            eq(companyUsers.userId, user.id),
+            sql`${normalizedDbName} LIKE ${likePattern} ESCAPE '\\'`
+          )
+        )
         .all();
-
-      if (userCompanies.length === 0) {
-        return { error: 'You are not associated with any companies.' };
-      }
-
-      return {
-        error: 'Please specify which company you want to see invoices for.',
-        availableCompanies: userCompanies.map((c) => c.name),
-      };
     }
 
-    // Escape LIKE wildcards in user input to prevent pattern injection
-    const escapedIdentifier = companyIdentifier
-      .replace(/%/g, '\\%')
-      .replace(/_/g, '\\_');
-
-    // Find companies by name (fuzzy match)
-    const matchingCompanies = await db
-      .select({ id: companies.id, name: companies.name })
-      .from(companies)
-      .where(like(companies.name, `%${escapedIdentifier}%`))
-      .all();
-
     if (matchingCompanies.length === 0) {
-      return { error: `Company "${companyIdentifier}" not found.` };
+      // Different message for admins vs regular users (avoid leaking company existence)
+      const message = isAdmin
+        ? `No company found matching "${companyIdentifier}". Please check the company name and try again.`
+        : `No matching company found that you have access to. Please check the name or contact an admin if you need access.`;
+      return {
+        found: false,
+        message,
+      };
     }
 
     if (matchingCompanies.length > 1) {
       return {
-        error: `Multiple companies match "${companyIdentifier}". Please be more specific.`,
+        found: false,
+        message: `Multiple companies match "${companyIdentifier}". Please be more specific.`,
         matchingCompanies: matchingCompanies.map((c) => c.name),
       };
     }
 
     const company = matchingCompanies[0];
-
-    // Check authorization
-    const isAdmin = await isSuperAdmin().catch(() => false);
-    if (!isAdmin) {
-      const membership = await db
-        .select({ role: companyUsers.role })
-        .from(companyUsers)
-        .where(
-          and(
-            eq(companyUsers.userId, user.id),
-            eq(companyUsers.companyId, company.id)
-          )
-        )
-        .get();
-
-      if (!membership) {
-        return { error: `You do not have access to ${company.name}'s invoices.` };
-      }
-    }
 
     // Build date filter conditions
     const conditions = [eq(companyInvoices.companyId, company.id)];
@@ -157,7 +199,8 @@ async function handler(
     if (invoicesList.length === 0) {
       return {
         company: company.name,
-        message: 'No invoices found for the specified criteria.',
+        hasInvoices: false,
+        message: `${company.name} has no invoices yet.`,
         invoices: [],
       };
     }
@@ -209,46 +252,34 @@ export const getCompanyInvoices: ChatFunction = {
   definition: {
     name: 'get_company_invoices',
     description:
-      "Get invoices for a company the user manages. ALWAYS requires the company name to be specified. Use when the user asks about business invoices, company billing, revenue, or customer payments. If the user doesn't specify a company, ask them which company.",
+      "Get invoices for a company. ALWAYS call this function when: (1) user asks about company/business invoices, (2) user provides a company name after being asked which company, or (3) user mentions any business name in context of invoices or billing. The companyName can be partial - fuzzy matching is supported.",
     parameters: {
       type: 'object',
       properties: {
         companyName: {
           type: 'string',
-          description: 'The name of the company to fetch invoices for. Required.',
+          description: 'The name of the company to fetch invoices for.',
         },
         startDate: {
           type: 'string',
-          description:
-            'Start date for filtering (ISO format, e.g., 2024-01-01). Optional.',
+          description: 'Start date for filtering (ISO format, e.g., 2024-01-01). Optional.',
         },
         endDate: {
           type: 'string',
-          description:
-            'End date for filtering (ISO format, e.g., 2024-12-31). Optional.',
+          description: 'End date for filtering (ISO format, e.g., 2024-12-31). Optional.',
         },
         dateField: {
           type: 'string',
-          description:
-            'Which date field to filter on: "invoiceDate" (default) or "dueDate".',
+          description: 'Which date field to filter on: "invoiceDate" (default) or "dueDate".',
           enum: ['invoiceDate', 'dueDate'],
         },
         status: {
           type: 'string',
           description: 'Filter by invoice status. Optional.',
-          enum: [
-            'draft',
-            'sent',
-            'viewed',
-            'paid',
-            'partial',
-            'overdue',
-            'void',
-            'refunded',
-          ],
+          enum: ['draft', 'sent', 'viewed', 'paid', 'partial', 'overdue', 'void', 'refunded'],
         },
       },
-      required: [],
+      required: ['companyName'],
     },
   },
   handler,

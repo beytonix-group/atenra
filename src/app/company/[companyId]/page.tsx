@@ -5,7 +5,14 @@ import { userCompanyJobs, companyInvoices, users, serviceCategories } from "@/se
 import { eq, and, desc, sql } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StatsCard, JobStatusBadge, JobPriorityBadge, InvoiceStatusBadge } from "@/components/company-dashboard";
+import {
+	StatsCard,
+	JobStatusBadge,
+	JobPriorityBadge,
+	InvoiceStatusBadge,
+	NewJobButton,
+	NewInvoiceButton,
+} from "@/components/company-dashboard";
 import { ArrowRight } from "lucide-react";
 
 interface DashboardPageProps {
@@ -188,12 +195,15 @@ export default async function CompanyDashboardPage({ params }: DashboardPageProp
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between">
 						<CardTitle className="text-lg">Recent Jobs</CardTitle>
-						<Button variant="ghost" size="sm" asChild>
-							<Link href={`/company/${companyId}/jobs`}>
-								View all
-								<ArrowRight className="ml-2 h-4 w-4" />
-							</Link>
-						</Button>
+						<div className="flex items-center gap-2">
+							<NewJobButton companyId={companyIdNum} />
+							<Button variant="ghost" size="sm" asChild>
+								<Link href={`/company/${companyId}/jobs`}>
+									View all
+									<ArrowRight className="ml-2 h-4 w-4" />
+								</Link>
+							</Button>
+						</div>
 					</CardHeader>
 					<CardContent>
 						{recentJobs.length === 0 ? (
@@ -231,12 +241,15 @@ export default async function CompanyDashboardPage({ params }: DashboardPageProp
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between">
 						<CardTitle className="text-lg">Recent Invoices</CardTitle>
-						<Button variant="ghost" size="sm" asChild>
-							<Link href={`/company/${companyId}/invoices`}>
-								View all
-								<ArrowRight className="ml-2 h-4 w-4" />
-							</Link>
-						</Button>
+						<div className="flex items-center gap-2">
+							<NewInvoiceButton companyId={companyIdNum} />
+							<Button variant="ghost" size="sm" asChild>
+								<Link href={`/company/${companyId}/invoices`}>
+									View all
+									<ArrowRight className="ml-2 h-4 w-4" />
+								</Link>
+							</Button>
+						</div>
 					</CardHeader>
 					<CardContent>
 						{recentInvoices.length === 0 ? (

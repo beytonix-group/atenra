@@ -13,8 +13,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { JobStatusBadge, JobPriorityBadge } from "@/components/company-dashboard";
-import { Plus, MapPin } from "lucide-react";
+import { JobStatusBadge, JobPriorityBadge, NewJobButton } from "@/components/company-dashboard";
+import { MapPin } from "lucide-react";
 
 interface JobsPageProps {
 	params: Promise<{ companyId: string }>;
@@ -144,10 +144,7 @@ export default async function JobsPage({ params, searchParams }: JobsPageProps) 
 						Manage your company jobs and track progress
 					</p>
 				</div>
-				<Button>
-					<Plus className="mr-2 h-4 w-4" />
-					New Job
-				</Button>
+				<NewJobButton companyId={companyIdNum} />
 			</div>
 
 			{/* Filter Tabs */}
