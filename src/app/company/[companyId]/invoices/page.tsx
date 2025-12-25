@@ -13,8 +13,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { InvoiceStatusBadge } from "@/components/company-dashboard";
-import { Plus } from "lucide-react";
+import { InvoiceStatusBadge, InvoiceQuickActions, NewInvoiceButton } from "@/components/company-dashboard";
 
 const INVOICES_PER_PAGE = 20;
 
@@ -146,12 +145,7 @@ export default async function InvoicesPage({ params, searchParams }: InvoicesPag
 						Manage and track your company invoices
 					</p>
 				</div>
-				<Link href={`/company/${companyId}/invoices/new`}>
-					<Button>
-						<Plus className="mr-2 h-4 w-4" />
-						New Invoice
-					</Button>
-				</Link>
+				<NewInvoiceButton companyId={companyIdNum} />
 			</div>
 
 			{/* Filter Tabs */}
@@ -203,6 +197,9 @@ export default async function InvoicesPage({ params, searchParams }: InvoicesPag
 									<TableHead className="text-right">Paid</TableHead>
 									<TableHead className="text-right">Balance</TableHead>
 									<TableHead>Status</TableHead>
+									<TableHead className="w-[50px]">
+										<span className="sr-only">Actions</span>
+									</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -247,6 +244,14 @@ export default async function InvoicesPage({ params, searchParams }: InvoicesPag
 											</TableCell>
 											<TableCell>
 												<InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
+											</TableCell>
+											<TableCell>
+												<InvoiceQuickActions
+													companyId={companyIdNum}
+													invoiceId={invoice.id}
+													currentStatus={invoice.status as InvoiceStatus}
+													invoiceNumber={invoice.invoiceNumber}
+												/>
 											</TableCell>
 										</TableRow>
 									);

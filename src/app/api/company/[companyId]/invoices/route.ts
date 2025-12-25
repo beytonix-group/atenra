@@ -24,7 +24,6 @@ const lineItemSchema = z.object({
 const createInvoiceSchema = z.object({
 	jobId: z.number().optional(),
 	invoiceNumber: z.string().min(1),
-	customerId: z.number(),
 	customerName: z.string().min(1),
 	customerEmail: z.string().email().optional(),
 	customerPhone: z.string().optional(),
@@ -224,21 +223,22 @@ export async function POST(
 		const body = await request.json();
 		const { lineItems, ...invoiceData } = createInvoiceSchema.parse(body);
 
-		// Create invoice and line items in a transaction for atomicity
-		const invoice = await db.transaction(async (tx) => {
-			const newInvoice = await tx
-				.insert(companyInvoices)
-				.values({
-					companyId: companyIdNum,
-					...invoiceData,
-					paidAt: invoiceData.status === 'paid' ? Math.floor(Date.now() / 1000) : undefined,
-				})
-				.returning()
-				.get();
+		// Create invoice first
+		// Note: D1 doesn't support Drizzle transactions, so we run sequentially
+		const newInvoice = await db
+			.insert(companyInvoices)
+			.values({
+				companyId: companyIdNum,
+				...invoiceData,
+				paidAt: invoiceData.status === 'paid' ? Math.floor(Date.now() / 1000) : undefined,
+			})
+			.returning()
+			.get();
 
-			// Create line items if provided
-			if (lineItems && lineItems.length > 0) {
-				await tx
+		// Create line items if provided
+		if (lineItems && lineItems.length > 0) {
+			try {
+				await db
 					.insert(companyInvoiceLineItems)
 					.values(
 						lineItems.map((item, index) => ({
@@ -252,10 +252,23 @@ export async function POST(
 						}))
 					)
 					.run();
+			} catch (lineItemError) {
+				// If line items fail, clean up the invoice
+				console.error("Error creating line items, rolling back invoice:", lineItemError);
+				try {
+					await db.delete(companyInvoices).where(eq(companyInvoices.id, newInvoice.id)).run();
+					throw lineItemError;
+				} catch (rollbackError) {
+					if (rollbackError === lineItemError) {
+						throw lineItemError;
+					}
+					console.error("CRITICAL: Failed to rollback invoice after line item error. Orphaned invoice ID:", newInvoice.id, rollbackError);
+					throw new Error(`Line item creation failed and rollback failed. Orphaned invoice ID: ${newInvoice.id}. Original error: ${lineItemError instanceof Error ? lineItemError.message : String(lineItemError)}`);
+				}
 			}
+		}
 
-			return newInvoice;
-		});
+		const invoice = newInvoice;
 
 		return NextResponse.json({ invoice }, { status: 201 });
 	} catch (error) {

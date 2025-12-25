@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { hasCompanyAccess, hasCompanyManagementAccess } from "@/lib/auth-helpers";
 import { db } from "@/server/db";
-import { userCompanyJobs, users, serviceCategories, companyServiceCategories } from "@/server/db/schema";
+import { userCompanyJobs, serviceCategories, companyServiceCategories } from "@/server/db/schema";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { z } from "zod";
 
 const createJobSchema = z.object({
-	customerId: z.number(),
+	customerName: z.string().min(1),
+	customerEmail: z.string().email().optional(),
+	customerPhone: z.string().optional(),
 	categoryId: z.number(),
 	description: z.string().min(1),
 	status: z.enum(['active', 'completed', 'cancelled']).default('active'),
@@ -108,15 +110,13 @@ export async function GET(
 				jobZip: userCompanyJobs.jobZip,
 				createdAt: userCompanyJobs.createdAt,
 				updatedAt: userCompanyJobs.updatedAt,
-				customerId: userCompanyJobs.userId,
-				customerFirstName: users.firstName,
-				customerLastName: users.lastName,
-				customerEmail: users.email,
+				customerName: userCompanyJobs.customerName,
+				customerEmail: userCompanyJobs.customerEmail,
+				customerPhone: userCompanyJobs.customerPhone,
 				categoryId: userCompanyJobs.categoryId,
 				categoryName: serviceCategories.name,
 			})
 			.from(userCompanyJobs)
-			.leftJoin(users, eq(userCompanyJobs.userId, users.id))
 			.leftJoin(serviceCategories, eq(userCompanyJobs.categoryId, serviceCategories.id))
 			.where(and(...conditions))
 			.orderBy(sortOrder === 'asc'
@@ -136,8 +136,26 @@ export async function GET(
 
 		return NextResponse.json({
 			jobs: jobs.map(job => ({
-				...job,
-				customerName: [job.customerFirstName, job.customerLastName].filter(Boolean).join(' ') || job.customerEmail,
+				id: job.id,
+				description: job.description,
+				status: job.status,
+				priority: job.priority,
+				startDate: job.startDate,
+				endDate: job.endDate,
+				notes: job.notes,
+				budgetCents: job.budgetCents,
+				jobAddressLine1: job.jobAddressLine1,
+				jobAddressLine2: job.jobAddressLine2,
+				jobCity: job.jobCity,
+				jobState: job.jobState,
+				jobZip: job.jobZip,
+				createdAt: job.createdAt,
+				updatedAt: job.updatedAt,
+				customerName: job.customerName,
+				customerEmail: job.customerEmail,
+				customerPhone: job.customerPhone,
+				categoryId: job.categoryId,
+				categoryName: job.categoryName,
 			})),
 			total: countResult?.count || 0,
 			limit,
@@ -189,37 +207,21 @@ export async function POST(
 		const body = await request.json();
 		const validatedData = createJobSchema.parse(body);
 
-		// Validate foreign key references
-		const [customer, category] = await Promise.all([
-			// Verify customer exists
-			db
-				.select({ id: users.id })
-				.from(users)
-				.where(eq(users.id, validatedData.customerId))
-				.get(),
-			// Verify category exists and company offers this service
-			db
-				.select({ id: serviceCategories.id })
-				.from(serviceCategories)
-				.innerJoin(
-					companyServiceCategories,
-					eq(serviceCategories.id, companyServiceCategories.categoryId)
+		// Verify category exists and company offers this service
+		const category = await db
+			.select({ id: serviceCategories.id })
+			.from(serviceCategories)
+			.innerJoin(
+				companyServiceCategories,
+				eq(serviceCategories.id, companyServiceCategories.categoryId)
+			)
+			.where(
+				and(
+					eq(serviceCategories.id, validatedData.categoryId),
+					eq(companyServiceCategories.companyId, companyIdNum)
 				)
-				.where(
-					and(
-						eq(serviceCategories.id, validatedData.categoryId),
-						eq(companyServiceCategories.companyId, companyIdNum)
-					)
-				)
-				.get(),
-		]);
-
-		if (!customer) {
-			return NextResponse.json(
-				{ error: "Customer not found" },
-				{ status: 400 }
-			);
-		}
+			)
+			.get();
 
 		if (!category) {
 			return NextResponse.json(
@@ -228,12 +230,14 @@ export async function POST(
 			);
 		}
 
-		// Create job
+		// Create job with customer info
 		const result = await db
 			.insert(userCompanyJobs)
 			.values({
 				companyId: companyIdNum,
-				userId: validatedData.customerId,
+				customerName: validatedData.customerName,
+				customerEmail: validatedData.customerEmail,
+				customerPhone: validatedData.customerPhone,
 				categoryId: validatedData.categoryId,
 				description: validatedData.description,
 				status: validatedData.status,
