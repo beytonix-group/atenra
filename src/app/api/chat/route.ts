@@ -249,9 +249,6 @@ Please greet this user warmly and personally. Keep it brief and friendly.`;
     // Get function definitions from the registry
     const functions = getFunctionDefinitions();
 
-    console.log('[chat] Function count:', functions.length);
-    console.log('[chat] Available functions:', functions.map(f => f.name));
-    console.log('[chat] Message count:', messages.length);
 
     // Call OpenAI API with function calling
     const controller = new AbortController();
