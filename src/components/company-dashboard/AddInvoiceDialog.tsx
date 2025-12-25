@@ -85,7 +85,6 @@ export function AddInvoiceDialog({
 }: AddInvoiceDialogProps) {
 	const router = useRouter();
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
 	const [formData, setFormData] = useState<FormData>(initialFormData);
 	const [lineItems, setLineItems] = useState<LineItem[]>([initialLineItem()]);
 
