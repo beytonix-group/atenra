@@ -89,31 +89,13 @@ export function AddInvoiceDialog({
 	const [formData, setFormData] = useState<FormData>(initialFormData);
 	const [lineItems, setLineItems] = useState<LineItem[]>([initialLineItem()]);
 
-	// Load next invoice number when dialog opens
+	// Reset form when dialog opens
 	useEffect(() => {
 		if (open) {
-			const abortController = new AbortController();
-			setIsLoading(true);
-			fetch(`/api/company/${companyId}/next-invoice-number`, {
-				signal: abortController.signal,
-			})
-				.then(r => r.json() as Promise<{ invoiceNumber?: string }>)
-				.then((data) => {
-					setFormData(prev => ({
-						...prev,
-						invoiceNumber: data.invoiceNumber || '',
-					}));
-				})
-				.catch(error => {
-					if (error.name === 'AbortError') return;
-					console.error('Error loading data:', error);
-					toast.error('Failed to load form data');
-				})
-				.finally(() => setIsLoading(false));
-
-			return () => abortController.abort();
+			setFormData(initialFormData);
+			setLineItems([initialLineItem()]);
 		}
-	}, [open, companyId]);
+	}, [open]);
 
 	// Calculate totals
 	const calculations = useMemo(() => {
@@ -161,7 +143,7 @@ export function AddInvoiceDialog({
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!formData.customerName.trim() || !formData.invoiceNumber || !formData.invoiceDate) {
+		if (!formData.customerName.trim() || !formData.invoiceDate) {
 			toast.error('Please fill in all required fields');
 			return;
 		}
@@ -205,7 +187,7 @@ export function AddInvoiceDialog({
 					customerName: formData.customerName.trim(),
 					customerEmail: formData.customerEmail.trim() || undefined,
 					customerPhone: formData.customerPhone.trim() || undefined,
-					invoiceNumber: formData.invoiceNumber,
+					invoiceNumber: formData.invoiceNumber.trim() || undefined, // Auto-generated if empty
 					invoiceDate,
 					dueDate,
 					subtotalCents,
@@ -238,7 +220,9 @@ export function AddInvoiceDialog({
 				throw new Error(errorMessage);
 			}
 
-			toast.success(`Invoice ${formData.invoiceNumber} created successfully`);
+			const result = await response.json() as { invoice?: { invoiceNumber?: string } };
+			const invoiceNum = result.invoice?.invoiceNumber || formData.invoiceNumber || 'New invoice';
+			toast.success(`Invoice ${invoiceNum} created successfully`);
 			setFormData(initialFormData);
 			setLineItems([initialLineItem()]);
 			onOpenChange(false);
@@ -315,13 +299,13 @@ export function AddInvoiceDialog({
 						<div className="grid grid-cols-2 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="invoiceNumber">
-									Invoice Number <span className="text-red-500">*</span>
+									Invoice Number <span className="text-muted-foreground text-xs">(optional)</span>
 								</Label>
 								<Input
 									id="invoiceNumber"
 									value={formData.invoiceNumber}
 									onChange={(e) => handleInputChange('invoiceNumber', e.target.value)}
-									placeholder="INV-001"
+									placeholder="Auto-generated"
 								/>
 							</div>
 

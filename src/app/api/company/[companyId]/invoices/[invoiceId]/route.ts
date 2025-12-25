@@ -87,7 +87,7 @@ export async function PATCH(
 		} else if (['draft', 'sent', 'viewed', 'overdue'].includes(status)) {
 			// Clear payment info when reverting to non-payment status
 			updateValues.paidAt = null;
-			updateValues.amountPaidCents = null;
+			updateValues.amountPaidCents = 0;
 		}
 
 		// Update the invoice

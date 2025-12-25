@@ -11,23 +11,18 @@ import { isSuperAdmin } from '@/lib/auth-helpers';
 import type { ChatFunction, FunctionContext } from './types';
 
 /**
- * Normalize string for comparison - handles punctuation, spaces, quotes, case
+ * Sanitize company name input to prevent SQL injection
+ * - Limits length to prevent buffer overflow attacks
+ * - Removes null bytes and control characters
+ * - Only allows alphanumeric, spaces, and common punctuation
  */
-function normalize(s: string): string {
-  return s
-    .toLowerCase()
-    .trim()
-    .replace(/["'""'']/g, '')  // Remove all quote types (straight + curly)
-    .replace(/[.,]/g, '')       // Remove punctuation
-    .replace(/\s+/g, ' ');      // Normalize whitespace to single space
+function sanitizeCompanyName(input: string): string {
+  return input
+    .slice(0, 200) // Reasonable max length for company name
+    .replace(/[\x00-\x1f\x7f]/g, '') // Remove control characters and null bytes
+    .trim();
 }
 
-/**
- * Escape LIKE wildcards for safe pattern matching
- */
-function escapeLike(s: string): string {
-  return s.replace(/[%_\\]/g, (m) => `\\${m}`);
-}
 
 async function handler(
   args: Record<string, unknown>,
@@ -60,79 +55,48 @@ async function handler(
     // Check if user is super admin (can access all companies)
     const isAdmin = await isSuperAdmin().catch(() => false);
 
-    // Normalize input for matching (with wildcard escaping)
-    const normalizedInput = normalize(companyIdentifier);
-    const likePattern = `%${escapeLike(normalizedInput)}%`;
+    // Sanitize and normalize input for case-insensitive exact match
+    const sanitized = sanitizeCompanyName(companyIdentifier);
+    if (!sanitized) {
+      return { error: 'Invalid company name provided.' };
+    }
+    const normalizedInput = sanitized.toLowerCase();
 
-    // SQL normalization: lower, trim, remove quotes/punctuation, collapse spaces
-    // Must match JS normalize() function which removes: " ' " " ' '
-    const normalizedDbName = sql`
-      replace(
-        replace(
-          replace(
-            replace(
-              replace(
-                replace(
-                  replace(
-                    replace(
-                      replace(
-                        replace(lower(trim(${companies.name})), '.', ''),
-                      ',', ''),
-                    '''', ''),
-                  '"', ''),
-                ''', ''),
-              ''', ''),
-            '"', ''),
-          '"', ''),
-        '  ', ' '),
-      '  ', ' ')
-    `;
-
-    // Search with normalized comparison on BOTH sides
-    let matchingCompanies: { id: number; name: string }[];
+    // Find company with exact case-insensitive match
+    let company: { id: number; name: string } | undefined;
 
     if (isAdmin) {
       // Super admin can search all companies
-      matchingCompanies = await db
+      company = await db
         .select({ id: companies.id, name: companies.name })
         .from(companies)
-        .where(sql`${normalizedDbName} LIKE ${likePattern} ESCAPE '\\'`)
-        .all();
+        .where(sql`lower(trim(${companies.name})) = ${normalizedInput}`)
+        .get();
     } else {
       // Regular users can only search companies they're members of
-      matchingCompanies = await db
+      company = await db
         .select({ id: companies.id, name: companies.name })
         .from(companyUsers)
         .innerJoin(companies, eq(companyUsers.companyId, companies.id))
         .where(
           and(
             eq(companyUsers.userId, user.id),
-            sql`${normalizedDbName} LIKE ${likePattern} ESCAPE '\\'`
+            sql`lower(trim(${companies.name})) = ${normalizedInput}`
           )
         )
-        .all();
+        .get();
     }
 
-    if (matchingCompanies.length === 0) {
+    if (!company) {
       // Different message for admins vs regular users (avoid leaking company existence)
       const message = isAdmin
-        ? `No company found matching "${companyIdentifier}". Please check the company name and try again.`
-        : `No matching company found that you have access to. Please check the name or contact an admin if you need access.`;
+        ? `No company found with name "${companyIdentifier}". Please check the exact company name and try again.`
+        : `No company found with that name that you have access to. Please check the exact name or contact an admin if you need access.`;
       return {
         found: false,
         message,
       };
     }
-
-    if (matchingCompanies.length > 1) {
-      return {
-        found: false,
-        message: `Multiple companies match "${companyIdentifier}". Please be more specific.`,
-        matchingCompanies: matchingCompanies.map((c) => c.name),
-      };
-    }
-
-    const company = matchingCompanies[0];
 
     // Build date filter conditions
     const conditions = [eq(companyInvoices.companyId, company.id)];
@@ -252,13 +216,13 @@ export const getCompanyInvoices: ChatFunction = {
   definition: {
     name: 'get_company_invoices',
     description:
-      "Get invoices for a company. ALWAYS call this function when: (1) user asks about company/business invoices, (2) user provides a company name after being asked which company, or (3) user mentions any business name in context of invoices or billing. The companyName can be partial - fuzzy matching is supported.",
+      "Get invoices for a company. ALWAYS call this function when: (1) user asks about company/business invoices, (2) user provides a company name after being asked which company, or (3) user mentions any business name in context of invoices or billing. The companyName must be an exact match (case-insensitive).",
     parameters: {
       type: 'object',
       properties: {
         companyName: {
           type: 'string',
-          description: 'The name of the company to fetch invoices for.',
+          description: 'The exact name of the company to fetch invoices for (case-insensitive).',
         },
         startDate: {
           type: 'string',

@@ -187,7 +187,7 @@ export function FloatingChatWidget() {
 
       {/* Expanded state - Chat popover */}
       {isOpen && (
-        <Card className="w-80 sm:w-96 h-[500px] flex flex-col shadow-2xl border-border">
+        <Card className="w-[480px] sm:w-[576px] h-[750px] flex flex-col shadow-2xl border-border">
           {/* Header */}
           <div className="flex items-center justify-between p-3 border-b border-border bg-card rounded-t-lg">
             <div className="flex items-center gap-2">
