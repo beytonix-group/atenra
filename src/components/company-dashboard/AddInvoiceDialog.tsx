@@ -252,12 +252,7 @@ export function AddInvoiceDialog({
 					</DialogDescription>
 				</DialogHeader>
 
-				{isLoading ? (
-					<div className="flex items-center justify-center py-8">
-						<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-					</div>
-				) : (
-					<form onSubmit={handleSubmit} className="space-y-6">
+				<form onSubmit={handleSubmit} className="space-y-6">
 						{/* Customer Info */}
 						<div className="grid grid-cols-3 gap-4">
 							<div className="space-y-2">
@@ -541,8 +536,7 @@ export function AddInvoiceDialog({
 								)}
 							</Button>
 						</DialogFooter>
-					</form>
-				)}
+				</form>
 			</DialogContent>
 		</Dialog>
 	);
