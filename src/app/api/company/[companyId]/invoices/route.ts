@@ -6,6 +6,16 @@ import { companyInvoices, companyInvoiceLineItems } from "@/server/db/schema";
 import { eq, and, desc, asc, sql, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
+/**
+ * Generate a unique invoice number for a company using UUID.
+ * Format: INV-{companyId}-{short-uuid}
+ * Uses first 8 chars of UUID for readability while maintaining uniqueness.
+ */
+function generateUniqueInvoiceNumber(companyId: number): string {
+	const uuid = crypto.randomUUID().replace(/-/g, '').substring(0, 8).toUpperCase();
+	return `INV-${companyId}-${uuid}`;
+}
+
 const lineItemSchema = z.object({
 	description: z.string().min(1),
 	quantity: z.number().min(1).default(1),
@@ -23,7 +33,7 @@ const lineItemSchema = z.object({
 
 const createInvoiceSchema = z.object({
 	jobId: z.number().optional(),
-	invoiceNumber: z.string().min(1),
+	invoiceNumber: z.string().optional(), // Optional - will be generated server-side if not provided
 	customerName: z.string().min(1),
 	customerEmail: z.string().email().optional(),
 	customerPhone: z.string().optional(),
@@ -223,17 +233,49 @@ export async function POST(
 		const body = await request.json();
 		const { lineItems, ...invoiceData } = createInvoiceSchema.parse(body);
 
-		// Create invoice first
+		// Generate unique invoice number if not provided
+		const invoiceNumber = invoiceData.invoiceNumber || generateUniqueInvoiceNumber(companyIdNum);
+
+		// Create invoice with retry logic for unique constraint violations
 		// Note: D1 doesn't support Drizzle transactions, so we run sequentially
-		const newInvoice = await db
-			.insert(companyInvoices)
-			.values({
-				companyId: companyIdNum,
-				...invoiceData,
-				paidAt: invoiceData.status === 'paid' ? Math.floor(Date.now() / 1000) : undefined,
-			})
-			.returning()
-			.get();
+		let newInvoice;
+		let retries = 3;
+
+		while (retries > 0) {
+			try {
+				const finalInvoiceNumber = retries < 3
+					? generateUniqueInvoiceNumber(companyIdNum) // Regenerate on retry
+					: invoiceNumber;
+
+				newInvoice = await db
+					.insert(companyInvoices)
+					.values({
+						companyId: companyIdNum,
+						...invoiceData,
+						invoiceNumber: finalInvoiceNumber,
+						paidAt: invoiceData.status === 'paid' ? Math.floor(Date.now() / 1000) : undefined,
+					})
+					.returning()
+					.get();
+				break; // Success, exit retry loop
+			} catch (err) {
+				const errorMessage = err instanceof Error ? err.message : String(err);
+				// Check for unique constraint violation
+				if (errorMessage.includes('UNIQUE constraint failed') && errorMessage.includes('invoice_number')) {
+					retries--;
+					if (retries === 0) {
+						throw new Error('Failed to generate unique invoice number after multiple attempts');
+					}
+					// Continue to retry with a new number
+				} else {
+					throw err; // Re-throw non-uniqueness errors
+				}
+			}
+		}
+
+		if (!newInvoice) {
+			throw new Error('Failed to create invoice');
+		}
 
 		// Create line items if provided
 		if (lineItems && lineItems.length > 0) {

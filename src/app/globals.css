@@ -192,3 +192,16 @@ body {
 .animation-delay-400 {
   animation-delay: 400ms;
 }
+
+/* React Day Picker dark mode fixes */
+.dark .rdp-root,
+[data-theme='dark'] .rdp-root {
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-accent-background-color: hsl(var(--primary) / 0.2);
+  --rdp-range_middle-background-color: hsl(var(--accent));
+  --rdp-range_middle-color: hsl(var(--foreground));
+  --rdp-day_button-background-color: transparent;
+  --rdp-day_button-hover-background-color: hsl(var(--accent));
+  --rdp-selected-color: hsl(var(--primary-foreground));
+  --rdp-selected-background-color: hsl(var(--primary));
+}

@@ -9,3 +9,4 @@ export { AddJobDialog } from './AddJobDialog';
 export { AddInvoiceDialog } from './AddInvoiceDialog';
 export { NewJobButton } from './NewJobButton';
 export { NewInvoiceButton } from './NewInvoiceButton';
+export { DashboardCharts } from './DashboardCharts';

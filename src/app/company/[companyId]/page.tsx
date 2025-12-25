@@ -12,6 +12,7 @@ import {
 	InvoiceStatusBadge,
 	NewJobButton,
 	NewInvoiceButton,
+	DashboardCharts,
 } from "@/components/company-dashboard";
 import { ArrowRight } from "lucide-react";
 
@@ -188,6 +189,9 @@ export default async function CompanyDashboardPage({ params }: DashboardPageProp
 					icon="clock"
 				/>
 			</div>
+
+			{/* Charts */}
+			<DashboardCharts companyId={companyIdNum} />
 
 			{/* Recent Activity */}
 			<div className="grid gap-6 lg:grid-cols-2">
