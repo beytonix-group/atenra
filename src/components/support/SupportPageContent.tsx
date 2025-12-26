@@ -41,7 +41,7 @@ interface Company {
 }
 
 export function SupportPageContent() {
-	const { data: session } = useSession();
+	useSession(); // Ensure session is checked
 	const [activeTab, setActiveTab] = useState("new");
 
 	// New ticket form state
