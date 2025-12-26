@@ -307,3 +307,18 @@ export async function isCompanyOwner(companyId: number): Promise<boolean> {
 	const role = await getUserCompanyRole(companyId);
 	return role === 'owner';
 }
+
+/**
+ * Check if the current user can manage support tickets
+ * (super admin or internal employee)
+ */
+export async function canManageSupportTickets(): Promise<boolean> {
+	const session = await auth();
+
+	if (!session?.user?.id) {
+		return false;
+	}
+
+	const role = await getUserRole(session.user.id);
+	return role === 'super_admin' || role === 'internal_employee';
+}
