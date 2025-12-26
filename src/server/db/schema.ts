@@ -1083,6 +1083,7 @@ export const supportTickets = sqliteTable('support_tickets', {
   status: text('status', { enum: ['open', 'in_progress', 'resolved', 'closed'] }).notNull().default('open'),
   assignedToUserId: integer('assigned_to_user_id').references(() => users.id, { onDelete: 'set null' }),
   internalNotes: text('internal_notes'),
+  adminResponse: text('admin_response'), // Visible to users - admin's reply/instructions
   createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
   resolvedAt: integer('resolved_at'),

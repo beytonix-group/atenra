@@ -178,6 +178,7 @@ export async function GET(request: NextRequest) {
 				description: supportTickets.description,
 				urgency: supportTickets.urgency,
 				status: supportTickets.status,
+				adminResponse: supportTickets.adminResponse,
 				createdAt: supportTickets.createdAt,
 				updatedAt: supportTickets.updatedAt,
 				resolvedAt: supportTickets.resolvedAt,

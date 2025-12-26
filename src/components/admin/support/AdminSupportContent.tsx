@@ -41,6 +41,7 @@ interface Ticket {
 	urgency: UrgencyLevel;
 	status: TicketStatus;
 	internalNotes: string | null;
+	adminResponse: string | null;
 	createdAt: number;
 	updatedAt: number;
 	resolvedAt: number | null;
@@ -80,6 +81,7 @@ export function AdminSupportContent() {
 	// Update form state
 	const [newStatus, setNewStatus] = useState<TicketStatus>("open");
 	const [internalNotes, setInternalNotes] = useState("");
+	const [adminResponse, setAdminResponse] = useState("");
 
 	const fetchTickets = useCallback(async () => {
 		setIsLoading(true);
@@ -116,6 +118,7 @@ export function AdminSupportContent() {
 		setSelectedTicket(ticket);
 		setNewStatus(ticket.status);
 		setInternalNotes(ticket.internalNotes || "");
+		setAdminResponse(ticket.adminResponse || "");
 		setIsDetailOpen(true);
 
 		// Fetch full ticket details including assigned user
@@ -127,6 +130,7 @@ export function AdminSupportContent() {
 				setAssignedUser(data.assignedUser);
 				setNewStatus(data.ticket.status);
 				setInternalNotes(data.ticket.internalNotes || "");
+				setAdminResponse(data.ticket.adminResponse || "");
 			} else {
 				toast.error("Failed to load ticket details");
 			}
@@ -147,6 +151,7 @@ export function AdminSupportContent() {
 				body: JSON.stringify({
 					status: newStatus,
 					internalNotes: internalNotes || null,
+					adminResponse: adminResponse || null,
 				}),
 			});
 
@@ -184,7 +189,7 @@ export function AdminSupportContent() {
 	const hasFilters = statusFilter || urgencyFilter;
 
 	return (
-		<div className="space-y-6">
+		<div className="max-w-6xl mx-auto space-y-6">
 			<div className="flex items-center gap-3">
 				<LifeBuoy className="h-8 w-8 text-primary" />
 				<div>
@@ -460,6 +465,20 @@ export function AdminSupportContent() {
 											<SelectItem value="closed">Closed</SelectItem>
 										</SelectContent>
 									</Select>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="response">Response to User</Label>
+									<Textarea
+										id="response"
+										value={adminResponse}
+										onChange={(e) => setAdminResponse(e.target.value)}
+										placeholder="Add a response visible to the user..."
+										rows={4}
+									/>
+									<p className="text-xs text-muted-foreground">
+										This response will be visible to the user who submitted the ticket.
+									</p>
 								</div>
 
 								<div className="space-y-2">
