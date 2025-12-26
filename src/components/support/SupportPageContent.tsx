@@ -28,6 +28,7 @@ interface Ticket {
 	description: string;
 	urgency: UrgencyLevel;
 	status: TicketStatus;
+	adminResponse: string | null;
 	createdAt: number;
 	updatedAt: number;
 	resolvedAt: number | null;
@@ -183,7 +184,7 @@ export function SupportPageContent() {
 	};
 
 	return (
-		<div className="max-w-4xl space-y-6">
+		<div className="max-w-4xl mx-auto space-y-6">
 			<div className="flex items-center gap-3">
 				<LifeBuoy className="h-8 w-8 text-primary" />
 				<div>
@@ -360,6 +361,12 @@ export function SupportPageContent() {
 													</span>
 												)}
 											</div>
+											{ticket.adminResponse && (
+												<div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+													<p className="text-xs font-medium text-primary mb-1">Admin Response:</p>
+													<p className="text-sm text-foreground whitespace-pre-wrap">{ticket.adminResponse}</p>
+												</div>
+											)}
 										</div>
 									))}
 								</div>

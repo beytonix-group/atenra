@@ -39,6 +39,7 @@ export function RichTextEditor({
 		],
 		content: value,
 		editable: !disabled,
+		immediatelyRender: false, // Prevent SSR hydration mismatch
 		onUpdate: ({ editor }) => {
 			const html = editor.getHTML();
 			// Only update if within limit

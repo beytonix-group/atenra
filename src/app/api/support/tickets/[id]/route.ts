@@ -11,6 +11,7 @@ const updateTicketSchema = z.object({
 	status: z.enum(['open', 'in_progress', 'resolved', 'closed']).optional(),
 	assignedToUserId: z.number().nullable().optional(),
 	internalNotes: z.string().max(10000).nullable().optional(),
+	adminResponse: z.string().max(10000).nullable().optional(),
 });
 
 export async function GET(
@@ -56,6 +57,7 @@ export async function GET(
 				urgency: supportTickets.urgency,
 				status: supportTickets.status,
 				internalNotes: supportTickets.internalNotes,
+				adminResponse: supportTickets.adminResponse,
 				createdAt: supportTickets.createdAt,
 				updatedAt: supportTickets.updatedAt,
 				resolvedAt: supportTickets.resolvedAt,
@@ -206,6 +208,10 @@ export async function PATCH(
 
 		if (validatedData.internalNotes !== undefined) {
 			updateData.internalNotes = validatedData.internalNotes;
+		}
+
+		if (validatedData.adminResponse !== undefined) {
+			updateData.adminResponse = validatedData.adminResponse;
 		}
 
 		const updatedTicket = await db
