@@ -371,7 +371,7 @@ export async function sendContactEmail(params: SendContactEmailParams): Promise<
 // ============================================================
 
 interface SendTicketCreatedEmailParams {
-  ticketId: number;
+  ticketId: string;
   subject: string;
   urgency: 'minor' | 'urgent' | 'critical';
   userName: string;
@@ -380,7 +380,7 @@ interface SendTicketCreatedEmailParams {
 }
 
 interface SendTicketStatusUpdateEmailParams {
-  ticketId: number;
+  ticketId: string;
   subject: string;
   oldStatus: string;
   newStatus: string;

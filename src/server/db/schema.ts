@@ -1074,7 +1074,7 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 // ----------------------------------------------------------
 
 export const supportTickets = sqliteTable('support_tickets', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: text('id').primaryKey(), // 6-character alphanumeric ID (e.g., "ABC123")
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   companyId: integer('company_id').references(() => companies.id, { onDelete: 'set null' }),
   subject: text('subject').notNull(),

@@ -6,6 +6,7 @@ import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { canManageSupportTickets, getCurrentUser } from "@/lib/auth-helpers";
 import { sendTicketCreatedAdminEmail } from "@/lib/email-service";
+import { generateTicketId } from "@/lib/ticket-id";
 
 const createTicketSchema = z.object({
 	subject: z.string().min(5, "Subject must be at least 5 characters").max(200, "Subject cannot exceed 200 characters"),
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
 		const newTicket = await db
 			.insert(supportTickets)
 			.values({
+				id: generateTicketId(),
 				userId: user.id,
 				companyId: validatedData.companyId || null,
 				subject: validatedData.subject,

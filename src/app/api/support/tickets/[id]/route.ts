@@ -28,12 +28,12 @@ export async function GET(
 			);
 		}
 
-		const { id } = await params;
-		const ticketId = parseInt(id);
+		const { id: ticketId } = await params;
 
-		if (isNaN(ticketId)) {
+		// Validate ticket ID format (6 alphanumeric characters)
+		if (!ticketId || !/^[A-Z0-9]{6}$/i.test(ticketId)) {
 			return NextResponse.json(
-				{ error: "Invalid ticket ID" },
+				{ error: "Invalid ticket ID format" },
 				{ status: 400 }
 			);
 		}
@@ -133,12 +133,12 @@ export async function PATCH(
 			);
 		}
 
-		const { id } = await params;
-		const ticketId = parseInt(id);
+		const { id: ticketId } = await params;
 
-		if (isNaN(ticketId)) {
+		// Validate ticket ID format (6 alphanumeric characters)
+		if (!ticketId || !/^[A-Z0-9]{6}$/i.test(ticketId)) {
 			return NextResponse.json(
-				{ error: "Invalid ticket ID" },
+				{ error: "Invalid ticket ID format" },
 				{ status: 400 }
 			);
 		}
