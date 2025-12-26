@@ -660,6 +660,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   conversationsCreated: many(conversations),
   conversationParticipations: many(conversationParticipants),
   messagesSent: many(messages),
+
+  // Support
+  supportTickets: many(supportTickets, { relationName: 'createdTickets' }),
+  assignedTickets: many(supportTickets, { relationName: 'assignedTickets' }),
 }));
 
 export const userRelationshipsRelations = relations(userRelationships, ({ one }) => ({
@@ -1066,6 +1070,49 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 }));
 
 // ----------------------------------------------------------
+// Support Tickets
+// ----------------------------------------------------------
+
+export const supportTickets = sqliteTable('support_tickets', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  companyId: integer('company_id').references(() => companies.id, { onDelete: 'set null' }),
+  subject: text('subject').notNull(),
+  description: text('description').notNull(), // Rich text HTML, max 5000 chars
+  urgency: text('urgency', { enum: ['minor', 'urgent', 'critical'] }).notNull(),
+  status: text('status', { enum: ['open', 'in_progress', 'resolved', 'closed'] }).notNull().default('open'),
+  assignedToUserId: integer('assigned_to_user_id').references(() => users.id, { onDelete: 'set null' }),
+  internalNotes: text('internal_notes'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+  resolvedAt: integer('resolved_at'),
+}, (table) => ({
+  userIdx: index('idx_support_tickets_user').on(table.userId),
+  statusIdx: index('idx_support_tickets_status').on(table.status),
+  urgencyIdx: index('idx_support_tickets_urgency').on(table.urgency),
+  statusUrgencyIdx: index('idx_support_tickets_status_urgency').on(table.status, table.urgency),
+  companyIdx: index('idx_support_tickets_company').on(table.companyId),
+  assignedIdx: index('idx_support_tickets_assigned').on(table.assignedToUserId),
+}));
+
+export const supportTicketsRelations = relations(supportTickets, ({ one }) => ({
+  user: one(users, {
+    fields: [supportTickets.userId],
+    references: [users.id],
+    relationName: 'createdTickets',
+  }),
+  company: one(companies, {
+    fields: [supportTickets.companyId],
+    references: [companies.id],
+  }),
+  assignedTo: one(users, {
+    fields: [supportTickets.assignedToUserId],
+    references: [users.id],
+    relationName: 'assignedTickets',
+  }),
+}));
+
+// ----------------------------------------------------------
 // Type Exports for TypeScript Inference
 // ----------------------------------------------------------
 
@@ -1131,3 +1178,6 @@ export type NewConversationParticipant = typeof conversationParticipants.$inferI
 
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
+
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type NewSupportTicket = typeof supportTickets.$inferInsert;

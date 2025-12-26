@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import { Loader2 } from "lucide-react";
 
 export function SplashScreen({ children }: { children: React.ReactNode }) {
 	const [showSplash, setShowSplash] = useState(true);
@@ -68,10 +69,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
 						className="object-contain"
 					/>
 
-					<div className="relative w-12 h-12">
-						<div className="absolute inset-0 border-4 border-white/30 rounded-full"></div>
-						<div className="absolute inset-0 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-					</div>
+					<Loader2 className="h-12 w-12 text-white animate-spin" />
 				</div>
 			</div>
 		);
