@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
 interface Ticket {
-	id: number;
+	id: string;
 	subject: string;
 	description: string;
 	urgency: UrgencyLevel;
