@@ -35,6 +35,7 @@
     "stripe:update-prices": "bun run scripts/update-stripe-prices.ts"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.2.0",
     "@auth/drizzle-adapter": "^1.10.0",
     "@clack/prompts": "^0.11.0",
     "@emoji-mart/data": "^1.2.1",
@@ -55,6 +56,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@scalar/api-reference-react": "^0.8.15",
     "@t3-oss/env-nextjs": "^0.11.1",
     "@tiptap/extension-placeholder": "^3.11.1",
     "@tiptap/pm": "^3.11.1",
@@ -62,6 +64,7 @@
     "@tiptap/starter-kit": "^3.11.1",
     "@types/bcryptjs": "^3.0.0",
     "@types/dompurify": "^3.2.0",
+    "ajv": "^8.17.1",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -81,9 +84,11 @@
     "recharts": "^3.6.0",
     "sonner": "^2.0.7",
     "stripe": "^19.2.0",
+    "swagger-ui-react": "^5.31.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.6",
+    "yaml": "^2.8.2",
     "zod": "^4.1.13"
   },
   "devDependencies": {
@@ -94,6 +99,7 @@
     "@types/node": "^25.0.3",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/swagger-ui-react": "^5.18.0",
     "braces": "^3.0.3",
     "eslint": "^9",
     "eslint-config-next": "^15.1.0",
