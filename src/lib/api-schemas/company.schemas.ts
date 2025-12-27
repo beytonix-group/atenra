@@ -4,7 +4,6 @@ import {
   ForbiddenResponse,
   ValidationErrorResponse,
   NotFoundResponse,
-  InternalServerErrorResponse,
 } from './common.schemas';
 
 // ============================================================

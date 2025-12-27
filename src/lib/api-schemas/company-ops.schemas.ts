@@ -4,7 +4,6 @@ import {
   ForbiddenResponse,
   ValidationErrorResponse,
   NotFoundResponse,
-  InternalServerErrorResponse,
   PaginationQuerySchema,
 } from './common.schemas';
 
