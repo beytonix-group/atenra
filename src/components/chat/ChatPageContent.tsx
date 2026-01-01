@@ -1,32 +1,47 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Send, Bot, User, Loader2 } from "lucide-react";
+import { Send, Bot, User, Loader2, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
-// Task-focused sample questions for regular users
+type ConversationPhase = "greeting" | "awaiting_intent" | "connecting";
+
+// Sample questions shown after greeting
 const SAMPLE_QUESTIONS = [
-  "What can I do here?",
-  "Help me find a service",
-  "How do I contact support?",
-  "Show my account info",
+  "I need help with a service",
+  "I have a question about my account",
+  "I want to report an issue",
+  "I need billing support",
 ];
+
+interface ConnectResponse {
+  success: boolean;
+  conversationId?: number;
+  employeeName?: string;
+  redirectUrl?: string;
+  error?: string;
+  message?: string;
+}
 
 interface ChatPageContentProps {
   userId: string;
 }
 
 export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [phase, setPhase] = useState<ConversationPhase>("greeting");
+  const [connectingMessage, setConnectingMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const greetingFetchedRef = useRef(false);
@@ -35,7 +50,7 @@ export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
   // Auto-scroll when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, connectingMessage]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -81,6 +96,7 @@ export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
           }
           return prev;
         });
+        setPhase("awaiting_intent");
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") {
           greetingFetchedRef.current = false;
@@ -92,11 +108,12 @@ export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
           if (prev.length === 0) {
             return [{
               role: "assistant",
-              content: "Hello! Welcome to Atenra. I'm here to help you get things done. What would you like to do today?",
+              content: "Hello! Welcome to Atenra. How can I help you today?",
             }];
           }
           return prev;
         });
+        setPhase("awaiting_intent");
       } finally {
         setIsLoading(false);
       }
@@ -121,6 +138,75 @@ export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
     abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
 
+    // If we're in the awaiting_intent phase, connect to an employee
+    if (phase === "awaiting_intent") {
+      setPhase("connecting");
+      setConnectingMessage("Finding a team member to help you...");
+
+      try {
+        const response = await fetch("/api/chat-task/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userRequest: userMessage }),
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to connect");
+        }
+
+        const data = await response.json() as ConnectResponse;
+
+        if (data.success && data.redirectUrl) {
+          // Validate that redirectUrl is a relative URL to prevent open redirect
+          const url = data.redirectUrl;
+          if (!url.startsWith('/') || url.startsWith('//')) {
+            throw new Error("Invalid redirect URL");
+          }
+
+          // Show success message briefly before redirect
+          setConnectingMessage(`Connecting you with ${data.employeeName || "a team member"}...`);
+
+          // Redirect to the message thread
+          setTimeout(() => {
+            router.push(url);
+          }, 1000);
+        } else {
+          // No employees online or other error
+          setConnectingMessage(null);
+          setPhase("awaiting_intent");
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: data.message || "No team members are currently available. Please try again later or visit our Help & Support page for assistance.",
+            },
+          ]);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          setConnectingMessage(null);
+          setPhase("awaiting_intent");
+          setIsLoading(false);
+          return;
+        }
+        console.error("Connect error:", error);
+        setConnectingMessage(null);
+        setPhase("awaiting_intent");
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "Sorry, I couldn't connect you with a team member. Please try again or visit our Help & Support page.",
+          },
+        ]);
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // Regular chat flow (shouldn't happen in normal flow, but keeping for safety)
     try {
       const messageHistory = [...messages, { role: "user" as const, content: userMessage }];
 
@@ -171,7 +257,6 @@ export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
 
   const handleSampleQuestion = (question: string) => {
     setInput(question);
-    // Focus the textarea
     textareaRef.current?.focus();
   };
 
@@ -185,7 +270,7 @@ export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
           </div>
           <div>
             <h1 className="font-semibold text-lg">Atenra Assistant</h1>
-            <p className="text-sm text-muted-foreground">Here to help you get things done</p>
+            <p className="text-sm text-muted-foreground">Here to connect you with our team</p>
           </div>
         </div>
 
@@ -223,8 +308,8 @@ export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
             </div>
           ))}
 
-          {/* Sample questions - show after greeting */}
-          {messages.length === 1 && messages[0].role === "assistant" && !isLoading && (
+          {/* Sample questions - show after greeting when awaiting intent */}
+          {phase === "awaiting_intent" && messages.length === 1 && messages[0].role === "assistant" && !isLoading && (
             <div className="flex flex-wrap gap-2 mt-4 pl-11">
               {SAMPLE_QUESTIONS.map((question, idx) => (
                 <button
@@ -238,7 +323,21 @@ export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
             </div>
           )}
 
-          {isLoading && (
+          {/* Connecting state */}
+          {phase === "connecting" && connectingMessage && (
+            <div className="flex gap-3">
+              <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                <UserCheck className="h-5 w-5 text-green-600" />
+              </div>
+              <div className="bg-card border border-border rounded-2xl px-4 py-3 flex items-center gap-3">
+                <Loader2 className="h-4 w-4 animate-spin text-green-600" />
+                <span className="text-sm text-muted-foreground">{connectingMessage}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Regular loading state */}
+          {isLoading && phase !== "connecting" && (
             <div className="flex gap-3">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Bot className="h-5 w-5 text-primary" />
@@ -260,21 +359,25 @@ export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
-              className="flex-1 resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm min-h-[48px] max-h-[120px] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              placeholder={phase === "connecting" ? "Connecting..." : "Tell us what you need help with..."}
+              disabled={phase === "connecting"}
+              className="flex-1 resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm min-h-[48px] max-h-[120px] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               rows={1}
             />
             <Button
               onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              size="lg"
+              disabled={!input.trim() || isLoading || phase === "connecting"}
+              size="icon"
               className="rounded-xl h-12 w-12 flex-shrink-0"
+              aria-label="Send message"
             >
               <Send className="h-5 w-5" />
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-2 text-center">
-            Press Enter to send, Shift+Enter for new line
+            {phase === "connecting"
+              ? "Please wait while we connect you..."
+              : "Press Enter to send, Shift+Enter for new line"}
           </p>
         </div>
       </Card>

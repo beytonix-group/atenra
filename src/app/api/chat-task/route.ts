@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
 
 Current user context: ${userInfo || 'User information not available'}
 
-Please greet this user warmly by name and ask what they would like to accomplish today. Be friendly and inviting. Keep it brief - 2-3 sentences max.`;
+Please greet this user warmly by name and ask what they need help with today. Be friendly and inviting. Keep it to 2-3 sentences max. End with a clear question like "What can I help you with?" or "How can I assist you today?"`;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);

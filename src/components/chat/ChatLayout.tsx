@@ -142,6 +142,7 @@ export function ChatLayout({ children, user }: ChatLayoutProps) {
               size="icon"
               onClick={toggleSidebar}
               className="hidden lg:flex hover:bg-secondary"
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               <ChevronLeft
                 className={cn(
@@ -156,7 +157,7 @@ export function ChatLayout({ children, user }: ChatLayoutProps) {
           <nav className="flex-1 space-y-1 p-2">
             <TooltipProvider delayDuration={0}>
               {navigationItems.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
                 const linkContent = (
                   <Link
                     href={item.href}
@@ -236,7 +237,7 @@ export function ChatLayout({ children, user }: ChatLayoutProps) {
 
               {/* Other Bottom Navigation Items */}
               {bottomNavigationItems.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
                 const linkContent = (
                   <Link
                     href={item.href}
@@ -292,6 +293,7 @@ export function ChatLayout({ children, user }: ChatLayoutProps) {
               size="icon"
               onClick={toggleMobileMenu}
               className="lg:hidden"
+              aria-label="Toggle mobile menu"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -307,6 +309,7 @@ export function ChatLayout({ children, user }: ChatLayoutProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
               >
                 <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />

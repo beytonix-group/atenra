@@ -667,6 +667,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 
   // Shopping Cart
   cartItems: many(cartItems),
+
+  // Employee Assignments
+  employeeAssignments: many(employeeAssignments, { relationName: 'employeeAssignments' }),
+  assignedToAssignments: many(employeeAssignments, { relationName: 'assignedToUser' }),
 }));
 
 export const userRelationshipsRelations = relations(userRelationships, ({ one }) => ({
@@ -1069,6 +1073,39 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   sender: one(users, {
     fields: [messages.senderId],
     references: [users.id],
+  }),
+}));
+
+// ----------------------------------------------------------
+// Employee Assignments (Round-Robin Tracking)
+// ----------------------------------------------------------
+
+export const employeeAssignments = sqliteTable('employee_assignments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  employeeUserId: integer('employee_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  assignedToUserId: integer('assigned_to_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  conversationId: integer('conversation_id').references(() => conversations.id, { onDelete: 'set null' }),
+  userRequest: text('user_request'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  employeeIdx: index('idx_employee_assignments_employee').on(table.employeeUserId),
+  assignedToIdx: index('idx_employee_assignments_assigned_to').on(table.assignedToUserId),
+}));
+
+export const employeeAssignmentsRelations = relations(employeeAssignments, ({ one }) => ({
+  employee: one(users, {
+    fields: [employeeAssignments.employeeUserId],
+    references: [users.id],
+    relationName: 'employeeAssignments',
+  }),
+  assignedTo: one(users, {
+    fields: [employeeAssignments.assignedToUserId],
+    references: [users.id],
+    relationName: 'assignedToUser',
+  }),
+  conversation: one(conversations, {
+    fields: [employeeAssignments.conversationId],
+    references: [conversations.id],
   }),
 }));
 
