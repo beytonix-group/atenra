@@ -8,7 +8,17 @@ import {
 import { db } from '@/server/db';
 import { users, companyUsers, companies } from '@/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { isSuperAdmin } from '@/lib/auth-helpers';
+import { isSuperAdmin, getUserRoles } from '@/lib/auth-helpers';
+
+/**
+ * Check if the current user can access the floating chat widget.
+ * Only super_admin and internal_employee roles are allowed.
+ */
+async function canAccessFloatingChat(): Promise<boolean> {
+  const roles = await getUserRoles();
+  if (!roles) return false;
+  return roles.includes('super_admin') || roles.includes('internal_employee');
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -146,6 +156,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Check if user has permission to access floating chat
+    // Only super_admin and internal_employee roles are allowed
+    const hasAccess = await canAccessFloatingChat();
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: 'Forbidden - Insufficient permissions' },
+        { status: 403 }
       );
     }
 

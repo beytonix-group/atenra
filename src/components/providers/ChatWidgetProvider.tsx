@@ -6,40 +6,38 @@ import { useEffect, useState } from "react";
 
 export default function ChatWidgetProvider() {
   const { data: session, status } = useSession();
-  const [hasSubscription, setHasSubscription] = useState(false);
+  const [canAccessChat, setCanAccessChat] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function checkSubscription() {
+    async function checkAccess() {
       try {
-        const res = await fetch("/api/user/subscription-status");
-        if (!res.ok) {
-          throw new Error(`Subscription check failed: ${res.status}`);
+        // Check if user has super_admin or internal_employee role
+        // Roles are stored in session from JWT
+        const roles = (session?.user as { roles?: string[] | null })?.roles;
+
+        if (roles && (roles.includes('super_admin') || roles.includes('internal_employee'))) {
+          setCanAccessChat(true);
+        } else {
+          setCanAccessChat(false);
         }
-        const data: unknown = await res.json();
-        if (typeof data !== "object" || data === null) {
-          throw new Error("Invalid response format");
-        }
-        const responseData = data as Record<string, unknown>;
-        const hasActive = Boolean(responseData.hasActiveSubscription);
-        const isAdmin = Boolean(responseData.isAdmin);
-        setHasSubscription(hasActive || isAdmin);
       } catch (error) {
-        console.error("Failed to check subscription status:", error);
+        console.error("Failed to check chat access:", error);
+        setCanAccessChat(false);
       } finally {
         setIsLoading(false);
       }
     }
 
     if (status === "authenticated" && session?.user) {
-      checkSubscription();
+      checkAccess();
     } else if (status === "unauthenticated") {
       setIsLoading(false);
     }
   }, [session, status]);
 
-  // Don't render if not authenticated or no subscription
-  if (status !== "authenticated" || isLoading || !hasSubscription) {
+  // Don't render if not authenticated or not authorized
+  if (status !== "authenticated" || isLoading || !canAccessChat) {
     return null;
   }
 
