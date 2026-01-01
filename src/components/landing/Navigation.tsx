@@ -12,6 +12,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useSession, signOut } from "next-auth/react";
 import { sanitizeAvatarUrl } from "@/lib/utils/avatar";
 import { Logo } from "@/components/ui/logo";
+import { CartIcon } from "@/components/cart/CartIcon";
 
 export function Navigation() {
 	const pathname = usePathname();
@@ -140,6 +141,9 @@ export function Navigation() {
 					</div>
 
 					<div className="hidden md:flex items-center space-x-4">
+						{/* Cart Icon - only show for authenticated users */}
+						{session?.user && <CartIcon />}
+
 						<button
 							onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
 							className="p-2 rounded-lg hover:bg-muted transition-colors"

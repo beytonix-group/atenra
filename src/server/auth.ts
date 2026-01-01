@@ -7,6 +7,39 @@ import { users, roles, userRoles, authUsers } from "./db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPasswordPBKDF2 } from "@/lib/password-utils";
 
+/**
+ * Fetch all user roles from database by authUserId (used during login)
+ * This is called once at login and the result is cached in the JWT token
+ * Returns an array of role names (e.g., ['super_admin', 'manager'])
+ */
+async function getUserRolesFromDb(authUserId: string): Promise<string[] | null> {
+	try {
+		const user = await db
+			.select()
+			.from(users)
+			.where(eq(users.authUserId, authUserId))
+			.get();
+
+		if (!user) return null;
+
+		const userRolesList = await db
+			.select({
+				roleName: roles.name
+			})
+			.from(userRoles)
+			.innerJoin(roles, eq(userRoles.roleId, roles.id))
+			.where(eq(userRoles.userId, user.id))
+			.all();
+
+		// Return null if no roles, otherwise return array of role names
+		if (userRolesList.length === 0) return null;
+		return userRolesList.map(r => r.roleName);
+	} catch (error) {
+		console.error("Error fetching user roles:", error);
+		return null;
+	}
+}
+
 // Helper to get environment variables that works in both local and Cloudflare
 function getEnvVar(name: string): string {
 	// In Cloudflare Pages, env vars are available via process.env
@@ -43,19 +76,57 @@ export const {
 	},
 	callbacks: {
 		async session({ session, token }) {
-			// Add user id and email from token to session
+			// Add user id, email, and roles from token to session
 			if (token) {
 				session.user.id = token.id as string;
 				session.user.email = token.email as string;
+
+				// Support both new 'roles' array and old 'role' string for backward compatibility
+				if (token.roles) {
+					session.user.roles = token.roles as string[];
+				} else if ((token as { role?: string }).role) {
+					// Convert old single role to array
+					session.user.roles = [(token as { role: string }).role];
+				} else {
+					session.user.roles = null;
+				}
 			}
 			return session;
 		},
 		async jwt({ token, user }) {
-			// On sign in, store user info in token
+			const now = Math.floor(Date.now() / 1000);
+			// Refresh roles from DB if older than 1 hour (3600 seconds)
+			const ROLES_REFRESH_INTERVAL = 3600;
+
+			// On sign in, store user info and roles in token
 			if (user) {
 				token.id = user.id;
 				token.email = user.email;
+				// Single DB call at login - fetch all roles and cache in token
+				const roles = await getUserRolesFromDb(user.id as string);
+				token.roles = roles;
+				token.rolesRefreshedAt = now;
+				console.log('[JWT] Sign-in: fetched roles for', user.email, '->', roles);
 			}
+
+			// Refresh roles if:
+			// 1. Token has no roles and no old role format (migration case)
+			// 2. No rolesRefreshedAt timestamp (old token format)
+			// 3. Roles were last refreshed more than ROLES_REFRESH_INTERVAL ago
+			const rolesRefreshedAt = token.rolesRefreshedAt;
+			const needsRefresh = !token.roles && !(token as { role?: string }).role;
+			const noTimestamp = rolesRefreshedAt === undefined;
+			const isStale = typeof rolesRefreshedAt === 'number' && (now - rolesRefreshedAt > ROLES_REFRESH_INTERVAL);
+
+			if (token.id && (needsRefresh || noTimestamp || isStale)) {
+				const reason = needsRefresh ? 'migration' : (noTimestamp ? 'no-timestamp' : 'stale');
+				console.log('[JWT] Refreshing roles for token.id', token.id, `(${reason})`);
+				const roles = await getUserRolesFromDb(token.id as string);
+				token.roles = roles;
+				token.rolesRefreshedAt = now;
+				console.log('[JWT] Refreshed roles ->', roles);
+			}
+
 			return token;
 		}
 	},

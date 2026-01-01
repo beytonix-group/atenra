@@ -4,67 +4,49 @@ import { users, userRoles, roles, companyUsers, companies, type Company } from "
 import { eq, and, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
+/**
+ * Check if current user is super admin (for API routes)
+ * Reads from session - no DB call required
+ */
 export async function checkSuperAdmin() {
 	const session = await auth();
-	
+
 	if (!session?.user?.id) {
-		return { 
-			isAuthorized: false, 
+		return {
+			isAuthorized: false,
 			error: "Not authenticated",
 			response: NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 		};
 	}
 
-	try {
-		// Get user from database
-		const user = await db
-			.select()
-			.from(users)
-			.where(eq(users.authUserId, session.user.id))
-			.get();
+	// Read roles from session (no DB call - roles are cached in JWT)
+	// Support backward compatibility with old 'role' string format
+	let roles = session.user.roles;
+	if (!roles) {
+		const oldRole = (session.user as { role?: string | null })?.role;
+		if (oldRole) roles = [oldRole];
+	}
 
-		if (!user) {
-			return { 
-				isAuthorized: false, 
-				error: "User not found",
-				response: NextResponse.json({ error: "User not found" }, { status: 404 })
-			};
-		}
-
-		// Check if user has super_admin role
-		const userRole = await db
-			.select({
-				roleName: roles.name
-			})
-			.from(userRoles)
-			.innerJoin(roles, eq(userRoles.roleId, roles.id))
-			.where(eq(userRoles.userId, user.id))
-			.get();
-
-		if (userRole?.roleName !== 'super_admin') {
-			return { 
-				isAuthorized: false, 
-				error: "Insufficient permissions",
-				response: NextResponse.json({ error: "Forbidden - Super Admin access required" }, { status: 403 })
-			};
-		}
-
-		return { 
-			isAuthorized: true, 
-			user,
-			response: null 
-		};
-	} catch (error) {
-		console.error("Error checking super admin status:", error);
-		return { 
-			isAuthorized: false, 
-			error: "Internal server error",
-			response: NextResponse.json({ error: "Internal server error" }, { status: 500 })
+	if (!roles || !roles.includes('super_admin')) {
+		return {
+			isAuthorized: false,
+			error: "Insufficient permissions",
+			response: NextResponse.json({ error: "Forbidden - Super Admin access required" }, { status: 403 })
 		};
 	}
+
+	return {
+		isAuthorized: true,
+		response: null
+	};
 }
 
-export async function getUserRole(authUserId: string): Promise<string | null> {
+/**
+ * Fetch all user roles from database by authUserId
+ * Use this only when you need to query DB directly (e.g., for users other than current user)
+ * Returns an array of role names (e.g., ['super_admin', 'manager'])
+ */
+export async function getUserRolesFromDb(authUserId: string): Promise<string[] | null> {
 	try {
 		const user = await db
 			.select()
@@ -74,31 +56,88 @@ export async function getUserRole(authUserId: string): Promise<string | null> {
 
 		if (!user) return null;
 
-		const userRole = await db
+		const userRolesList = await db
 			.select({
 				roleName: roles.name
 			})
 			.from(userRoles)
 			.innerJoin(roles, eq(userRoles.roleId, roles.id))
 			.where(eq(userRoles.userId, user.id))
-			.get();
+			.all();
 
-		return userRole?.roleName || null;
+		if (userRolesList.length === 0) return null;
+		return userRolesList.map(r => r.roleName);
 	} catch (error) {
-		console.error("Error getting user role:", error);
+		console.error("Error getting user roles:", error);
 		return null;
 	}
 }
 
-export async function isSuperAdmin(): Promise<boolean> {
+/**
+ * Get current user's roles from session (no DB call - reads from JWT)
+ * Returns an array of role names or null if no roles
+ * Supports backward compatibility with old 'role' string format
+ */
+export async function getUserRoles(): Promise<string[] | null> {
 	const session = await auth();
+	const roles = session?.user?.roles;
+	if (roles) return roles;
 
-	if (!session?.user?.id) {
-		return false;
+	// Backward compatibility: convert old 'role' string to array
+	const oldRole = (session?.user as { role?: string | null })?.role;
+	if (oldRole) return [oldRole];
+
+	return null;
+}
+
+/**
+ * Check if current user has a specific role (no DB call - reads from JWT)
+ */
+export async function hasRole(roleName: string): Promise<boolean> {
+	const roles = await getUserRoles();
+	return roles !== null && roles.includes(roleName);
+}
+
+/**
+ * Check if current user is super admin (no DB call - reads from JWT)
+ */
+export async function isSuperAdmin(): Promise<boolean> {
+	return hasRole('super_admin');
+}
+
+/**
+ * Check if current user is a regular user - no roles or only 'user' role (no DB call)
+ * Returns true if user has no roles, or only has the 'user' role
+ * Supports backward compatibility with old 'role' string format
+ */
+export async function isRegularUser(): Promise<boolean> {
+	const session = await auth();
+	if (!session?.user?.id) return false;
+
+	// Get roles with backward compatibility
+	let roles = session.user.roles;
+	if (!roles) {
+		const oldRole = (session.user as { role?: string | null })?.role;
+		if (oldRole) roles = [oldRole];
 	}
 
-	const role = await getUserRole(session.user.id);
-	return role === 'super_admin';
+	// No roles = regular user
+	if (!roles || roles.length === 0) return true;
+	// Only 'user' role = regular user
+	if (roles.length === 1 && roles[0] === 'user') return true;
+	// Has any other role = not a regular user
+	return false;
+}
+
+/**
+ * Check if user has any elevated role (not a regular user) - no DB call
+ * Returns true if user has any role other than 'user'
+ */
+export async function hasElevatedRole(): Promise<boolean> {
+	const roles = await getUserRoles();
+	if (!roles || roles.length === 0) return false;
+	// Check if there's any role that's not 'user'
+	return roles.some(role => role !== 'user');
 }
 
 /**
@@ -309,16 +348,11 @@ export async function isCompanyOwner(companyId: number): Promise<boolean> {
 }
 
 /**
- * Check if the current user can manage support tickets
+ * Check if the current user can manage support tickets (no DB call)
  * (super admin or internal employee)
  */
 export async function canManageSupportTickets(): Promise<boolean> {
-	const session = await auth();
-
-	if (!session?.user?.id) {
-		return false;
-	}
-
-	const role = await getUserRole(session.user.id);
-	return role === 'super_admin' || role === 'internal_employee';
+	const roles = await getUserRoles();
+	if (!roles) return false;
+	return roles.includes('super_admin') || roles.includes('internal_employee');
 }

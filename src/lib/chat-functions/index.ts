@@ -21,13 +21,11 @@
 import type { ChatFunction, FunctionContext, FunctionDefinition } from './types';
 import { getCurrentUserInfo } from './get-current-user-info';
 import { getPersonalInvoices } from './get-personal-invoices';
-import { getCompanyInvoices } from './get-company-invoices';
 
 // Register all chat functions here
 const CHAT_FUNCTIONS: ChatFunction[] = [
   getCurrentUserInfo,
   getPersonalInvoices,
-  getCompanyInvoices,
 ];
 
 // Create a map for quick function lookup
