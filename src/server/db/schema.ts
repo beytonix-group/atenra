@@ -664,6 +664,13 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   // Support
   supportTickets: many(supportTickets, { relationName: 'createdTickets' }),
   assignedTickets: many(supportTickets, { relationName: 'assignedTickets' }),
+
+  // Shopping Cart
+  cartItems: many(cartItems),
+
+  // Employee Assignments
+  employeeAssignments: many(employeeAssignments, { relationName: 'employeeAssignments' }),
+  assignedToAssignments: many(employeeAssignments, { relationName: 'assignedToUser' }),
 }));
 
 export const userRelationshipsRelations = relations(userRelationships, ({ one }) => ({
@@ -1070,6 +1077,39 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 }));
 
 // ----------------------------------------------------------
+// Employee Assignments (Round-Robin Tracking)
+// ----------------------------------------------------------
+
+export const employeeAssignments = sqliteTable('employee_assignments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  employeeUserId: integer('employee_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  assignedToUserId: integer('assigned_to_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  conversationId: integer('conversation_id').references(() => conversations.id, { onDelete: 'set null' }),
+  userRequest: text('user_request'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  employeeIdx: index('idx_employee_assignments_employee').on(table.employeeUserId),
+  assignedToIdx: index('idx_employee_assignments_assigned_to').on(table.assignedToUserId),
+}));
+
+export const employeeAssignmentsRelations = relations(employeeAssignments, ({ one }) => ({
+  employee: one(users, {
+    fields: [employeeAssignments.employeeUserId],
+    references: [users.id],
+    relationName: 'employeeAssignments',
+  }),
+  assignedTo: one(users, {
+    fields: [employeeAssignments.assignedToUserId],
+    references: [users.id],
+    relationName: 'assignedToUser',
+  }),
+  conversation: one(conversations, {
+    fields: [employeeAssignments.conversationId],
+    references: [conversations.id],
+  }),
+}));
+
+// ----------------------------------------------------------
 // Support Tickets
 // ----------------------------------------------------------
 
@@ -1182,3 +1222,29 @@ export type NewMessage = typeof messages.$inferInsert;
 
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type NewSupportTicket = typeof supportTickets.$inferInsert;
+
+// ----------------------------------------------------------
+// Shopping Cart
+// ----------------------------------------------------------
+
+export const cartItems = sqliteTable('cart_items', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title', { length: 50 }).notNull(),
+  description: text('description', { length: 500 }),
+  quantity: integer('quantity').notNull().default(1),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  userIdx: index('idx_cart_items_user').on(table.userId),
+}));
+
+export const cartItemsRelations = relations(cartItems, ({ one }) => ({
+  user: one(users, {
+    fields: [cartItems.userId],
+    references: [users.id],
+  }),
+}));
+
+export type CartItem = typeof cartItems.$inferSelect;
+export type NewCartItem = typeof cartItems.$inferInsert;

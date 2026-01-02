@@ -5,22 +5,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  ShoppingBag,
-  BarChart3,
-  Settings,
-  HelpCircle,
   ChevronLeft,
   Menu,
   Moon,
   Sun,
   LogOut,
   User,
-  CreditCard,
-  FileText,
-  Package,
+  HelpCircle,
   MessageSquare,
-  Building2,
+  Settings,
+  CreditCard,
+  MessageCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,90 +38,28 @@ import { signOut } from "next-auth/react";
 import { Logo } from "@/components/ui/logo";
 import { CartIcon } from "@/components/cart/CartIcon";
 
-interface OwnedCompany {
-  id: number;
-  name: string;
-  city?: string | null;
-  state?: string | null;
-}
-
-interface DashboardLayoutProps {
+interface ChatLayoutProps {
   children: React.ReactNode;
   user?: {
     name?: string | null;
     email?: string | null;
     image?: string | null;
   };
-  ownedCompanies?: OwnedCompany[];
 }
 
-// Navigation item type
-interface NavigationItem {
-  title: string;
-  href: string;
-  icon: typeof LayoutDashboard;
-  badge: string | null;
-}
-
-// Base navigation items for admin users
-const baseNavigationItems: NavigationItem[] = [
+// Navigation items for regular users
+const navigationItems = [
   {
-    title: "Dashboard",
-    href: "/admindashboard",
-    icon: LayoutDashboard,
-    badge: null,
-  },
-  {
-    title: "Marketplace",
-    href: "/marketplace",
-    icon: ShoppingBag,
-    badge: null,
+    title: "Chat",
+    href: "/chat",
+    icon: MessageCircle,
   },
   {
     title: "Messages",
     href: "/messages",
     icon: MessageSquare,
-    badge: null,
-  },
-  {
-    title: "Analytics",
-    href: "/admindashboard/analytics",
-    icon: BarChart3,
-    badge: null,
-  },
-  {
-    title: "Plans",
-    href: "/admindashboard/plans",
-    icon: Package,
-    badge: null,
-  },
-  {
-    title: "Reports",
-    href: "/admindashboard/reports",
-    icon: FileText,
-    badge: null,
   },
 ];
-
-// Get navigation items with conditional company dashboard
-const getNavigationItems = (ownedCompanies?: OwnedCompany[]): NavigationItem[] => {
-  const items: NavigationItem[] = [...baseNavigationItems];
-
-  if (ownedCompanies && ownedCompanies.length > 0) {
-    // Insert company dashboard after "Dashboard" (at index 1)
-    const companyNavItem: NavigationItem = {
-      title: "Company Dashboard",
-      href: ownedCompanies.length === 1
-        ? `/company/${ownedCompanies[0].id}`
-        : "/company/select",
-      icon: Building2,
-      badge: ownedCompanies.length > 1 ? String(ownedCompanies.length) : null,
-    };
-    items.splice(1, 0, companyNavItem);
-  }
-
-  return items;
-};
 
 const settingsMenuItems = [
   {
@@ -136,7 +69,7 @@ const settingsMenuItems = [
   },
   {
     title: "Billing",
-    href: "/subscription",
+    href: "/billing",
     icon: CreditCard,
   },
 ];
@@ -144,20 +77,17 @@ const settingsMenuItems = [
 const bottomNavigationItems = [
   {
     title: "Help & Support",
-    href: "/admindashboard/support",
+    href: "/support",
     icon: HelpCircle,
   },
 ];
 
-export function DashboardLayout({ children, user, ownedCompanies }: DashboardLayoutProps) {
+export function ChatLayout({ children, user }: ChatLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-
-  // Get navigation items based on owned companies
-  const navigationItems = getNavigationItems(ownedCompanies);
 
   useEffect(() => {
     setMounted(true);
@@ -175,6 +105,7 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
     if (name) {
       return name
         .split(" ")
+        .filter((n) => n.length > 0)
         .map((n) => n[0])
         .join("")
         .toUpperCase()
@@ -193,17 +124,17 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="flex h-full flex-col overflow-hidden">
+        <div className="flex h-full flex-col">
           {/* Logo Section */}
-          <div className="flex h-14 lg:h-16 items-center justify-between border-b border-border/50 px-4 flex-shrink-0">
-            <Link href="/admindashboard" className="flex items-center gap-2">
+          <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
+            <Link href="/chat" className="flex items-center gap-2">
               {!sidebarCollapsed ? (
                 <>
-                  <Logo className="h-6 lg:h-8 w-auto" />
-                  <span className="text-lg lg:text-xl font-semibold text-sidebar-foreground">Atenra</span>
+                  <Logo className="h-8 w-auto" />
+                  <span className="text-xl font-semibold text-sidebar-foreground">Atenra</span>
                 </>
               ) : (
-                <Logo className="h-6 lg:h-8 w-6 lg:w-8" />
+                <Logo className="h-8 w-8" />
               )}
             </Link>
             <Button
@@ -211,6 +142,7 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
               size="icon"
               onClick={toggleSidebar}
               className="hidden lg:flex hover:bg-secondary"
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               <ChevronLeft
                 className={cn(
@@ -222,10 +154,10 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
           </div>
 
           {/* Navigation Items */}
-          <nav className="space-y-1 p-2">
+          <nav className="flex-1 space-y-1 p-2">
             <TooltipProvider delayDuration={0}>
               {navigationItems.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
                 const linkContent = (
                   <Link
                     href={item.href}
@@ -238,16 +170,7 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
                     )}
                   >
                     <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />
-                    {!sidebarCollapsed && (
-                      <>
-                        <span className="flex-1">{item.title}</span>
-                        {item.badge && (
-                          <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                            {item.badge}
-                          </span>
-                        )}
-                      </>
-                    )}
+                    {!sidebarCollapsed && <span className="flex-1">{item.title}</span>}
                   </Link>
                 );
 
@@ -265,11 +188,8 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
             </TooltipProvider>
           </nav>
 
-          {/* Spacer to push bottom items down - Desktop only */}
-          <div className="hidden lg:flex lg:flex-1"></div>
-
-          {/* Bottom Navigation - Always Visible */}
-          <div className="border-t border-border/50 p-2 flex-shrink-0 space-y-1">
+          {/* Bottom Navigation */}
+          <div className="border-t border-border/50 p-2 space-y-1">
             <TooltipProvider delayDuration={0}>
               {/* Settings Dropdown */}
               <DropdownMenu>
@@ -317,7 +237,7 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
 
               {/* Other Bottom Navigation Items */}
               {bottomNavigationItems.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
                 const linkContent = (
                   <Link
                     href={item.href}
@@ -373,6 +293,7 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
               size="icon"
               onClick={toggleMobileMenu}
               className="lg:hidden"
+              aria-label="Toggle mobile menu"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -388,6 +309,7 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
               >
                 <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -399,7 +321,10 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={user?.image || ""} alt={user?.name || ""} />
+                    <AvatarImage
+                      src={user?.image || ""}
+                      alt={user?.name || "User menu"}
+                    />
                     <AvatarFallback>
                       {getUserInitials(user?.name, user?.email)}
                     </AvatarFallback>
@@ -428,8 +353,8 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-muted/10 p-4 lg:p-6">
+        {/* Page Content - Full height for chat */}
+        <main className="flex-1 overflow-hidden">
           {children}
         </main>
       </div>

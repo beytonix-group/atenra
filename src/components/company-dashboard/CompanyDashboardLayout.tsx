@@ -40,6 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { signOut } from "next-auth/react";
 import { Logo } from "@/components/ui/logo";
+import { CartIcon } from "@/components/cart/CartIcon";
 
 interface Company {
 	id: number;
@@ -372,6 +373,9 @@ export function CompanyDashboardLayout({
 					</div>
 
 					<div className="flex items-center gap-3">
+						{/* Cart Icon */}
+						<CartIcon />
+
 						{/* Theme Toggle */}
 						{mounted && (
 							<Button
