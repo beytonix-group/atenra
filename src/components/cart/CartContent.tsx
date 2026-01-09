@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,35 +14,101 @@ interface CartItem {
   description: string | null;
   quantity: number;
   createdAt: number;
+  addedByUserId?: number | null;
 }
+
+const POLLING_INTERVAL = 5000; // 5 seconds
 
 export function CartContent() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
+  const previousItemIds = useRef<Set<number>>(new Set());
+  const isInitialLoad = useRef(true);
 
-  useEffect(() => {
-    fetchCartItems();
-  }, []);
-
-  async function fetchCartItems() {
-    setFetchError(null);
+  const fetchCartItems = useCallback(async (showNewItemToast = false) => {
     try {
       const res = await fetch("/api/cart");
       if (res.ok) {
         const data = await res.json() as { items: CartItem[] };
+
+        // Check for new items added by employee (only after initial load)
+        if (showNewItemToast && !isInitialLoad.current) {
+          const currentIds = new Set(data.items.map(item => item.id));
+          const newItems = data.items.filter(
+            item => !previousItemIds.current.has(item.id) && item.addedByUserId
+          );
+
+          if (newItems.length > 0) {
+            toast.info(`${newItems.length} new item${newItems.length > 1 ? 's' : ''} added to your cart`);
+          }
+
+          previousItemIds.current = currentIds;
+        } else if (isInitialLoad.current) {
+          // Store initial item IDs
+          previousItemIds.current = new Set(data.items.map(item => item.id));
+          isInitialLoad.current = false;
+        }
+
         setItems(data.items);
+        setFetchError(null);
       } else {
-        setFetchError("Failed to load cart. Please try again.");
+        if (isInitialLoad.current) {
+          setFetchError("Failed to load cart. Please try again.");
+        }
       }
     } catch (error) {
       console.error("Failed to fetch cart:", error);
-      setFetchError("Failed to load cart. Please check your connection and try again.");
+      if (isInitialLoad.current) {
+        setFetchError("Failed to load cart. Please check your connection and try again.");
+      }
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    fetchCartItems(false);
+  }, [fetchCartItems]);
+
+  // Polling with visibility API
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      intervalId = setInterval(() => {
+        if (document.visibilityState === "visible") {
+          fetchCartItems(true);
+        }
+      }, POLLING_INTERVAL);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // Refresh immediately when tab becomes visible
+        fetchCartItems(true);
+        // Restart polling
+        if (intervalId) clearInterval(intervalId);
+        startPolling();
+      } else {
+        // Stop polling when tab is hidden
+        if (intervalId) clearInterval(intervalId);
+      }
+    };
+
+    // Start polling
+    startPolling();
+
+    // Listen for visibility changes
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [fetchCartItems]);
 
   async function updateQuantity(itemId: number, newQuantity: number) {
     if (newQuantity < 1) return;
@@ -146,7 +212,12 @@ export function CartContent() {
           <p className="text-muted-foreground mb-6 text-center">
             {fetchError}
           </p>
-          <Button onClick={() => { setIsLoading(true); fetchCartItems(); }}>
+          <Button onClick={() => {
+            setIsLoading(true);
+            isInitialLoad.current = true;
+            previousItemIds.current = new Set();
+            fetchCartItems(false);
+          }}>
             Try Again
           </Button>
         </CardContent>

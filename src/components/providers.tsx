@@ -6,6 +6,7 @@ import ActivityProvider from "@/components/providers/ActivityProvider";
 import { PresenceProvider } from "@/components/presence/PresenceProvider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import ChatWidgetProvider from "@/components/providers/ChatWidgetProvider";
+import CartManagerProvider from "@/components/providers/CartManagerProvider";
 import { ReactNode } from "react";
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -22,6 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <ActivityProvider />
           <PresenceProvider />
           <ChatWidgetProvider />
+          <CartManagerProvider />
           {children}
         </LanguageProvider>
       </ThemeProvider>

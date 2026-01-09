@@ -17,6 +17,7 @@ export async function GET() {
         title: cartItems.title,
         description: cartItems.description,
         quantity: cartItems.quantity,
+        addedByUserId: cartItems.addedByUserId,
         createdAt: cartItems.createdAt,
       })
       .from(cartItems)

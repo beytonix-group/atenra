@@ -356,3 +356,22 @@ export async function canManageSupportTickets(): Promise<boolean> {
 	if (!roles) return false;
 	return roles.includes('super_admin') || roles.includes('internal_employee');
 }
+
+/**
+ * Check if the current user is an internal employee (no DB call)
+ */
+export async function isInternalEmployee(): Promise<boolean> {
+	const roles = await getUserRoles();
+	if (!roles) return false;
+	return roles.includes('internal_employee');
+}
+
+/**
+ * Check if the current user can manage user carts (no DB call)
+ * (super admin or internal employee)
+ */
+export async function canManageUserCarts(): Promise<boolean> {
+	const roles = await getUserRoles();
+	if (!roles) return false;
+	return roles.includes('super_admin') || roles.includes('internal_employee');
+}

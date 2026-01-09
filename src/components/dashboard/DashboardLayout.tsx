@@ -42,6 +42,7 @@ import { useTheme } from "next-themes";
 import { signOut } from "next-auth/react";
 import { Logo } from "@/components/ui/logo";
 import { CartIcon } from "@/components/cart/CartIcon";
+import { MessagesNavItem } from "@/components/nav/MessagesNavItem";
 
 interface OwnedCompany {
   id: number;
@@ -225,6 +226,17 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
           <nav className="space-y-1 p-2">
             <TooltipProvider delayDuration={0}>
               {navigationItems.map((item) => {
+                // Use special component for Messages with unread count badge
+                if (item.title === "Messages") {
+                  return (
+                    <MessagesNavItem
+                      key={item.href}
+                      sidebarCollapsed={sidebarCollapsed}
+                      onMobileMenuClose={() => setMobileMenuOpen(false)}
+                    />
+                  );
+                }
+
                 const isActive = pathname === item.href;
                 const linkContent = (
                   <Link
