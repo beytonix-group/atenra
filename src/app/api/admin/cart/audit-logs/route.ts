@@ -69,29 +69,6 @@ export async function GET(request: NextRequest) {
       conditions.push(lte(cartAuditLogs.createdAt, endTimestamp));
     }
 
-    // Create aliases for the joined user tables
-    const targetUserAlias = db
-      .select({
-        id: users.id,
-        email: users.email,
-        displayName: users.displayName,
-        firstName: users.firstName,
-        lastName: users.lastName,
-      })
-      .from(users)
-      .as('targetUser');
-
-    const employeeUserAlias = db
-      .select({
-        id: users.id,
-        email: users.email,
-        displayName: users.displayName,
-        firstName: users.firstName,
-        lastName: users.lastName,
-      })
-      .from(users)
-      .as('employeeUser');
-
     // Query logs with user info
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
