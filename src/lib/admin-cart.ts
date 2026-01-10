@@ -51,12 +51,18 @@ export interface AuditLogsResponse {
 // Search users by email or name
 export async function searchUsers(query: string, limit?: number): Promise<SearchUser[]> {
   const params = new URLSearchParams({ q: query });
-  if (limit) params.set('limit', limit.toString());
+  if (limit !== undefined) params.set('limit', limit.toString());
 
   const response = await fetch(`/api/admin/cart/users/search?${params.toString()}`);
   if (!response.ok) {
-    const error = await response.json() as { error?: string };
-    throw new Error(error.error || 'Failed to search users');
+    let errorMessage = 'Failed to search users';
+    try {
+      const error = await response.json() as { error?: string };
+      errorMessage = error.error || errorMessage;
+    } catch {
+      // Response was not JSON, use default message
+    }
+    throw new Error(errorMessage);
   }
   const data = await response.json() as { users: SearchUser[] };
   return data.users;
@@ -66,8 +72,14 @@ export async function searchUsers(query: string, limit?: number): Promise<Search
 export async function getUserCart(userId: number): Promise<UserCart> {
   const response = await fetch(`/api/admin/cart/${userId}`);
   if (!response.ok) {
-    const error = await response.json() as { error?: string };
-    throw new Error(error.error || 'Failed to get user cart');
+    let errorMessage = 'Failed to get user cart';
+    try {
+      const error = await response.json() as { error?: string };
+      errorMessage = error.error || errorMessage;
+    } catch {
+      // Response was not JSON, use default message
+    }
+    throw new Error(errorMessage);
   }
   return response.json() as Promise<UserCart>;
 }
@@ -83,8 +95,14 @@ export async function addItemToUserCart(
     body: JSON.stringify(item),
   });
   if (!response.ok) {
-    const error = await response.json() as { error?: string };
-    throw new Error(error.error || 'Failed to add item');
+    let errorMessage = 'Failed to add item';
+    try {
+      const error = await response.json() as { error?: string };
+      errorMessage = error.error || errorMessage;
+    } catch {
+      // Response was not JSON, use default message
+    }
+    throw new Error(errorMessage);
   }
   return response.json() as Promise<{ id: number; message: string }>;
 }
@@ -98,8 +116,14 @@ export async function removeItemFromUserCart(
     method: 'DELETE',
   });
   if (!response.ok) {
-    const error = await response.json() as { error?: string };
-    throw new Error(error.error || 'Failed to remove item');
+    let errorMessage = 'Failed to remove item';
+    try {
+      const error = await response.json() as { error?: string };
+      errorMessage = error.error || errorMessage;
+    } catch {
+      // Response was not JSON, use default message
+    }
+    throw new Error(errorMessage);
   }
   return response.json() as Promise<{ message: string }>;
 }
@@ -110,8 +134,14 @@ export async function clearUserCart(userId: number): Promise<{ message: string; 
     method: 'DELETE',
   });
   if (!response.ok) {
-    const error = await response.json() as { error?: string };
-    throw new Error(error.error || 'Failed to clear cart');
+    let errorMessage = 'Failed to clear cart';
+    try {
+      const error = await response.json() as { error?: string };
+      errorMessage = error.error || errorMessage;
+    } catch {
+      // Response was not JSON, use default message
+    }
+    throw new Error(errorMessage);
   }
   return response.json() as Promise<{ message: string; itemsRemoved: number }>;
 }
@@ -137,8 +167,14 @@ export async function getAuditLogs(filters?: {
 
   const response = await fetch(`/api/admin/cart/audit-logs?${params.toString()}`);
   if (!response.ok) {
-    const error = await response.json() as { error?: string };
-    throw new Error(error.error || 'Failed to get audit logs');
+    let errorMessage = 'Failed to get audit logs';
+    try {
+      const error = await response.json() as { error?: string };
+      errorMessage = error.error || errorMessage;
+    } catch {
+      // Response was not JSON, use default message
+    }
+    throw new Error(errorMessage);
   }
   return response.json() as Promise<AuditLogsResponse>;
 }

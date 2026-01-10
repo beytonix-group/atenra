@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { ChatLayout } from "@/components/chat/ChatLayout";
 import { ChatPageContent } from "@/components/chat/ChatPageContent";
+import { PaywallGuard } from "@/components/auth/PaywallGuard";
 import { isSuperAdmin, isRegularUser, getUserOwnedCompanies } from "@/lib/auth-helpers";
 
 export const metadata = {
@@ -25,11 +26,14 @@ export default async function ChatPage() {
   ]);
 
   // Regular users get the minimal ChatLayout (no sidebar)
+  // PaywallGuard ensures they have preferences and subscription
   if (isRegular) {
     return (
-      <ChatLayout user={session.user}>
-        <ChatPageContent userId={session.user.id} />
-      </ChatLayout>
+      <PaywallGuard>
+        <ChatLayout user={session.user}>
+          <ChatPageContent userId={session.user.id} />
+        </ChatLayout>
+      </PaywallGuard>
     );
   }
 

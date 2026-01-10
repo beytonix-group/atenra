@@ -3,17 +3,44 @@
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
-export function SignInForm() {
+interface SignInFormProps {
+	authError?: string;
+}
+
+// Map NextAuth error codes to translation keys
+const AUTH_ERROR_MAP: Record<string, string> = {
+	OAuthAccountNotLinked: "accountNotLinked",
+	OAuthSignin: "googleSignInFailed",
+	OAuthCallback: "googleSignInFailed",
+	OAuthCreateAccount: "googleSignInFailed",
+	EmailCreateAccount: "somethingWentWrong",
+	Callback: "somethingWentWrong",
+	SessionRequired: "somethingWentWrong",
+	Default: "somethingWentWrong",
+};
+
+export function SignInForm({ authError }: SignInFormProps) {
 	const { t } = useLanguage();
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
 	const router = useRouter();
+
+	// Set initial error from URL parameter
+	useEffect(() => {
+		if (authError) {
+			const errorKey = AUTH_ERROR_MAP[authError] || AUTH_ERROR_MAP.Default;
+			const errorMessage = t.auth.signIn.errors[errorKey as keyof typeof t.auth.signIn.errors];
+			if (errorMessage) {
+				setError(errorMessage);
+			}
+		}
+	}, [authError, t]);
 
 	const handleEmailSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();

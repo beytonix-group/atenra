@@ -14,11 +14,15 @@ import { verifyPasswordPBKDF2 } from "@/lib/password-utils";
  */
 async function getUserRolesFromDb(authUserId: string): Promise<string[] | null> {
 	try {
+		console.log('[getUserRolesFromDb] Looking up user with authUserId:', authUserId);
+
 		const user = await db
 			.select()
 			.from(users)
 			.where(eq(users.authUserId, authUserId))
 			.get();
+
+		console.log('[getUserRolesFromDb] Found user:', user?.id, user?.email);
 
 		if (!user) return null;
 
@@ -30,6 +34,8 @@ async function getUserRolesFromDb(authUserId: string): Promise<string[] | null> 
 			.innerJoin(roles, eq(userRoles.roleId, roles.id))
 			.where(eq(userRoles.userId, user.id))
 			.all();
+
+		console.log('[getUserRolesFromDb] Found roles:', userRolesList);
 
 		// Return null if no roles, otherwise return array of role names
 		if (userRolesList.length === 0) return null;
@@ -77,19 +83,25 @@ export const {
 	callbacks: {
 		async session({ session, token }) {
 			// Add user id, email, and roles from token to session
+			console.log('[Session Callback] token.roles:', token?.roles);
 			if (token) {
+				// Determine roles from token
+				let roles: string[] | null = null;
+				if (token.roles) {
+					roles = token.roles as string[];
+				} else if ((token as { role?: string }).role) {
+					roles = [(token as { role: string }).role];
+				}
+
+				// Mutate the session object directly
 				session.user.id = token.id as string;
 				session.user.email = token.email as string;
+				Object.assign(session.user, { roles });
 
-				// Support both new 'roles' array and old 'role' string for backward compatibility
-				if (token.roles) {
-					session.user.roles = token.roles as string[];
-				} else if ((token as { role?: string }).role) {
-					// Convert old single role to array
-					session.user.roles = [(token as { role: string }).role];
-				} else {
-					session.user.roles = null;
-				}
+				// Also store roles at session level as backup (in case user.roles gets stripped)
+				(session as { roles?: string[] | null }).roles = roles;
+
+				console.log('[Session Callback] Final session:', JSON.stringify(session));
 			}
 			return session;
 		},

@@ -23,7 +23,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     const { userId } = await params;
-    const targetUserId = parseInt(userId);
+    const targetUserId = parseInt(userId, 10);
 
     if (isNaN(targetUserId)) {
       return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
@@ -56,7 +56,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // Delete all items
     await db
       .delete(cartItems)
-      .where(eq(cartItems.userId, targetUserId));
+      .where(eq(cartItems.userId, targetUserId))
+      .run();
 
     // Log the action for audit
     const ipAddress = getClientIp(request);

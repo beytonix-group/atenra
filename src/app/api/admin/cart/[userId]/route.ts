@@ -113,16 +113,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { title, description } = body;
 
     // Validate input
-    if (!title || typeof title !== 'string') {
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    if (title.length > 50) {
+    if (title.trim().length > 50) {
       return NextResponse.json({ error: "Title must be 50 characters or less" }, { status: 400 });
     }
 
-    if (description && description.length > 500) {
-      return NextResponse.json({ error: "Description must be 500 characters or less" }, { status: 400 });
+    if (description && (typeof description !== 'string' || description.length > 500)) {
+      return NextResponse.json({ error: "Description must be a string with 500 characters or less" }, { status: 400 });
     }
 
     // Insert the cart item

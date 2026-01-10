@@ -39,7 +39,7 @@ export function MessagesBadge({ className }: MessagesBadgeProps) {
     const interval = isMessagesPage ? 5000 : 30000;
 
     // Set up polling with visibility check
-    let intervalId: NodeJS.Timeout | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
     const startPolling = () => {
       intervalId = setInterval(() => {
@@ -115,7 +115,7 @@ export function useUnreadMessageCount() {
     refreshCount();
 
     const interval = isMessagesPage ? 5000 : 30000;
-    let intervalId: NodeJS.Timeout | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
     const startPolling = () => {
       intervalId = setInterval(() => {

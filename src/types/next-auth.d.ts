@@ -1,11 +1,16 @@
-import { DefaultSession } from "next-auth";
+import { DefaultSession, DefaultUser } from "next-auth";
 
 declare module "next-auth" {
+  interface User extends DefaultUser {
+    roles?: string[] | null;
+  }
+
   interface Session {
     user: {
       id: string;
       roles?: string[] | null;
     } & DefaultSession["user"];
+    roles?: string[] | null; // Also store at session level as backup
   }
 }
 
