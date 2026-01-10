@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <DashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
+    <UserDashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
       <div className="space-y-4 md:space-y-6">
         {/* Welcome Header */}
         <div>
@@ -244,6 +244,6 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </UserDashboardLayout>
   );
 }

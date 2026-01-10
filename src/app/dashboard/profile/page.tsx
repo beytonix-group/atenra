@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense } from "react";
@@ -41,7 +41,7 @@ export default async function ProfilePage() {
 	}
 
 	return (
-		<DashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
+		<UserDashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
 			<div className="space-y-6">
 				<Suspense fallback={
 					<Card>
@@ -53,6 +53,6 @@ export default async function ProfilePage() {
 					<ProfileForm />
 				</Suspense>
 			</div>
-		</DashboardLayout>
+		</UserDashboardLayout>
 	);
 }

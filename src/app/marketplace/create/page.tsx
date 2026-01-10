@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { CreateCompanyForm } from "@/components/company/CreateCompanyForm";
 import { fetchServiceCategories } from "@/app/marketplace/actions";
 
@@ -37,7 +37,7 @@ export default async function CreateCompanyPage() {
 	const categories = await fetchServiceCategories();
 
 	return (
-		<DashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
+		<UserDashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
 			<div className="max-w-4xl mx-auto">
 				<div className="mb-6">
 					<h1 className="text-3xl font-bold">Create New Company</h1>
@@ -48,6 +48,6 @@ export default async function CreateCompanyPage() {
 
 				<CreateCompanyForm categories={categories} />
 			</div>
-		</DashboardLayout>
+		</UserDashboardLayout>
 	);
 }
