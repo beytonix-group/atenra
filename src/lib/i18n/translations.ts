@@ -228,6 +228,7 @@ export interface Translations {
         invalidCredentials: string;
         googleSignInFailed: string;
         somethingWentWrong: string;
+        accountNotLinked: string;
       };
     };
     signUp: {
@@ -473,7 +474,8 @@ export const translations: Record<string, Translations> = {
         errors: {
           invalidCredentials: "Invalid email or password",
           googleSignInFailed: "Google sign-in failed. Please try again.",
-          somethingWentWrong: "Something went wrong. Please try again."
+          somethingWentWrong: "Something went wrong. Please try again.",
+          accountNotLinked: "An account with this email already exists. Please sign in with your email and password instead."
         }
       },
       signUp: {
@@ -717,7 +719,8 @@ export const translations: Record<string, Translations> = {
         errors: {
           invalidCredentials: "Correo electrónico o contraseña inválidos",
           googleSignInFailed: "Error al iniciar sesión con Google. Inténtalo de nuevo.",
-          somethingWentWrong: "Algo salió mal. Inténtalo de nuevo."
+          somethingWentWrong: "Algo salió mal. Inténtalo de nuevo.",
+          accountNotLinked: "Ya existe una cuenta con este correo electrónico. Inicia sesión con tu correo y contraseña en su lugar."
         }
       },
       signUp: {
@@ -961,7 +964,8 @@ export const translations: Record<string, Translations> = {
         errors: {
           invalidCredentials: "E-mail ou mot de passe invalide",
           googleSignInFailed: "Échec de la connexion Google. Veuillez réessayer.",
-          somethingWentWrong: "Quelque chose s'est mal passé. Veuillez réessayer."
+          somethingWentWrong: "Quelque chose s'est mal passé. Veuillez réessayer.",
+          accountNotLinked: "Un compte avec cet e-mail existe déjà. Veuillez vous connecter avec votre e-mail et mot de passe."
         }
       },
       signUp: {
@@ -1205,7 +1209,8 @@ export const translations: Record<string, Translations> = {
         errors: {
           invalidCredentials: "Ungültige E-Mail oder Passwort",
           googleSignInFailed: "Google-Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
-          somethingWentWrong: "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+          somethingWentWrong: "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+          accountNotLinked: "Ein Konto mit dieser E-Mail existiert bereits. Bitte melden Sie sich mit Ihrer E-Mail und Ihrem Passwort an."
         }
       },
       signUp: {
@@ -1449,7 +1454,8 @@ export const translations: Record<string, Translations> = {
         errors: {
           invalidCredentials: "邮箱或密码无效",
           googleSignInFailed: "Google登录失败。请重试。",
-          somethingWentWrong: "出现了问题。请重试。"
+          somethingWentWrong: "出现了问题。请重试。",
+          accountNotLinked: "该邮箱已存在账户。请使用邮箱和密码登录。"
         }
       },
       signUp: {

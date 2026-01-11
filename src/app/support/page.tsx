@@ -1,7 +1,7 @@
 import { auth } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { SupportPageContent } from "@/components/support/SupportPageContent";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { getUserOwnedCompanies } from "@/lib/auth-helpers";
 
 export default async function SupportPage() {
@@ -14,8 +14,8 @@ export default async function SupportPage() {
 	const ownedCompanies = await getUserOwnedCompanies();
 
 	return (
-		<DashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
+		<UserDashboardLayout user={session.user} ownedCompanies={ownedCompanies}>
 			<SupportPageContent />
-		</DashboardLayout>
+		</UserDashboardLayout>
 	);
 }

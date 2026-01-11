@@ -1233,10 +1233,12 @@ export const cartItems = sqliteTable('cart_items', {
   title: text('title', { length: 50 }).notNull(),
   description: text('description', { length: 500 }),
   quantity: integer('quantity').notNull().default(1),
+  addedByUserId: integer('added_by_user_id').references(() => users.id, { onDelete: 'set null' }), // null = user added themselves
   createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
 }, (table) => ({
   userIdx: index('idx_cart_items_user').on(table.userId),
+  addedByIdx: index('idx_cart_items_added_by').on(table.addedByUserId),
 }));
 
 export const cartItemsRelations = relations(cartItems, ({ one }) => ({
@@ -1244,7 +1246,50 @@ export const cartItemsRelations = relations(cartItems, ({ one }) => ({
     fields: [cartItems.userId],
     references: [users.id],
   }),
+  addedBy: one(users, {
+    fields: [cartItems.addedByUserId],
+    references: [users.id],
+    relationName: 'cartItemsAddedBy',
+  }),
 }));
 
 export type CartItem = typeof cartItems.$inferSelect;
 export type NewCartItem = typeof cartItems.$inferInsert;
+
+// ----------------------------------------------------------
+// Cart Audit Logs
+// ----------------------------------------------------------
+
+export const cartAuditLogs = sqliteTable('cart_audit_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  targetUserId: integer('target_user_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  employeeUserId: integer('employee_user_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  action: text('action').notNull(), // 'add_item' | 'remove_item' | 'clear_all'
+  itemId: integer('item_id'), // nullable for clear_all
+  itemTitle: text('item_title'), // snapshot of item title at time of action
+  itemDescription: text('item_description'), // snapshot of description
+  metadata: text('metadata'), // JSON for additional context (e.g., count for clear_all)
+  ipAddress: text('ip_address'), // optional: request IP for traceability
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  targetUserIdx: index('idx_cart_audit_target_user').on(table.targetUserId),
+  employeeIdx: index('idx_cart_audit_employee').on(table.employeeUserId),
+  actionIdx: index('idx_cart_audit_action').on(table.action),
+  createdAtIdx: index('idx_cart_audit_created_at').on(table.createdAt),
+}));
+
+export const cartAuditLogsRelations = relations(cartAuditLogs, ({ one }) => ({
+  targetUser: one(users, {
+    fields: [cartAuditLogs.targetUserId],
+    references: [users.id],
+    relationName: 'cartAuditLogsTarget',
+  }),
+  employee: one(users, {
+    fields: [cartAuditLogs.employeeUserId],
+    references: [users.id],
+    relationName: 'cartAuditLogsEmployee',
+  }),
+}));
+
+export type CartAuditLog = typeof cartAuditLogs.$inferSelect;
+export type NewCartAuditLog = typeof cartAuditLogs.$inferInsert;

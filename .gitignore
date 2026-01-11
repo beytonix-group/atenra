@@ -50,4 +50,9 @@ next-env.d.ts
 .studio.pid
 
 .claude
-GEMINI.md
+
+
+# Project documentation (local only)
+brainstorm.md
+TECH_SPEC.md
+TODO.md

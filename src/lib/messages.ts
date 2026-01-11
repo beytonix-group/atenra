@@ -243,3 +243,13 @@ export function truncateContent(content: string, maxLength: number = 50): string
 	if (text.length <= maxLength) return text;
 	return text.substring(0, maxLength).trim() + '...';
 }
+
+// Fetch count of conversations with unread messages
+export async function fetchUnreadCount(): Promise<number> {
+	const response = await fetch('/api/messages/unread-count');
+	if (!response.ok) {
+		throw new Error('Failed to fetch unread count');
+	}
+	const data = await response.json() as { count: number };
+	return data.count;
+}
