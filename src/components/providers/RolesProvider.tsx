@@ -86,7 +86,7 @@ export function RolesProvider({ children }: { children: ReactNode }) {
  * const { roles, hasRole, hasAnyRole, isLoading } = useUserRoles();
  *
  * if (hasRole('super_admin')) { ... }
- * if (hasAnyRole(['super_admin', 'internal_employee'])) { ... }
+ * if (hasAnyRole(['super_admin', 'agent'])) { ... }
  */
 export function useUserRoles() {
   const context = useContext(RolesContext);

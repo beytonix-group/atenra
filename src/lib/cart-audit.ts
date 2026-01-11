@@ -16,7 +16,7 @@ interface LogCartActionParams {
 
 /**
  * Log a cart action to the audit log
- * Used by internal employees when managing user carts
+ * Used by agents when managing user carts
  */
 export async function logCartAction(params: LogCartActionParams): Promise<void> {
   const {

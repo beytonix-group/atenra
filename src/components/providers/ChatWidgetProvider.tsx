@@ -12,11 +12,11 @@ export default function ChatWidgetProvider() {
   useEffect(() => {
     async function checkAccess() {
       try {
-        // Check if user has super_admin or internal_employee role
+        // Check if user has super_admin or agent role
         // Roles are stored in session from JWT
         const roles = (session?.user as { roles?: string[] | null })?.roles;
 
-        if (roles && (roles.includes('super_admin') || roles.includes('internal_employee'))) {
+        if (roles && (roles.includes('super_admin') || roles.includes('agent'))) {
           setCanAccessChat(true);
         } else {
           setCanAccessChat(false);

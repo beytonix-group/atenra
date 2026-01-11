@@ -27,9 +27,9 @@ interface OnlineEmployee {
 }
 
 /**
- * Get all online internal employees
+ * Get all online agents
  */
-async function getOnlineInternalEmployees(): Promise<OnlineEmployee[]> {
+async function getOnlineAgents(): Promise<OnlineEmployee[]> {
   const now = Math.floor(Date.now() / 1000);
 
   const employees = await db
@@ -43,7 +43,7 @@ async function getOnlineInternalEmployees(): Promise<OnlineEmployee[]> {
     .from(users)
     .innerJoin(userRoles, eq(users.id, userRoles.userId))
     .innerJoin(roles, eq(userRoles.roleId, roles.id))
-    .where(eq(roles.name, 'internal_employee'))
+    .where(eq(roles.name, 'agent'))
     .orderBy(desc(users.lastActiveAt))
     .all();
 
@@ -181,8 +181,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get online internal employees
-    const onlineEmployees = await getOnlineInternalEmployees();
+    // Get online agents
+    const onlineEmployees = await getOnlineAgents();
 
     // Check if any employees are online
     if (onlineEmployees.length === 0) {

@@ -7,7 +7,7 @@ export default function CartManagerProvider() {
   const { hasAnyRole, isLoading } = useUserRoles();
 
   // Check if user has cart management access
-  const canManageCarts = hasAnyRole(['super_admin', 'internal_employee']);
+  const canManageCarts = hasAnyRole(['super_admin', 'agent']);
 
   // Don't render if loading or not authorized
   if (isLoading || !canManageCarts) {

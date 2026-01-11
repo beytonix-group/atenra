@@ -4,7 +4,7 @@ import { users } from "@/server/db/schema";
 import { or, like, sql } from "drizzle-orm";
 import { getCurrentUser, canManageUserCarts } from "@/lib/auth-helpers";
 
-// GET - Search users by email or name (for internal employees)
+// GET - Search users by email or name (for agents)
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
