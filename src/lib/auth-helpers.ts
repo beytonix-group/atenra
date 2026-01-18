@@ -349,29 +349,29 @@ export async function isCompanyOwner(companyId: number): Promise<boolean> {
 
 /**
  * Check if the current user can manage support tickets (no DB call)
- * (super admin or internal employee)
+ * (super admin or agent)
  */
 export async function canManageSupportTickets(): Promise<boolean> {
 	const roles = await getUserRoles();
 	if (!roles) return false;
-	return roles.includes('super_admin') || roles.includes('internal_employee');
+	return roles.includes('super_admin') || roles.includes('agent');
 }
 
 /**
- * Check if the current user is an internal employee (no DB call)
+ * Check if the current user is an agent (no DB call)
  */
-export async function isInternalEmployee(): Promise<boolean> {
+export async function isAgent(): Promise<boolean> {
 	const roles = await getUserRoles();
 	if (!roles) return false;
-	return roles.includes('internal_employee');
+	return roles.includes('agent');
 }
 
 /**
  * Check if the current user can manage user carts (no DB call)
- * (super admin or internal employee)
+ * (super admin or agent)
  */
 export async function canManageUserCarts(): Promise<boolean> {
 	const roles = await getUserRoles();
 	if (!roles) return false;
-	return roles.includes('super_admin') || roles.includes('internal_employee');
+	return roles.includes('super_admin') || roles.includes('agent');
 }

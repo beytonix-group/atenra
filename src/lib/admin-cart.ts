@@ -1,4 +1,4 @@
-// Admin Cart API client functions for internal employees
+// Admin Cart API client functions for agents
 
 export interface SearchUser {
   id: number;

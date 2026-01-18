@@ -16,7 +16,7 @@ async function handler(
 
     const now = Math.floor(Date.now() / 1000);
 
-    // Query all users with internal_employee role, ordered by lastActiveAt
+    // Query all users with agent role, ordered by lastActiveAt
     const employees = await db
       .select({
         id: users.id,
@@ -29,12 +29,12 @@ async function handler(
       .from(users)
       .innerJoin(userRoles, eq(users.id, userRoles.userId))
       .innerJoin(roles, eq(userRoles.roleId, roles.id))
-      .where(eq(roles.name, 'internal_employee'))
+      .where(eq(roles.name, 'agent'))
       .orderBy(desc(users.lastActiveAt))
       .all();
 
     if (employees.length === 0) {
-      return { message: 'No internal employees found in the system.' };
+      return { message: 'No agents found in the system.' };
     }
 
     // Calculate online status and format response
@@ -74,7 +74,7 @@ async function handler(
     const onlineCount = formatted.filter(e => e.status === 'Online').length;
 
     return {
-      summary: `${onlineCount} of ${formatted.length} internal employees online`,
+      summary: `${onlineCount} of ${formatted.length} agents online`,
       employees: formatted,
     };
   } catch (error) {
@@ -86,7 +86,7 @@ async function handler(
 export const getOnlineEmployees: ChatFunction = {
   definition: {
     name: 'get_online_employees',
-    description: 'Get a list of all internal employee accounts showing their online/offline status, sorted by most recently active. Use when the user asks who is online, which employees are available, or wants to see staff availability.',
+    description: 'Get a list of all agent accounts showing their online/offline status, sorted by most recently active. Use when the user asks who is online, which agents are available, or wants to see staff availability.',
     parameters: {
       type: 'object',
       properties: {},

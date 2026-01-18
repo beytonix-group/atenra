@@ -12,12 +12,12 @@ import { isSuperAdmin, getUserRoles } from '@/lib/auth-helpers';
 
 /**
  * Check if the current user can access the floating chat widget.
- * Only super_admin and internal_employee roles are allowed.
+ * Only super_admin and agent roles are allowed.
  */
 async function canAccessFloatingChat(): Promise<boolean> {
   const roles = await getUserRoles();
   if (!roles) return false;
-  return roles.includes('super_admin') || roles.includes('internal_employee');
+  return roles.includes('super_admin') || roles.includes('agent');
 }
 
 interface ChatMessage {
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has permission to access floating chat
-    // Only super_admin and internal_employee roles are allowed
+    // Only super_admin and agent roles are allowed
     const hasAccess = await canAccessFloatingChat();
     if (!hasAccess) {
       return NextResponse.json(
