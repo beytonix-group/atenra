@@ -53,6 +53,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         title: cartItems.title,
         description: cartItems.description,
         quantity: cartItems.quantity,
+        unitPriceCents: cartItems.unitPriceCents,
         addedByUserId: cartItems.addedByUserId,
         createdAt: cartItems.createdAt,
         updatedAt: cartItems.updatedAt,
@@ -109,8 +110,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const body = await request.json() as { title?: string; description?: string };
-    const { title, description } = body;
+    const body = await request.json() as { title?: string; description?: string; unitPriceCents?: number };
+    const { title, description, unitPriceCents } = body;
 
     // Validate input
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -125,6 +126,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Description must be a string with 500 characters or less" }, { status: 400 });
     }
 
+    if (unitPriceCents !== undefined) {
+      const MAX_PRICE_CENTS = 100000000; // $1,000,000 max
+      if (typeof unitPriceCents !== 'number' || unitPriceCents < 0 || !Number.isInteger(unitPriceCents) || unitPriceCents > MAX_PRICE_CENTS) {
+        return NextResponse.json({ error: "Price must be a non-negative integer (cents) up to $1,000,000" }, { status: 400 });
+      }
+    }
+
     // Insert the cart item
     const result = await db
       .insert(cartItems)
@@ -133,6 +141,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         title: title.trim(),
         description: description?.trim() || null,
         quantity: 1,
+        unitPriceCents: unitPriceCents ?? null,
         addedByUserId: currentUser.id, // Track who added the item
       })
       .returning({ id: cartItems.id });

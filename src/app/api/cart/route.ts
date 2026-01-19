@@ -17,6 +17,7 @@ export async function GET() {
         title: cartItems.title,
         description: cartItems.description,
         quantity: cartItems.quantity,
+        unitPriceCents: cartItems.unitPriceCents,
         addedByUserId: cartItems.addedByUserId,
         createdAt: cartItems.createdAt,
       })

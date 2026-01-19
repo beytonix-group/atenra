@@ -1,7 +1,7 @@
 import { db } from "@/server/db";
 import { cartAuditLogs } from "@/server/db/schema";
 
-export type CartAuditAction = 'add_item' | 'remove_item' | 'clear_all';
+export type CartAuditAction = 'add_item' | 'remove_item' | 'edit_item' | 'clear_all';
 
 interface LogCartActionParams {
   targetUserId: number;
@@ -78,6 +78,28 @@ export async function logRemoveItem(
     itemId: item.id,
     itemTitle: item.title,
     itemDescription: item.description ?? undefined,
+    ipAddress,
+  });
+}
+
+/**
+ * Log an "edit_item" action
+ */
+export async function logEditItem(
+  targetUserId: number,
+  employeeUserId: number,
+  item: { id: number; title: string; description?: string | null },
+  changes: Record<string, unknown>,
+  ipAddress?: string
+): Promise<void> {
+  await logCartAction({
+    targetUserId,
+    employeeUserId,
+    action: 'edit_item',
+    itemId: item.id,
+    itemTitle: item.title,
+    itemDescription: item.description ?? undefined,
+    metadata: { changes },
     ipAddress,
   });
 }

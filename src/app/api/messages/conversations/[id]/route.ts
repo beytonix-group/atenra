@@ -81,6 +81,7 @@ export async function GET(
 				participants: participants.map(p => ({
 					id: p.id,
 					displayName: p.displayName || `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.email,
+					email: p.email,
 					avatarUrl: p.avatarUrl,
 					isAdmin: p.isAdmin === 1,
 					joinedAt: p.joinedAt,

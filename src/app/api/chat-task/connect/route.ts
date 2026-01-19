@@ -275,7 +275,7 @@ export async function POST(request: NextRequest) {
       success: true,
       conversationId,
       employeeName,
-      redirectUrl: `/messages/${conversationId}`,
+      redirectUrl: `/messages?conversation=${conversationId}`,
       isExistingConversation: isExisting,
     });
   } catch (error) {

@@ -3,6 +3,11 @@ import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { users } from '@/server/db/schema';
 import { eq } from 'drizzle-orm';
+import {
+  getFunctionDefinitions,
+  executeFunction,
+  hasFunction,
+} from '@/lib/chat-functions';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -12,22 +17,47 @@ interface ChatMessage {
 interface ChatRequest {
   messages: ChatMessage[];
   includeUserContext?: boolean;
+  autoConnect?: boolean;
+}
+
+interface FunctionCall {
+  name: string;
+  arguments: string;
+}
+
+interface OpenAIMessageWithFunctionCall {
+  role: string;
+  content: string | null;
+  function_call?: FunctionCall;
 }
 
 interface OpenAIResponse {
-  choices: Array<{
-    message: {
-      role: string;
-      content: string | null;
-    };
-    finish_reason: string;
-    index: number;
+  choices?: Array<{
+    message?: OpenAIMessageWithFunctionCall;
+    finish_reason?: string;
+    index?: number;
   }>;
   usage?: {
     prompt_tokens: number;
     completion_tokens: number;
     total_tokens: number;
   };
+  error?: {
+    message: string;
+    type: string;
+    code?: string;
+  };
+}
+
+// Response type for auto-connect flow
+interface AutoConnectResponse {
+  messages: Array<{ role: 'assistant'; content: string }>;
+  redirect?: {
+    url: string;
+    agentName: string;
+    conversationId: number;
+  };
+  noAgentsAvailable: boolean;
 }
 
 // Task-focused system prompt for regular users
@@ -65,6 +95,30 @@ AVAILABLE NAVIGATION:
 - Help & Support (/support) - for additional assistance
 
 When greeting the user, use their name if available and ask what they'd like to accomplish today.`;
+
+// Auto-connect system prompt - instructs GPT to greet and connect to agent automatically
+const AUTO_CONNECT_SYSTEM_PROMPT = `You are the Atenra Assistant. Your job is to greet the user and connect them with an available agent.
+
+IMPORTANT: You MUST follow these steps in order. Do not ask questions or deviate from this flow.
+
+STEP 1: Call the get_current_user_info function to get the user's name and information.
+
+STEP 2: After receiving the user info, greet them with EXACTLY this format (use their actual name):
+"Hello [firstName] [lastName], how's your day? Let me connect you with an agent."
+
+If the user has no name, use: "Hello there, how's your day? Let me connect you with an agent."
+
+STEP 3: Immediately call the connect_to_agent function to find and connect them with an available online agent.
+
+STEP 4: Based on the connect_to_agent result:
+- If successful: Say "Great! Connecting you with [agentName] now..."
+- If no agents available: Say "I'm sorry, all agents are currently offline. Please try again at a later time."
+
+CRITICAL RULES:
+- Do NOT ask the user any questions
+- Do NOT wait for user input between steps
+- Proceed through ALL steps automatically
+- Keep messages brief and friendly`;
 
 // Timeout for OpenAI API calls (30 seconds)
 const OPENAI_TIMEOUT_MS = 30000;
@@ -129,7 +183,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { messages, includeUserContext } = body;
+    const { messages, includeUserContext, autoConnect } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -185,14 +239,21 @@ Please greet this user warmly by name and ask what they need help with today. Be
         }
 
         const completion = await openaiRes.json() as OpenAIResponse;
-        const greetingMessage = completion.choices[0]?.message?.content;
 
-        if (!greetingMessage) {
+        // Defensive validation of OpenAI response
+        if (!completion?.choices?.length || !completion.choices[0]?.message?.content) {
+          console.error('Invalid OpenAI greeting response:', {
+            hasChoices: !!completion?.choices,
+            choicesLength: completion?.choices?.length,
+            error: completion?.error,
+          });
           return NextResponse.json(
-            { error: 'No greeting received' },
-            { status: 500 }
+            { error: 'Unable to get greeting. Please try again.' },
+            { status: 502 }
           );
         }
+
+        const greetingMessage = completion.choices[0].message.content;
 
         return NextResponse.json({
           message: greetingMessage,
@@ -208,6 +269,194 @@ Please greet this user warmly by name and ask what they need help with today. Be
         }
         throw error;
       }
+    }
+
+    // Auto-connect flow - greet user and connect to agent automatically
+    if (autoConnect) {
+      const collectedMessages: Array<{ role: 'assistant'; content: string }> = [];
+      let redirectInfo: { url: string; agentName: string; conversationId: number } | undefined;
+      let noAgentsAvailable = false;
+
+      // Get function definitions for auto-connect (only need get_current_user_info and connect_to_agent)
+      const allFunctions = getFunctionDefinitions();
+      const autoConnectFunctions = allFunctions.filter(
+        (fn) => fn.name === 'get_current_user_info' || fn.name === 'connect_to_agent'
+      );
+
+      // Build initial messages for GPT
+      type GPTMessage = { role: 'system' | 'user' | 'assistant' | 'function'; content: string | null; function_call?: FunctionCall; name?: string };
+      const gptMessages: GPTMessage[] = [
+        { role: 'system', content: AUTO_CONNECT_SYSTEM_PROMPT },
+        { role: 'user', content: 'Please greet me and connect me with an agent.' },
+      ];
+
+      // Function calling loop - max 5 iterations to prevent infinite loops
+      const MAX_ITERATIONS = 5;
+      for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+
+        let openaiRes: Response;
+        try {
+          openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: gptMessages,
+              temperature: 0.7,
+              max_tokens: 500,
+              functions: autoConnectFunctions,
+              function_call: 'auto',
+            }),
+            signal: controller.signal,
+          });
+        } catch (error) {
+          clearTimeout(timeoutId);
+          if (error instanceof Error && error.name === 'AbortError') {
+            return NextResponse.json(
+              { error: 'Request timed out' },
+              { status: 504 }
+            );
+          }
+          throw error;
+        } finally {
+          clearTimeout(timeoutId);
+        }
+
+        if (!openaiRes.ok) {
+          const errorText = await openaiRes.text();
+          console.error('OpenAI API error (auto-connect):', errorText);
+          return NextResponse.json(
+            { error: 'Failed to get response from OpenAI' },
+            { status: openaiRes.status }
+          );
+        }
+
+        const completion = await openaiRes.json() as OpenAIResponse;
+
+        // Defensive validation of OpenAI response structure
+        if (!completion?.choices?.length || !completion.choices[0]?.message) {
+          console.error('Invalid OpenAI response structure:', {
+            hasChoices: !!completion?.choices,
+            choicesLength: completion?.choices?.length,
+            error: completion?.error,
+          });
+          return NextResponse.json(
+            { error: 'Received an unexpected response. Please try again.' },
+            { status: 502 }
+          );
+        }
+
+        const assistantMessage = completion.choices[0].message;
+
+        // Check if GPT wants to call a function
+        if (assistantMessage.function_call) {
+          const functionName = assistantMessage.function_call.name;
+          console.log('[auto-connect] GPT calling function:', functionName);
+
+          // Add assistant message with function call to history
+          gptMessages.push({
+            role: 'assistant',
+            content: assistantMessage.content,
+            function_call: assistantMessage.function_call,
+          });
+
+          if (hasFunction(functionName)) {
+            // Parse function arguments
+            let functionArgs: Record<string, unknown> = {};
+            try {
+              functionArgs = JSON.parse(assistantMessage.function_call.arguments || '{}');
+            } catch (parseError) {
+              console.error('Failed to parse function arguments:', parseError);
+              functionArgs = {};
+            }
+
+            // Execute the function
+            const functionResult = await executeFunction(
+              functionName,
+              functionArgs,
+              {
+                authUserId: session.user.id,
+                sessionUser: {
+                  id: session.user.id,
+                  name: session.user.name,
+                  email: session.user.email,
+                  image: session.user.image,
+                },
+              }
+            );
+
+            // Log function completion without sensitive data
+            console.log('[auto-connect] Function completed:', functionName, {
+              success: (functionResult as { success?: boolean }).success,
+            });
+
+            // Check if connect_to_agent returned redirect info
+            if (functionName === 'connect_to_agent') {
+              const result = functionResult as {
+                success?: boolean;
+                agentName?: string;
+                conversationId?: number;
+                redirectUrl?: string;
+                noAgentsAvailable?: boolean;
+              };
+
+              if (result.success && result.redirectUrl && result.agentName && result.conversationId) {
+                redirectInfo = {
+                  url: result.redirectUrl,
+                  agentName: result.agentName,
+                  conversationId: result.conversationId,
+                };
+              } else if (result.noAgentsAvailable) {
+                noAgentsAvailable = true;
+              }
+            }
+
+            // Add function result to history
+            gptMessages.push({
+              role: 'function',
+              name: functionName,
+              content: JSON.stringify(functionResult),
+            });
+          } else {
+            // Unknown function
+            gptMessages.push({
+              role: 'function',
+              name: functionName,
+              content: JSON.stringify({ error: `Unknown function: ${functionName}` }),
+            });
+          }
+
+          // Continue to next iteration to get GPT's response to the function result
+          continue;
+        }
+
+        // GPT returned a text message (no function call)
+        if (assistantMessage.content) {
+          collectedMessages.push({
+            role: 'assistant',
+            content: assistantMessage.content,
+          });
+        }
+
+        // Check if we should continue or stop
+        const finishReason = completion.choices[0]?.finish_reason;
+        if (finishReason === 'stop' || !assistantMessage.function_call) {
+          // GPT is done, break out of the loop
+          break;
+        }
+      }
+
+      // Return the auto-connect response
+      return NextResponse.json({
+        messages: collectedMessages,
+        redirect: redirectInfo,
+        noAgentsAvailable,
+      });
     }
 
     // Regular chat flow (no function calling - simpler for task guidance)
@@ -257,14 +506,21 @@ Please greet this user warmly by name and ask what they need help with today. Be
     }
 
     const completion = await openaiRes.json() as OpenAIResponse;
-    const assistantMessage = completion.choices[0]?.message;
 
-    if (!assistantMessage || !assistantMessage.content) {
+    // Defensive validation of OpenAI response
+    if (!completion?.choices?.length || !completion.choices[0]?.message?.content) {
+      console.error('Invalid OpenAI chat response:', {
+        hasChoices: !!completion?.choices,
+        choicesLength: completion?.choices?.length,
+        error: completion?.error,
+      });
       return NextResponse.json(
-        { error: 'No response from OpenAI' },
-        { status: 500 }
+        { error: 'Unable to get response. Please try again.' },
+        { status: 502 }
       );
     }
+
+    const assistantMessage = completion.choices[0].message;
 
     return NextResponse.json({
       message: assistantMessage.content,

@@ -81,7 +81,7 @@ export function MessagesBadge({ className }: MessagesBadgeProps) {
 
   return (
     <span
-      className={`rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground ${className || ""}`}
+      className={`rounded-full bg-red-500 px-2 py-0.5 text-xs text-white font-medium animate-pulse ${className || ""}`}
     >
       {count > 9 ? "9+" : count}
     </span>

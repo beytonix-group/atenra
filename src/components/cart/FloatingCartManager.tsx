@@ -16,12 +16,16 @@ import {
   Loader2,
   Package,
   AlertCircle,
+  Users,
+  Pencil,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   searchUsers,
   getUserCart,
   addItemToUserCart,
+  updateUserCartItem,
   removeItemFromUserCart,
   clearUserCart,
   type SearchUser,
@@ -36,6 +40,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useConversationContext } from "@/hooks/use-conversation-context";
 
 export function FloatingCartManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,11 +62,55 @@ export function FloatingCartManager() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
+  const [newItemPrice, setNewItemPrice] = useState("");
   const [isAddingItem, setIsAddingItem] = useState(false);
+
+  // Edit item state
+  const [editingItem, setEditingItem] = useState<CartItem | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [isEditingItem, setIsEditingItem] = useState(false);
 
   // Clear all confirmation
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearingCart, setIsClearingCart] = useState(false);
+
+  // Conversation context for showing participant dropdown
+  const {
+    isOnConversationPage,
+    participants,
+    isLoading: isLoadingParticipants,
+    error: participantsError,
+  } = useConversationContext();
+
+  // Handler for participant selection from dropdown
+  const handleSelectParticipant = async (participantId: string) => {
+    const participant = participants.find(p => p.id === parseInt(participantId));
+    if (!participant) {
+      console.error('Participant not found:', { participantId });
+      toast.error('Could not find selected participant');
+      return;
+    }
+
+    setSelectedUser({
+      id: participant.id,
+      email: participant.email || '',
+      displayName: participant.displayName,
+    });
+    setSearchQuery("");
+    setSearchResults([]);
+
+    try {
+      await loadUserCart(participant.id);
+    } catch (error) {
+      console.error('Failed to load cart after participant selection:', {
+        participantId: participant.id,
+        error,
+      });
+      // Error is already toasted in loadUserCart
+    }
+  };
 
   // Debounced search
   useEffect(() => {
@@ -111,13 +167,19 @@ export function FloatingCartManager() {
 
     setIsAddingItem(true);
     try {
+      const parsedPrice = newItemPrice ? parseFloat(newItemPrice) : NaN;
+      const priceInCents = !isNaN(parsedPrice) && parsedPrice >= 0
+        ? Math.round(parsedPrice * 100)
+        : undefined;
       await addItemToUserCart(selectedUser.id, {
         title: newItemTitle.trim(),
         description: newItemDescription.trim() || undefined,
+        unitPriceCents: priceInCents,
       });
       toast.success("Item added to cart");
       setNewItemTitle("");
       setNewItemDescription("");
+      setNewItemPrice("");
       setShowAddForm(false);
       await loadUserCart(selectedUser.id);
     } catch (error) {
@@ -126,6 +188,48 @@ export function FloatingCartManager() {
     } finally {
       setIsAddingItem(false);
     }
+  };
+
+  // Start editing an item
+  const handleStartEdit = (item: CartItem) => {
+    setEditingItem(item);
+    setEditTitle(item.title);
+    setEditDescription(item.description || "");
+    setEditPrice(item.unitPriceCents ? (item.unitPriceCents / 100).toFixed(2) : "");
+  };
+
+  // Save edited item
+  const handleSaveEdit = async () => {
+    if (!selectedUser || !editingItem || !editTitle.trim()) return;
+
+    setIsEditingItem(true);
+    try {
+      const parsedPrice = editPrice ? parseFloat(editPrice) : NaN;
+      const priceInCents = !isNaN(parsedPrice) && parsedPrice >= 0
+        ? Math.round(parsedPrice * 100)
+        : null;
+      await updateUserCartItem(selectedUser.id, editingItem.id, {
+        title: editTitle.trim(),
+        description: editDescription.trim() || null,
+        unitPriceCents: priceInCents,
+      });
+      toast.success("Item updated");
+      setEditingItem(null);
+      await loadUserCart(selectedUser.id);
+    } catch (error) {
+      console.error("Edit item error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update item");
+    } finally {
+      setIsEditingItem(false);
+    }
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingItem(null);
+    setEditTitle("");
+    setEditDescription("");
+    setEditPrice("");
   };
 
   // Remove item from cart
@@ -204,47 +308,93 @@ export function FloatingCartManager() {
             </CardHeader>
 
             <CardContent className="flex-1 flex flex-col p-4 overflow-hidden">
-              {/* User Search */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search user by email or name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-                {isSearching && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                )}
-
-                {/* Search Results Dropdown */}
-                {searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
-                    {searchResults.map((user) => (
-                      <button
-                        key={user.id}
-                        onClick={() => handleSelectUser(user)}
-                        className="w-full flex items-center gap-3 p-2 hover:bg-muted text-left"
-                      >
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.avatarUrl || ""} />
-                          <AvatarFallback className="text-xs">
-                            {getUserInitials(user.displayName)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">
-                            {user.displayName}
-                          </div>
-                          <div className="text-xs text-muted-foreground truncate">
-                            {user.email}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+              {/* User Selection - Dropdown on conversation page, Search on other pages */}
+              {isOnConversationPage ? (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    <span>Thread Participants</span>
                   </div>
-                )}
-              </div>
+                  {isLoadingParticipants ? (
+                    <div className="flex items-center justify-center py-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
+                  ) : participantsError ? (
+                    <div className="text-sm text-destructive py-2">
+                      {participantsError}
+                    </div>
+                  ) : participants.length === 0 ? (
+                    <div className="text-sm text-muted-foreground py-2">
+                      No participants found
+                    </div>
+                  ) : (
+                    <Select
+                      value={selectedUser?.id.toString() || ""}
+                      onValueChange={handleSelectParticipant}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a participant..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {participants.map((p) => (
+                          <SelectItem key={p.id} value={p.id.toString()}>
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={p.avatarUrl || ""} />
+                                <AvatarFallback className="text-xs">
+                                  {getUserInitials(p.displayName)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{p.displayName}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              ) : (
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search user by email or name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+
+                  {/* Search Results Dropdown */}
+                  {searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                      {searchResults.map((user) => (
+                        <button
+                          key={user.id}
+                          onClick={() => handleSelectUser(user)}
+                          className="w-full flex items-center gap-3 p-2 hover:bg-muted text-left"
+                        >
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={user.avatarUrl || ""} />
+                            <AvatarFallback className="text-xs">
+                              {getUserInitials(user.displayName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate">
+                              {user.displayName}
+                            </div>
+                            <div className="text-xs text-muted-foreground truncate">
+                              {user.email}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Selected User Info */}
               {selectedUser && (
@@ -322,6 +472,18 @@ export function FloatingCartManager() {
                         maxLength={500}
                         rows={2}
                       />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Price (optional)"
+                          value={newItemPrice}
+                          onChange={(e) => setNewItemPrice(e.target.value)}
+                          className="pl-7"
+                        />
+                      </div>
                       <div className="flex gap-2 justify-end">
                         <Button
                           variant="ghost"
@@ -330,6 +492,7 @@ export function FloatingCartManager() {
                             setShowAddForm(false);
                             setNewItemTitle("");
                             setNewItemDescription("");
+                            setNewItemPrice("");
                           }}
                         >
                           Cancel
@@ -366,30 +529,105 @@ export function FloatingCartManager() {
                             key={item.id}
                             className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg group"
                           >
-                            <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm truncate">
-                                {item.title}
+                            {editingItem?.id === item.id ? (
+                              // Edit mode
+                              <div className="flex-1 space-y-2">
+                                <Input
+                                  placeholder="Title"
+                                  value={editTitle}
+                                  onChange={(e) => setEditTitle(e.target.value)}
+                                  maxLength={50}
+                                  className="h-8 text-sm"
+                                />
+                                <Textarea
+                                  placeholder="Description"
+                                  value={editDescription}
+                                  onChange={(e) => setEditDescription(e.target.value)}
+                                  maxLength={500}
+                                  rows={2}
+                                  className="text-sm"
+                                />
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder="Price"
+                                    value={editPrice}
+                                    onChange={(e) => setEditPrice(e.target.value)}
+                                    className="pl-7 h-8 text-sm"
+                                  />
+                                </div>
+                                <div className="flex gap-2 justify-end">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleCancelEdit}
+                                    className="h-7"
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={handleSaveEdit}
+                                    disabled={!editTitle.trim() || isEditingItem}
+                                    className="h-7"
+                                  >
+                                    {isEditingItem ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <Check className="h-3 w-3" />
+                                    )}
+                                  </Button>
+                                </div>
                               </div>
-                              {item.description && (
-                                <div className="text-xs text-muted-foreground line-clamp-2">
-                                  {item.description}
+                            ) : (
+                              // Display mode
+                              <>
+                                <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="font-medium text-sm truncate">
+                                      {item.title}
+                                    </div>
+                                    {item.unitPriceCents !== null && (
+                                      <span className="text-sm font-medium text-primary shrink-0">
+                                        ${(item.unitPriceCents / 100).toFixed(2)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {item.description && (
+                                    <div className="text-xs text-muted-foreground line-clamp-2">
+                                      {item.description}
+                                    </div>
+                                  )}
+                                  {item.addedByUserId && (
+                                    <div className="text-xs text-blue-600 mt-1">
+                                      Added by agent
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                              {item.addedByUserId && (
-                                <div className="text-xs text-blue-600 mt-1">
-                                  Added by employee
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={() => handleStartEdit(item)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={() => handleRemoveItem(item.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
                                 </div>
-                              )}
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => handleRemoveItem(item.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                              </>
+                            )}
                           </div>
                         ))}
                       </div>
