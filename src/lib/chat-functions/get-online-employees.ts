@@ -2,8 +2,7 @@ import type { ChatFunction, FunctionContext } from './types';
 import { db } from '@/server/db';
 import { users, roles, userRoles } from '@/server/db/schema';
 import { eq, desc } from 'drizzle-orm';
-
-const ONLINE_THRESHOLD_SECONDS = 60;
+import { ONLINE_THRESHOLD_SECONDS } from './constants';
 
 async function handler(
   _args: Record<string, unknown>,

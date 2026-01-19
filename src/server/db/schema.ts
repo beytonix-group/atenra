@@ -1233,6 +1233,7 @@ export const cartItems = sqliteTable('cart_items', {
   title: text('title', { length: 50 }).notNull(),
   description: text('description', { length: 500 }),
   quantity: integer('quantity').notNull().default(1),
+  unitPriceCents: integer('unit_price_cents'), // Price in cents (null = no price set)
   addedByUserId: integer('added_by_user_id').references(() => users.id, { onDelete: 'set null' }), // null = user added themselves
   createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),

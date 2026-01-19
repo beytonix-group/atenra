@@ -180,7 +180,7 @@ export function MessageInput({
 			<div className="flex items-end gap-2">
 				<div
 					ref={editorRef}
-					className="flex-1 border rounded-lg bg-muted/50 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+					className="flex-1 rounded-lg bg-muted/50 border border-input focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"
 				>
 					<EditorContent editor={editor} />
 				</div>

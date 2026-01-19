@@ -3,6 +3,7 @@
 export interface Participant {
 	id: number;
 	displayName: string;
+	email: string;
 	avatarUrl: string | null;
 	isAdmin?: boolean;
 }

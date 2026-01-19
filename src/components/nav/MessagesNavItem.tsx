@@ -39,7 +39,7 @@ export function MessagesNavItem({
       <div className="relative">
         <MessageSquare className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />
         {sidebarCollapsed && count > 0 && (
-          <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
+          <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center animate-pulse">
             {count > 9 ? "9+" : count}
           </span>
         )}
@@ -48,7 +48,7 @@ export function MessagesNavItem({
         <>
           <span className="flex-1">Messages</span>
           {count > 0 && (
-            <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+            <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white font-medium animate-pulse">
               {count > 9 ? "9+" : count}
             </span>
           )}

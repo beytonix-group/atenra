@@ -12,6 +12,7 @@ export interface CartItem {
   title: string;
   description: string | null;
   quantity: number;
+  unitPriceCents: number | null;
   addedByUserId: number | null;
   createdAt: number;
   updatedAt: number;
@@ -87,7 +88,7 @@ export async function getUserCart(userId: number): Promise<UserCart> {
 // Add an item to a user's cart
 export async function addItemToUserCart(
   userId: number,
-  item: { title: string; description?: string }
+  item: { title: string; description?: string; unitPriceCents?: number }
 ): Promise<{ id: number; message: string }> {
   const response = await fetch(`/api/admin/cart/${userId}`, {
     method: 'POST',
@@ -105,6 +106,29 @@ export async function addItemToUserCart(
     throw new Error(errorMessage);
   }
   return response.json() as Promise<{ id: number; message: string }>;
+}
+
+// Update an item in a user's cart
+export async function updateUserCartItem(
+  userId: number,
+  itemId: number,
+  data: { title?: string; description?: string | null; unitPriceCents?: number | null }
+): Promise<void> {
+  const response = await fetch(`/api/admin/cart/${userId}/${itemId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    let errorMessage = 'Failed to update item';
+    try {
+      const error = await response.json() as { error?: string };
+      errorMessage = error.error || errorMessage;
+    } catch {
+      // Response was not JSON, use default message
+    }
+    throw new Error(errorMessage);
+  }
 }
 
 // Remove a specific item from a user's cart

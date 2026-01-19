@@ -13,6 +13,7 @@ interface CartItem {
   title: string;
   description: string | null;
   quantity: number;
+  unitPriceCents: number | null;
   createdAt: number;
   addedByUserId?: number | null;
 }
@@ -271,6 +272,20 @@ export function CartContent() {
                   )}
                 </div>
 
+                {/* Price Display */}
+                {item.unitPriceCents !== null && (
+                  <div className="text-right shrink-0">
+                    <div className="font-semibold">
+                      ${((item.unitPriceCents * item.quantity) / 100).toFixed(2)}
+                    </div>
+                    {item.quantity > 1 && (
+                      <div className="text-xs text-muted-foreground">
+                        ${(item.unitPriceCents / 100).toFixed(2)} each
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Quantity Controls */}
                 <div className="flex items-center gap-2">
                   <Button
@@ -315,16 +330,38 @@ export function CartContent() {
         <CardHeader>
           <CardTitle>Cart Summary</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex justify-between text-lg">
+        <CardContent className="space-y-3">
+          <div className="flex justify-between">
             <span>Total Items:</span>
             <span className="font-semibold">
               {items.reduce((sum, item) => sum + item.quantity, 0)}
             </span>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            Final pricing will be determined after consultation with service providers.
-          </p>
+          {(() => {
+            const total = items.reduce((sum, item) => {
+              if (item.unitPriceCents !== null) {
+                return sum + (item.unitPriceCents * item.quantity);
+              }
+              return sum;
+            }, 0);
+            const hasUnpricedItems = items.some(item => item.unitPriceCents === null);
+
+            return (
+              <>
+                {total > 0 && (
+                  <div className="flex justify-between text-lg border-t pt-3">
+                    <span>Subtotal:</span>
+                    <span className="font-semibold">${(total / 100).toFixed(2)}</span>
+                  </div>
+                )}
+                {hasUnpricedItems && (
+                  <p className="text-sm text-muted-foreground">
+                    Some items don&apos;t have prices set yet. Final pricing will be determined after consultation.
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </CardContent>
         <CardFooter>
           <Button className="w-full" size="lg">
