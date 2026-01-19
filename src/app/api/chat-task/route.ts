@@ -50,7 +50,7 @@ interface OpenAIResponse {
 }
 
 // Response type for auto-connect flow
-interface AutoConnectResponse {
+interface _AutoConnectResponse {
   messages: Array<{ role: 'assistant'; content: string }>;
   redirect?: {
     url: string;

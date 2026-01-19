@@ -32,7 +32,7 @@ interface ChatPageContentProps {
 export function ChatPageContent({ userId: _userId }: ChatPageContentProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
   const [phase, setPhase] = useState<ConversationPhase>("initial");
   const [connectingAgentName, setConnectingAgentName] = useState<string | null>(null);
   const [loadingTooLong, setLoadingTooLong] = useState(false);
