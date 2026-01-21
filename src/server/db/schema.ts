@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text, primaryKey, index, uniqueIndex } from "drizzle-orm/sqlite-core"
+import { integer, sqliteTable, text, primaryKey, index, uniqueIndex, real } from "drizzle-orm/sqlite-core"
 import { relations, sql } from 'drizzle-orm';
 import type { AdapterAccountType } from "next-auth/adapters"
 
@@ -242,6 +242,25 @@ export const companyServices = sqliteTable('company_services', {
   serviceId: integer('service_id').notNull(),
 }, (table) => ({
   pk: primaryKey({ columns: [table.companyId, table.serviceId] }),
+}));
+
+// ----------------------------------------------------------
+// Company Listings (Services/Items for sale)
+// ----------------------------------------------------------
+
+export const companyListings = sqliteTable('company_listings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  price: real('price'), // Price in dollars (null = contact for price)
+  isActive: integer('is_active').notNull().default(1),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  companyIdx: index('idx_company_listings_company').on(table.companyId),
+  companyActiveIdx: index('idx_company_listings_company_active').on(table.companyId, table.isActive),
 }));
 
 // ----------------------------------------------------------
@@ -728,6 +747,7 @@ export const companiesRelations = relations(companies, ({ one, many }) => ({
   jobRequests: many(userCompanyJobs),
   subscriptions: many(subscriptions),
   companyInvoices: many(companyInvoices),
+  listings: many(companyListings),
 }));
 
 export const companyUsersRelations = relations(companyUsers, ({ one }) => ({
@@ -774,6 +794,13 @@ export const companyServiceCategoriesRelations = relations(companyServiceCategor
   category: one(serviceCategories, {
     fields: [companyServiceCategories.categoryId],
     references: [serviceCategories.id],
+  }),
+}));
+
+export const companyListingsRelations = relations(companyListings, ({ one }) => ({
+  company: one(companies, {
+    fields: [companyListings.companyId],
+    references: [companies.id],
   }),
 }));
 
@@ -1294,3 +1321,6 @@ export const cartAuditLogsRelations = relations(cartAuditLogs, ({ one }) => ({
 
 export type CartAuditLog = typeof cartAuditLogs.$inferSelect;
 export type NewCartAuditLog = typeof cartAuditLogs.$inferInsert;
+
+export type CompanyListing = typeof companyListings.$inferSelect;
+export type NewCompanyListing = typeof companyListings.$inferInsert;

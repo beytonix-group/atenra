@@ -3,16 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2, Clock, Send, X, FileText } from 'lucide-react';
+import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2, Clock, Send, X, FileText, Tag, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { RoleBadge } from '@/components/ui/role-badge';
 import { AddEmployeeDialog } from './AddEmployeeDialog';
+import { AddListingDialog } from './AddListingDialog';
 import { SendMessageButton } from '@/components/messages/SendMessageButton';
 import { toast } from 'sonner';
-import type { CompanyWithCategories, CompanyEmployee } from '@/app/marketplace/actions';
+import type { CompanyWithCategories, CompanyEmployee, CompanyListingData } from '@/app/marketplace/actions';
 
 interface PendingInvitation {
 	id: number;
@@ -29,15 +30,19 @@ interface PendingInvitation {
 interface CompanyDetailContentProps {
 	company: CompanyWithCategories;
 	employees: CompanyEmployee[];
+	listings: CompanyListingData[];
 	isAdmin: boolean;
 	canViewEmployees: boolean;
 	canManageEmployees: boolean;
+	canManageListings: boolean;
 }
 
-export function CompanyDetailContent({ company, employees, isAdmin, canViewEmployees, canManageEmployees }: CompanyDetailContentProps) {
+export function CompanyDetailContent({ company, employees, listings, isAdmin, canViewEmployees, canManageEmployees, canManageListings }: CompanyDetailContentProps) {
 	const router = useRouter();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [isAddListingDialogOpen, setIsAddListingDialogOpen] = useState(false);
 	const [removingEmployeeId, setRemovingEmployeeId] = useState<number | null>(null);
+	const [deletingListingId, setDeletingListingId] = useState<number | null>(null);
 	const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([]);
 	const [_loadingInvitations, setLoadingInvitations] = useState(false);
 	const [resendingInvitationId, setResendingInvitationId] = useState<number | null>(null);
@@ -49,6 +54,13 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 			month: 'long',
 			day: 'numeric',
 		});
+	};
+
+	const formatPrice = (price: number | null) => {
+		if (price === null) {
+			return 'Contact for price';
+		}
+		return `$${price.toFixed(2)}`;
 	};
 
 	const handleRemoveEmployee = async (userId: number, employeeEmail: string) => {
@@ -155,6 +167,33 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 			toast.error(error instanceof Error ? error.message : 'Failed to cancel invitation');
 		} finally {
 			setCancellingInvitationId(null);
+		}
+	};
+
+	const handleDeleteListing = async (listingId: number, listingTitle: string) => {
+		if (!confirm(`Are you sure you want to remove "${listingTitle}"?`)) {
+			return;
+		}
+
+		setDeletingListingId(listingId);
+
+		try {
+			const response = await fetch(`/api/company/${company.id}/listings/${listingId}`, {
+				method: 'DELETE',
+			});
+
+			if (!response.ok) {
+				const data = await response.json() as { error?: string };
+				throw new Error(data.error || 'Failed to delete listing');
+			}
+
+			toast.success('Listing removed successfully.');
+			router.refresh();
+		} catch (error) {
+			console.error('Error deleting listing:', error);
+			toast.error(error instanceof Error ? error.message : 'Failed to remove listing');
+		} finally {
+			setDeletingListingId(null);
 		}
 	};
 
@@ -337,6 +376,81 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 				</CardContent>
 			</Card>
 
+			{/* Services & Listings Section */}
+			{(listings.length > 0 || canManageListings) && (
+				<Card className="mt-6">
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<Tag className="h-5 w-5 text-primary" />
+								<CardTitle>Services & Products</CardTitle>
+								{listings.length > 0 && <Badge variant="secondary">{listings.length}</Badge>}
+							</div>
+							{canManageListings && (
+								<Button onClick={() => setIsAddListingDialogOpen(true)} size="sm">
+									Add Listing
+								</Button>
+							)}
+						</div>
+					</CardHeader>
+					<CardContent>
+						{listings.length === 0 ? (
+							<div className="text-center py-8 text-muted-foreground">
+								<Tag className="h-12 w-12 mx-auto mb-3 opacity-20" />
+								<p>No listings have been added to this company yet.</p>
+								{canManageListings && (
+									<Button
+										onClick={() => setIsAddListingDialogOpen(true)}
+										variant="outline"
+										size="sm"
+										className="mt-4"
+									>
+										Add First Listing
+									</Button>
+								)}
+							</div>
+						) : (
+							<div className="grid gap-4 md:grid-cols-2">
+								{listings.map((listing) => (
+									<div
+										key={listing.id}
+										className="p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+									>
+										<div className="flex items-start justify-between mb-2">
+											<h4 className="font-medium text-base flex-1">{listing.title}</h4>
+											<div className="flex items-center gap-2 ml-2">
+												<div className="flex items-center gap-1 text-primary font-semibold whitespace-nowrap">
+													{listing.price !== null && <DollarSign className="h-4 w-4" />}
+													<span className={listing.price === null ? 'text-muted-foreground text-sm' : ''}>
+														{formatPrice(listing.price)}
+													</span>
+												</div>
+												{canManageListings && (
+													<Button
+														variant="ghost"
+														size="icon"
+														onClick={() => handleDeleteListing(listing.id, listing.title)}
+														disabled={deletingListingId === listing.id}
+														className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+													>
+														<Trash2 className="h-4 w-4" />
+													</Button>
+												)}
+											</div>
+										</div>
+										{listing.description && (
+											<p className="text-sm text-muted-foreground line-clamp-3">
+												{listing.description}
+											</p>
+										)}
+									</div>
+								))}
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			)}
+
 			{/* Employees Section - Only visible to super admins and company-associated users */}
 			{canViewEmployees && (
 				<Card className="mt-6">
@@ -507,6 +621,16 @@ export function CompanyDetailContent({ company, employees, isAdmin, canViewEmplo
 				<AddEmployeeDialog
 					open={isDialogOpen}
 					onOpenChange={setIsDialogOpen}
+					companyId={company.id}
+					onSuccess={() => router.refresh()}
+				/>
+			)}
+
+			{/* Add Listing Dialog - Only available to managers/owners/admins */}
+			{canManageListings && (
+				<AddListingDialog
+					open={isAddListingDialogOpen}
+					onOpenChange={setIsAddListingDialogOpen}
 					companyId={company.id}
 					onSuccess={() => router.refresh()}
 				/>
