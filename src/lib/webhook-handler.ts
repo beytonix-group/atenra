@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { upsertSubscription, getSubscriptionByProviderSubscriptionId } from "./subscriptions";
+import { getOrderByStripeSessionId, updateOrderStatus, clearUserCart } from "./orders";
 
 /**
  * Check if webhook event has already been processed (idempotency)
@@ -113,32 +114,61 @@ async function getUserIdFromCustomer(stripeCustomerId: string): Promise<number |
  * Handle checkout.session.completed event
  */
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
-	if (session.mode !== "subscription" || !session.subscription) {
+	// Handle subscription checkout
+	if (session.mode === "subscription" && session.subscription) {
+		const subscriptionId =
+			typeof session.subscription === "string" ? session.subscription : session.subscription.id;
+
+		const userId = session.metadata?.user_id ? parseInt(session.metadata.user_id) : null;
+		const planId = session.metadata?.plan_id ? parseInt(session.metadata.plan_id) : null;
+
+		if (!userId || !planId) {
+			throw new Error("Missing user_id or plan_id in session metadata");
+		}
+
+		// Get subscription details (we might not have all details in the session object)
+		// For now, upsert with basic info - the subscription.created event will have full details
+		await upsertSubscription({
+			userId,
+			planId,
+			status: "active",
+			provider: "stripe",
+			externalCustomerId: session.customer as string,
+			externalSubscriptionId: subscriptionId,
+			currentPeriodStart: Math.floor(Date.now() / 1000),
+			stripeCheckoutSessionId: session.id,
+		});
 		return;
 	}
 
-	const subscriptionId =
-		typeof session.subscription === "string" ? session.subscription : session.subscription.id;
+	// Handle one-time payment checkout (cart orders)
+	if (session.mode === "payment") {
+		const orderId = session.metadata?.order_id ? parseInt(session.metadata.order_id) : null;
+		const userId = session.metadata?.user_id ? parseInt(session.metadata.user_id) : null;
 
-	const userId = session.metadata?.user_id ? parseInt(session.metadata.user_id) : null;
-	const planId = session.metadata?.plan_id ? parseInt(session.metadata.plan_id) : null;
+		if (!orderId || !userId) {
+			console.log("[Webhook] Payment checkout without order metadata, skipping");
+			return;
+		}
 
-	if (!userId || !planId) {
-		throw new Error("Missing user_id or plan_id in session metadata");
+		// Get payment intent ID
+		const paymentIntentId = typeof session.payment_intent === "string"
+			? session.payment_intent
+			: session.payment_intent?.id || null;
+
+		// Update order status to completed
+		const now = Math.floor(Date.now() / 1000);
+		await updateOrderStatus(orderId, 'completed', {
+			stripePaymentIntentId: paymentIntentId || undefined,
+			completedAt: now,
+		});
+
+		// Clear user's cart
+		await clearUserCart(userId);
+
+		console.log(`[Webhook] Order ${orderId} completed, cart cleared for user ${userId}`);
+		return;
 	}
-
-	// Get subscription details (we might not have all details in the session object)
-	// For now, upsert with basic info - the subscription.created event will have full details
-	await upsertSubscription({
-		userId,
-		planId,
-		status: "active",
-		provider: "stripe",
-		externalCustomerId: session.customer as string,
-		externalSubscriptionId: subscriptionId,
-		currentPeriodStart: Math.floor(Date.now() / 1000),
-		stripeCheckoutSessionId: session.id,
-	});
 }
 
 /**

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getPayPalAccessToken, verifyPayPalWebhook, mapPayPalStatus, type PayPalSubscription } from "@/lib/paypal";
 import { upsertSubscription, getSubscriptionByProviderSubscriptionId } from "@/lib/subscriptions";
+import { getOrderByPayPalOrderId, updateOrderStatus, clearUserCart } from "@/lib/orders";
 
 
 /**
@@ -199,6 +200,19 @@ async function processPayPalWebhookEvent(event: any, db: D1Database): Promise<vo
 
 		case "PAYMENT.SALE.DENIED":
 			await handlePaymentDenied(resource, db);
+			break;
+
+		// One-time payment events
+		case "CHECKOUT.ORDER.APPROVED":
+			await handleOrderApproved(resource, db);
+			break;
+
+		case "PAYMENT.CAPTURE.COMPLETED":
+			await handleCaptureCompleted(resource, db);
+			break;
+
+		case "PAYMENT.CAPTURE.DENIED":
+			await handleCaptureDenied(resource, db);
 			break;
 
 		default:
@@ -407,4 +421,100 @@ async function handlePaymentDenied(payment: any, _db: D1Database): Promise<void>
 		currentPeriodStart: existing.currentPeriodStart || Math.floor(Date.now() / 1000),
 		currentPeriodEnd: existing.currentPeriodEnd || undefined,
 	});
+}
+
+// ----------------------------------------------------------
+// One-Time Payment Event Handlers
+// ----------------------------------------------------------
+
+/**
+ * Handle CHECKOUT.ORDER.APPROVED
+ * Order has been approved by customer but not yet captured
+ */
+async function handleOrderApproved(order: any, _db: D1Database): Promise<void> {
+	const paypalOrderId = order.id;
+	console.log(`[PayPal Webhook] Order approved: ${paypalOrderId}`);
+
+	// Find our internal order
+	const internalOrder = await getOrderByPayPalOrderId(paypalOrderId);
+	if (!internalOrder) {
+		console.log(`[PayPal Webhook] Order ${paypalOrderId} not found in database, may be external`);
+		return;
+	}
+
+	// Update status to processing (payment approved but not captured yet)
+	if (internalOrder.status === 'pending') {
+		await updateOrderStatus(internalOrder.id, 'processing');
+		console.log(`[PayPal Webhook] Order ${internalOrder.id} marked as processing`);
+	}
+}
+
+/**
+ * Handle PAYMENT.CAPTURE.COMPLETED
+ * Payment has been captured successfully
+ */
+async function handleCaptureCompleted(capture: any, _db: D1Database): Promise<void> {
+	// The capture object contains the order_id in supplementary_data
+	const orderId = capture.supplementary_data?.related_ids?.order_id;
+	const captureId = capture.id;
+
+	console.log(`[PayPal Webhook] Capture completed: ${captureId} for order: ${orderId || 'unknown'}`);
+
+	if (!orderId) {
+		console.log("[PayPal Webhook] Capture has no order ID, skipping");
+		return;
+	}
+
+	// Find our internal order
+	const internalOrder = await getOrderByPayPalOrderId(orderId);
+	if (!internalOrder) {
+		console.log(`[PayPal Webhook] Order ${orderId} not found in database`);
+		return;
+	}
+
+	// Check if already completed
+	if (internalOrder.status === 'completed') {
+		console.log(`[PayPal Webhook] Order ${internalOrder.id} already completed`);
+		return;
+	}
+
+	// Update order to completed
+	const now = Math.floor(Date.now() / 1000);
+	await updateOrderStatus(internalOrder.id, 'completed', {
+		paypalCaptureId: captureId,
+		completedAt: now,
+	});
+
+	// Clear user's cart
+	await clearUserCart(internalOrder.userId);
+
+	console.log(`[PayPal Webhook] Order ${internalOrder.id} completed, cart cleared for user ${internalOrder.userId}`);
+}
+
+/**
+ * Handle PAYMENT.CAPTURE.DENIED
+ * Payment capture failed
+ */
+async function handleCaptureDenied(capture: any, _db: D1Database): Promise<void> {
+	const orderId = capture.supplementary_data?.related_ids?.order_id;
+	const captureId = capture.id;
+
+	console.log(`[PayPal Webhook] Capture denied: ${captureId} for order: ${orderId || 'unknown'}`);
+
+	if (!orderId) {
+		console.log("[PayPal Webhook] Capture has no order ID, skipping");
+		return;
+	}
+
+	// Find our internal order
+	const internalOrder = await getOrderByPayPalOrderId(orderId);
+	if (!internalOrder) {
+		console.log(`[PayPal Webhook] Order ${orderId} not found in database`);
+		return;
+	}
+
+	// Update order to failed
+	await updateOrderStatus(internalOrder.id, 'failed');
+
+	console.log(`[PayPal Webhook] Order ${internalOrder.id} marked as failed`);
 }

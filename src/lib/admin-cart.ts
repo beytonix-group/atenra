@@ -88,7 +88,7 @@ export async function getUserCart(userId: number): Promise<UserCart> {
 // Add an item to a user's cart
 export async function addItemToUserCart(
   userId: number,
-  item: { title: string; description?: string; unitPriceCents?: number }
+  item: { title: string; description?: string; unitPriceCents: number }
 ): Promise<{ id: number; message: string }> {
   const response = await fetch(`/api/admin/cart/${userId}`, {
     method: 'POST',

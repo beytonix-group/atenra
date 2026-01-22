@@ -99,7 +99,7 @@ export default async function MarketplacePage({
 	const search = resolvedSearchParams.search || '';
 
 	// Fetch initial data
-	const [companiesData, categories] = await Promise.all([
+	let [companiesData, categories] = await Promise.all([
 		fetchCompanies({
 			page,
 			limit,
@@ -110,6 +110,19 @@ export default async function MarketplacePage({
 		}),
 		fetchServiceCategories()
 	]);
+
+	// If using preferences and no companies found, fall back to showing all companies
+	if (isUsingPreferences && companiesData.companies.length === 0 && categoryId) {
+		companiesData = await fetchCompanies({
+			page,
+			limit,
+			categoryId: undefined, // No category filter
+			sortBy,
+			sortOrder: 'desc',
+			search
+		});
+		isUsingPreferences = false; // Reset since we're showing all
+	}
 
 	// Wrap with PaywallGuard for non-admin users
 	const content = (

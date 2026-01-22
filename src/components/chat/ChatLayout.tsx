@@ -16,6 +16,7 @@ import {
   Settings,
   CreditCard,
   MessageCircle,
+  ShoppingBag,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -49,6 +50,11 @@ interface ChatLayoutProps {
 
 // Navigation items for regular users
 const navigationItems = [
+  {
+    title: "Marketplace",
+    href: "/marketplace",
+    icon: ShoppingBag,
+  },
   {
     title: "Chat",
     href: "/chat",

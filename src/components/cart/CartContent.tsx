@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Minus, Plus, Trash2, ShoppingCart, Loader2, Package, AlertCircle } from "lucide-react";
@@ -21,6 +22,7 @@ interface CartItem {
 const POLLING_INTERVAL = 5000; // 5 seconds
 
 export function CartContent() {
+  const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -243,6 +245,11 @@ export function CartContent() {
     );
   }
 
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const total = items.reduce((sum, item) => {
+    return sum + ((item.unitPriceCents ?? 0) * item.quantity);
+  }, 0);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
@@ -252,11 +259,18 @@ export function CartContent() {
         </Button>
       </div>
 
-      <div className="space-y-4">
-        {items.map((item) => (
-          <Card key={item.id} className={cn(updatingItems.has(item.id) && "opacity-60")}>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-4">
+      <Card>
+        <CardContent className="p-0">
+          {/* Cart Items */}
+          <div className="divide-y">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className={cn(
+                  "flex items-center gap-4 p-4",
+                  updatingItems.has(item.id) && "opacity-60"
+                )}
+              >
                 {/* Item Icon */}
                 <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                   <Package className="h-6 w-6 text-muted-foreground" />
@@ -266,28 +280,26 @@ export function CartContent() {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold truncate">{item.title}</h3>
                   {item.description && (
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
                       {item.description}
                     </p>
                   )}
                 </div>
 
                 {/* Price Display */}
-                {item.unitPriceCents !== null && (
-                  <div className="text-right shrink-0">
-                    <div className="font-semibold">
-                      ${((item.unitPriceCents * item.quantity) / 100).toFixed(2)}
-                    </div>
-                    {item.quantity > 1 && (
-                      <div className="text-xs text-muted-foreground">
-                        ${(item.unitPriceCents / 100).toFixed(2)} each
-                      </div>
-                    )}
+                <div className="text-right shrink-0 min-w-[80px]">
+                  <div className="font-semibold">
+                    ${(((item.unitPriceCents ?? 0) * item.quantity) / 100).toFixed(2)}
                   </div>
-                )}
+                  {item.quantity > 1 && (
+                    <div className="text-xs text-muted-foreground">
+                      ${((item.unitPriceCents ?? 0) / 100).toFixed(2)} each
+                    </div>
+                  )}
+                </div>
 
                 {/* Quantity Controls */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
                     size="icon"
@@ -320,51 +332,27 @@ export function CartContent() {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Cart Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Cart Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between">
-            <span>Total Items:</span>
-            <span className="font-semibold">
-              {items.reduce((sum, item) => sum + item.quantity, 0)}
-            </span>
+            ))}
           </div>
-          {(() => {
-            const total = items.reduce((sum, item) => {
-              if (item.unitPriceCents !== null) {
-                return sum + (item.unitPriceCents * item.quantity);
-              }
-              return sum;
-            }, 0);
-            const hasUnpricedItems = items.some(item => item.unitPriceCents === null);
 
-            return (
-              <>
-                {total > 0 && (
-                  <div className="flex justify-between text-lg border-t pt-3">
-                    <span>Subtotal:</span>
-                    <span className="font-semibold">${(total / 100).toFixed(2)}</span>
-                  </div>
-                )}
-                {hasUnpricedItems && (
-                  <p className="text-sm text-muted-foreground">
-                    Some items don&apos;t have prices set yet. Final pricing will be determined after consultation.
-                  </p>
-                )}
-              </>
-            );
-          })()}
+          {/* Cart Summary */}
+          <div className="border-t bg-muted/30 p-4 space-y-3">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Total Items</span>
+              <span className="font-semibold">{totalItems}</span>
+            </div>
+            <div className="flex justify-between text-lg">
+              <span className="font-medium">Subtotal</span>
+              <span className="font-semibold">${(total / 100).toFixed(2)}</span>
+            </div>
+          </div>
         </CardContent>
-        <CardFooter>
-          <Button className="w-full" size="lg">
+        <CardFooter className="p-4 pt-0">
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={() => router.push("/checkout")}
+          >
             Proceed to Checkout
           </Button>
         </CardFooter>

@@ -163,14 +163,12 @@ export function FloatingCartManager() {
 
   // Add item to cart
   const handleAddItem = async () => {
-    if (!selectedUser || !newItemTitle.trim()) return;
+    const parsedPrice = parseFloat(newItemPrice);
+    if (!selectedUser || !newItemTitle.trim() || isNaN(parsedPrice) || parsedPrice < 0) return;
 
     setIsAddingItem(true);
     try {
-      const parsedPrice = newItemPrice ? parseFloat(newItemPrice) : NaN;
-      const priceInCents = !isNaN(parsedPrice) && parsedPrice >= 0
-        ? Math.round(parsedPrice * 100)
-        : undefined;
+      const priceInCents = Math.round(parsedPrice * 100);
       await addItemToUserCart(selectedUser.id, {
         title: newItemTitle.trim(),
         description: newItemDescription.trim() || undefined,
@@ -478,10 +476,11 @@ export function FloatingCartManager() {
                           type="number"
                           step="0.01"
                           min="0"
-                          placeholder="Price (optional)"
+                          placeholder="Price (required)"
                           value={newItemPrice}
                           onChange={(e) => setNewItemPrice(e.target.value)}
                           className="pl-7"
+                          required
                         />
                       </div>
                       <div className="flex gap-2 justify-end">
@@ -500,7 +499,7 @@ export function FloatingCartManager() {
                         <Button
                           size="sm"
                           onClick={handleAddItem}
-                          disabled={!newItemTitle.trim() || isAddingItem}
+                          disabled={!newItemTitle.trim() || !newItemPrice || isNaN(parseFloat(newItemPrice)) || parseFloat(newItemPrice) < 0 || isAddingItem}
                         >
                           {isAddingItem && (
                             <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -553,10 +552,11 @@ export function FloatingCartManager() {
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    placeholder="Price"
+                                    placeholder="Price (required)"
                                     value={editPrice}
                                     onChange={(e) => setEditPrice(e.target.value)}
                                     className="pl-7 h-8 text-sm"
+                                    required
                                   />
                                 </div>
                                 <div className="flex gap-2 justify-end">
@@ -571,7 +571,7 @@ export function FloatingCartManager() {
                                   <Button
                                     size="sm"
                                     onClick={handleSaveEdit}
-                                    disabled={!editTitle.trim() || isEditingItem}
+                                    disabled={!editTitle.trim() || !editPrice || isNaN(parseFloat(editPrice)) || parseFloat(editPrice) < 0 || isEditingItem}
                                     className="h-7"
                                   >
                                     {isEditingItem ? (
