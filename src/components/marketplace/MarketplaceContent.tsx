@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchCompanies, fetchServiceCategories, type CompanyWithCategories } from '@/app/marketplace/actions';
 import { useDebounce } from 'use-debounce';
+import { MASKED_COMPANY_NAME, MASKED_LOCATION } from '@/lib/masking';
 
 interface MarketplaceContentProps {
   initialCompanies?: CompanyWithCategories[];
@@ -20,6 +21,7 @@ interface MarketplaceContentProps {
   isUsingPreferences?: boolean;
   defaultCategoryId?: number;
   isAdmin?: boolean;
+  isRegularUser?: boolean;
 }
 
 export function MarketplaceContent({
@@ -28,7 +30,8 @@ export function MarketplaceContent({
   initialTotalPages = 1,
   isUsingPreferences = false,
   defaultCategoryId,
-  isAdmin = false
+  isAdmin = false,
+  isRegularUser = false
 }: MarketplaceContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -306,15 +309,15 @@ export function MarketplaceContent({
                   {/* Company Info */}
                   <div className="p-3 md:p-4">
                     <h3 className="font-semibold text-base md:text-lg mb-1 line-clamp-1 text-gray-900 dark:text-gray-100">
-                      {company.name}
+                      {isRegularUser ? MASKED_COMPANY_NAME : company.name}
                     </h3>
 
                     {/* Location */}
-                    {(company.city || company.state) && (
+                    {(company.city || company.state || isRegularUser) && (
                       <div className="flex items-center gap-1 text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-2">
                         <MapPin className="h-3 w-3 flex-shrink-0" />
                         <span className="line-clamp-1">
-                          {[company.city, company.state].filter(Boolean).join(', ')}
+                          {isRegularUser ? MASKED_LOCATION : [company.city, company.state].filter(Boolean).join(', ')}
                         </span>
                       </div>
                     )}
@@ -342,18 +345,20 @@ export function MarketplaceContent({
                       </div>
                     )}
 
-                    {/* Contact Icons */}
-                    <div className="flex items-center gap-2 md:gap-3 text-gray-400 dark:text-gray-500">
-                      {company.websiteUrl && (
-                        <Globe className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                      )}
-                      {company.phone && (
-                        <Phone className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                      )}
-                      {company.email && (
-                        <Mail className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                      )}
-                    </div>
+                    {/* Contact Icons - hidden for regular users */}
+                    {!isRegularUser && (
+                      <div className="flex items-center gap-2 md:gap-3 text-gray-400 dark:text-gray-500">
+                        {company.websiteUrl && (
+                          <Globe className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                        )}
+                        {company.phone && (
+                          <Phone className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                        )}
+                        {company.email && (
+                          <Mail className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                        )}
+                      </div>
+                    )}
                   </div>
                 </Card>
               </Link>

@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { MarketplaceContent } from "@/components/marketplace/MarketplaceContent";
 import { PaywallGuard } from "@/components/auth/PaywallGuard";
-import { isSuperAdmin, getUserOwnedCompanies } from "@/lib/auth-helpers";
+import { isSuperAdmin, isRegularUser as checkIsRegularUser, getUserOwnedCompanies } from "@/lib/auth-helpers";
 import { fetchCompanies, fetchServiceCategories } from "./actions";
 import { db } from "@/server/db";
 import { users, userServicePreferences } from "@/server/db/schema";
@@ -36,10 +36,14 @@ export default async function MarketplacePage({
 	}
 
 	const resolvedSearchParams = await searchParams;
-	const [isAdmin, ownedCompanies] = await Promise.all([
+	const [isAdmin, isRegularUserFlag, ownedCompanies] = await Promise.all([
 		isSuperAdmin().catch((error) => {
 			console.error("Error checking admin status:", error);
 			return false;
+		}),
+		checkIsRegularUser().catch((error) => {
+			console.error("Error checking regular user status:", error);
+			return true; // Safe default: mask data if we can't determine user status
 		}),
 		getUserOwnedCompanies().catch((error) => {
 			console.error("Error fetching owned companies:", error);
@@ -134,6 +138,7 @@ export default async function MarketplacePage({
 				isUsingPreferences={isUsingPreferences}
 				defaultCategoryId={categoryId}
 				isAdmin={isAdmin}
+				isRegularUser={isRegularUserFlag}
 			/>
 		</Layout>
 	);

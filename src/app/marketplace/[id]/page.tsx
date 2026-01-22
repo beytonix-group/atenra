@@ -3,7 +3,7 @@ import { auth } from "@/server/auth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { PaywallGuard } from "@/components/auth/PaywallGuard";
-import { isSuperAdmin, hasCompanyAccess, hasCompanyManagementAccess, getUserOwnedCompanies } from "@/lib/auth-helpers";
+import { isSuperAdmin, isRegularUser as checkIsRegularUser, hasCompanyAccess, hasCompanyManagementAccess, getUserOwnedCompanies } from "@/lib/auth-helpers";
 import { fetchCompanyById, fetchCompanyEmployees, fetchCompanyListings } from "../actions";
 import { CompanyDetailContent } from "@/components/marketplace/CompanyDetailContent";
 
@@ -21,10 +21,14 @@ export default async function CompanyDetailPage({
 
 	const { id } = await params;
 	const companyId = Number(id);
-	const [isAdmin, ownedCompanies] = await Promise.all([
+	const [isAdmin, isRegularUserFlag, ownedCompanies] = await Promise.all([
 		isSuperAdmin().catch((error) => {
 			console.error("Error checking admin status:", error);
 			return false;
+		}),
+		checkIsRegularUser().catch((error) => {
+			console.error("Error checking regular user status:", error);
+			return true; // Safe default: mask data if we can't determine user status
 		}),
 		getUserOwnedCompanies().catch((error) => {
 			console.error("Error fetching owned companies:", error);
@@ -64,6 +68,7 @@ export default async function CompanyDetailPage({
 				canViewEmployees={canViewEmployees}
 				canManageEmployees={canManageEmployees}
 				canManageListings={canManageEmployees}
+				isRegularUser={isRegularUserFlag}
 			/>
 		</Layout>
 	);
