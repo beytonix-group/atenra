@@ -675,3 +675,266 @@ export async function deactivatePayPalPlan(
 
 	// POST returns 204 No Content on success
 }
+
+// ----------------------------------------------------------
+// PayPal Orders API (One-Time Payments)
+// ----------------------------------------------------------
+
+/**
+ * PayPal Order Item
+ */
+export interface PayPalOrderItem {
+	name: string;
+	description?: string;
+	quantity: string;
+	unit_amount: {
+		currency_code: string;
+		value: string;
+	};
+}
+
+/**
+ * PayPal Order Response
+ */
+export interface PayPalOrder {
+	id: string;
+	status: "CREATED" | "SAVED" | "APPROVED" | "VOIDED" | "COMPLETED" | "PAYER_ACTION_REQUIRED";
+	links: Array<{
+		href: string;
+		rel: string;
+		method: string;
+	}>;
+}
+
+/**
+ * PayPal Capture Response
+ */
+export interface PayPalCaptureResponse {
+	id: string;
+	status: "COMPLETED" | "DECLINED" | "PARTIALLY_REFUNDED" | "PENDING" | "REFUNDED" | "FAILED";
+	purchase_units: Array<{
+		reference_id?: string;
+		payments: {
+			captures: Array<{
+				id: string;
+				status: string;
+				amount: {
+					currency_code: string;
+					value: string;
+				};
+			}>;
+		};
+	}>;
+}
+
+/**
+ * Create PayPal Order for One-Time Payment
+ *
+ * Creates a PayPal order for cart checkout (one-time payment).
+ *
+ * @param env - Environment variables
+ * @param items - Array of items to purchase
+ * @param totalCents - Total amount in cents
+ * @param metadata - Additional metadata (orderId, userId, etc.)
+ * @returns PayPal Order with approval URL
+ */
+export async function createPayPalOrder(
+	env: {
+		PAYPAL_CLIENT_ID?: string;
+		PAYPAL_CLIENT_SECRET?: string;
+		PAYPAL_API_BASE?: string;
+	},
+	items: Array<{
+		name: string;
+		description?: string;
+		quantity: number;
+		unitPriceCents: number;
+	}>,
+	totalCents: number,
+	metadata: {
+		orderId: number;
+		userId: number;
+		orderNumber: string;
+	},
+	returnUrl: string,
+	cancelUrl: string
+): Promise<{
+	orderId: string;
+	approvalUrl: string;
+}> {
+	const apiBase = env.PAYPAL_API_BASE || process.env.PAYPAL_API_BASE || "https://api-m.sandbox.paypal.com";
+
+	// Get access token
+	const accessToken = await getPayPalAccessToken(env);
+
+	// Calculate item total
+	const itemTotalCents = items.reduce((sum, item) => sum + (item.unitPriceCents * item.quantity), 0);
+
+	// Convert cents to dollars for PayPal
+	const totalValue = (totalCents / 100).toFixed(2);
+	const itemTotalValue = (itemTotalCents / 100).toFixed(2);
+
+	// Build order payload
+	const orderPayload = {
+		intent: "CAPTURE",
+		purchase_units: [
+			{
+				reference_id: metadata.orderNumber,
+				description: `Order ${metadata.orderNumber}`,
+				custom_id: `${metadata.orderId}`,
+				amount: {
+					currency_code: "USD",
+					value: totalValue,
+					breakdown: {
+						item_total: {
+							currency_code: "USD",
+							value: itemTotalValue,
+						},
+						// Handle discount as difference between item total and order total
+						...(itemTotalCents > totalCents ? {
+							discount: {
+								currency_code: "USD",
+								value: ((itemTotalCents - totalCents) / 100).toFixed(2),
+							}
+						} : {}),
+					},
+				},
+				items: items.map(item => ({
+					name: item.name.substring(0, 127), // PayPal limit
+					description: item.description?.substring(0, 127) || undefined,
+					quantity: item.quantity.toString(),
+					unit_amount: {
+						currency_code: "USD",
+						value: (item.unitPriceCents / 100).toFixed(2),
+					},
+				})),
+			},
+		],
+		application_context: {
+			return_url: returnUrl,
+			cancel_url: cancelUrl,
+			brand_name: "Atenra",
+			user_action: "PAY_NOW",
+			shipping_preference: "NO_SHIPPING",
+		},
+	};
+
+	const response = await fetch(`${apiBase}/v2/checkout/orders`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${accessToken}`,
+		},
+		body: JSON.stringify(orderPayload),
+	});
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		throw new Error(`Failed to create PayPal order (${response.status}): ${errorText}`);
+	}
+
+	const order = (await response.json()) as PayPalOrder;
+
+	// Find approval URL
+	const approvalLink = order.links.find(link => link.rel === "approve");
+	if (!approvalLink) {
+		throw new Error("PayPal order created but no approval URL found");
+	}
+
+	return {
+		orderId: order.id,
+		approvalUrl: approvalLink.href,
+	};
+}
+
+/**
+ * Capture PayPal Order Payment
+ *
+ * Captures the payment for an approved PayPal order.
+ *
+ * @param env - Environment variables
+ * @param paypalOrderId - PayPal order ID to capture
+ * @returns Capture details
+ */
+export async function capturePayPalOrder(
+	env: {
+		PAYPAL_CLIENT_ID?: string;
+		PAYPAL_CLIENT_SECRET?: string;
+		PAYPAL_API_BASE?: string;
+	},
+	paypalOrderId: string
+): Promise<{
+	captureId: string;
+	status: string;
+	amountCents: number;
+}> {
+	const apiBase = env.PAYPAL_API_BASE || process.env.PAYPAL_API_BASE || "https://api-m.sandbox.paypal.com";
+
+	// Get access token
+	const accessToken = await getPayPalAccessToken(env);
+
+	const response = await fetch(`${apiBase}/v2/checkout/orders/${paypalOrderId}/capture`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${accessToken}`,
+		},
+	});
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		throw new Error(`Failed to capture PayPal order ${paypalOrderId} (${response.status}): ${errorText}`);
+	}
+
+	const capture = (await response.json()) as PayPalCaptureResponse;
+
+	// Get capture details
+	const captureInfo = capture.purchase_units[0]?.payments?.captures?.[0];
+	if (!captureInfo) {
+		throw new Error("PayPal capture succeeded but no capture details found");
+	}
+
+	return {
+		captureId: captureInfo.id,
+		status: captureInfo.status,
+		amountCents: Math.round(parseFloat(captureInfo.amount.value) * 100),
+	};
+}
+
+/**
+ * Get PayPal Order Details
+ *
+ * Fetches the current status of a PayPal order.
+ *
+ * @param env - Environment variables
+ * @param paypalOrderId - PayPal order ID
+ * @returns Order details
+ */
+export async function getPayPalOrderDetails(
+	env: {
+		PAYPAL_CLIENT_ID?: string;
+		PAYPAL_CLIENT_SECRET?: string;
+		PAYPAL_API_BASE?: string;
+	},
+	paypalOrderId: string
+): Promise<PayPalOrder> {
+	const apiBase = env.PAYPAL_API_BASE || process.env.PAYPAL_API_BASE || "https://api-m.sandbox.paypal.com";
+
+	// Get access token
+	const accessToken = await getPayPalAccessToken(env);
+
+	const response = await fetch(`${apiBase}/v2/checkout/orders/${paypalOrderId}`, {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${accessToken}`,
+		},
+	});
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		throw new Error(`Failed to get PayPal order ${paypalOrderId} (${response.status}): ${errorText}`);
+	}
+
+	return (await response.json()) as PayPalOrder;
+}

@@ -14,14 +14,14 @@ const protectedRoutes = [
 	"/chat",
 	"/messages",
 	"/cart",
+	"/checkout",
+	"/orders",
 ];
 
 // Routes that regular users are blocked from accessing
 const regularUserBlockedRoutes = [
-	"/marketplace",
 	"/admindashboard",
 	"/admin",
-	"/company",
 ];
 
 export default async function middleware(request: NextRequest) {

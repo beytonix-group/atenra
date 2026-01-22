@@ -87,7 +87,7 @@ export function MarketplaceContent({
   const loadCompanies = async () => {
     startTransition(async () => {
       try {
-        const result = await fetchCompanies({
+        let result = await fetchCompanies({
           page: currentPage,
           limit: currentLimit,
           categoryId: currentCategory ? Number(currentCategory) : undefined,
@@ -95,6 +95,19 @@ export function MarketplaceContent({
           sortOrder: 'desc',
           search: currentSearch
         });
+
+        // If using preferences and no results, fall back to showing all companies
+        if (showingPreferences && result.companies.length === 0 && currentCategory) {
+          result = await fetchCompanies({
+            page: currentPage,
+            limit: currentLimit,
+            categoryId: undefined, // No category filter
+            sortBy: currentSort as 'name' | 'createdAt',
+            sortOrder: 'desc',
+            search: currentSearch
+          });
+          setShowingPreferences(false);
+        }
 
         setCompanies(result.companies);
         setTotalPages(result.totalPages);
@@ -168,10 +181,10 @@ export function MarketplaceContent({
             </div>
 
             {/* Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {/* Category Filter */}
               <Select value={currentCategory || 'all'} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-[140px] md:w-[180px] h-9 md:h-10 bg-muted flex-shrink-0 text-xs md:text-sm">
+                <SelectTrigger className="w-[140px] md:w-[180px] h-9 md:h-10 bg-muted flex-shrink-0 text-xs md:text-sm ">
                   <div className="flex items-center gap-1.5 md:gap-2">
                     <Filter className="h-3.5 w-3.5 md:h-4 md:w-4" />
                     <SelectValue placeholder="Category" />
@@ -189,7 +202,7 @@ export function MarketplaceContent({
 
               {/* Sort Filter */}
               <Select value={currentSort} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-[120px] md:w-[150px] h-9 md:h-10 bg-muted flex-shrink-0 text-xs md:text-sm">
+                <SelectTrigger className="w-[120px] md:w-[150px] h-9 md:h-10 bg-muted flex-shrink-0 text-xs md:text-sm ">
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent>
@@ -200,7 +213,7 @@ export function MarketplaceContent({
 
               {/* Items per page */}
               <Select value={currentLimit.toString()} onValueChange={handleLimitChange}>
-                <SelectTrigger className="w-[100px] md:w-[120px] h-9 md:h-10 bg-muted flex-shrink-0 text-xs md:text-sm">
+                <SelectTrigger className="w-[100px] md:w-[120px] h-9 md:h-10 bg-muted flex-shrink-0 text-xs md:text-sm ">
                   <SelectValue placeholder="Show" />
                 </SelectTrigger>
                 <SelectContent>

@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text, primaryKey, index, uniqueIndex } from "drizzle-orm/sqlite-core"
+import { integer, sqliteTable, text, primaryKey, index, uniqueIndex, real } from "drizzle-orm/sqlite-core"
 import { relations, sql } from 'drizzle-orm';
 import type { AdapterAccountType } from "next-auth/adapters"
 
@@ -242,6 +242,25 @@ export const companyServices = sqliteTable('company_services', {
   serviceId: integer('service_id').notNull(),
 }, (table) => ({
   pk: primaryKey({ columns: [table.companyId, table.serviceId] }),
+}));
+
+// ----------------------------------------------------------
+// Company Listings (Services/Items for sale)
+// ----------------------------------------------------------
+
+export const companyListings = sqliteTable('company_listings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  price: real('price'), // Price in dollars (null = contact for price)
+  isActive: integer('is_active').notNull().default(1),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  companyIdx: index('idx_company_listings_company').on(table.companyId),
+  companyActiveIdx: index('idx_company_listings_company_active').on(table.companyId, table.isActive),
 }));
 
 // ----------------------------------------------------------
@@ -671,6 +690,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   // Employee Assignments
   employeeAssignments: many(employeeAssignments, { relationName: 'employeeAssignments' }),
   assignedToAssignments: many(employeeAssignments, { relationName: 'assignedToUser' }),
+
+  // Orders
+  orders: many(orders),
 }));
 
 export const userRelationshipsRelations = relations(userRelationships, ({ one }) => ({
@@ -728,6 +750,7 @@ export const companiesRelations = relations(companies, ({ one, many }) => ({
   jobRequests: many(userCompanyJobs),
   subscriptions: many(subscriptions),
   companyInvoices: many(companyInvoices),
+  listings: many(companyListings),
 }));
 
 export const companyUsersRelations = relations(companyUsers, ({ one }) => ({
@@ -774,6 +797,13 @@ export const companyServiceCategoriesRelations = relations(companyServiceCategor
   category: one(serviceCategories, {
     fields: [companyServiceCategories.categoryId],
     references: [serviceCategories.id],
+  }),
+}));
+
+export const companyListingsRelations = relations(companyListings, ({ one }) => ({
+  company: one(companies, {
+    fields: [companyListings.companyId],
+    references: [companies.id],
   }),
 }));
 
@@ -1294,3 +1324,116 @@ export const cartAuditLogsRelations = relations(cartAuditLogs, ({ one }) => ({
 
 export type CartAuditLog = typeof cartAuditLogs.$inferSelect;
 export type NewCartAuditLog = typeof cartAuditLogs.$inferInsert;
+
+export type CompanyListing = typeof companyListings.$inferSelect;
+export type NewCompanyListing = typeof companyListings.$inferInsert;
+
+// ----------------------------------------------------------
+// Orders (One-time purchases)
+// ----------------------------------------------------------
+
+export const orders = sqliteTable('orders', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  orderNumber: text('order_number').notNull(),
+  status: text('status', { enum: ['pending', 'processing', 'completed', 'failed', 'refunded', 'cancelled'] }).notNull().default('pending'),
+  subtotalCents: integer('subtotal_cents').notNull(),
+  discountCents: integer('discount_cents').default(0),
+  discountType: text('discount_type', { enum: ['membership', 'agent', 'coupon'] }),
+  discountReason: text('discount_reason'),
+  couponCodeId: integer('coupon_code_id'),
+  taxCents: integer('tax_cents').default(0),
+  totalCents: integer('total_cents').notNull(),
+  currency: text('currency').default('usd'),
+  paymentProvider: text('payment_provider', { enum: ['stripe', 'paypal'] }),
+  stripeCheckoutSessionId: text('stripe_checkout_session_id').unique(),
+  stripePaymentIntentId: text('stripe_payment_intent_id').unique(),
+  paypalOrderId: text('paypal_order_id').unique(),
+  paypalCaptureId: text('paypal_capture_id'),
+  metadata: text('metadata'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+  completedAt: integer('completed_at'),
+}, (table) => ({
+  userIdx: index('idx_orders_user').on(table.userId),
+  statusIdx: index('idx_orders_status').on(table.status),
+  orderNumberIdx: index('idx_orders_order_number').on(table.orderNumber),
+  createdAtIdx: index('idx_orders_created_at').on(table.createdAt),
+  stripeSessionIdx: index('idx_orders_stripe_session').on(table.stripeCheckoutSessionId),
+  paypalOrderIdx: index('idx_orders_paypal_order').on(table.paypalOrderId),
+}));
+
+export const orderItems = sqliteTable('order_items', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  quantity: integer('quantity').notNull().default(1),
+  unitPriceCents: integer('unit_price_cents').notNull(),
+  discountCents: integer('discount_cents').default(0),
+  totalCents: integer('total_cents').notNull(),
+  cartItemId: integer('cart_item_id'),
+  metadata: text('metadata'),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  orderIdx: index('idx_order_items_order').on(table.orderId),
+}));
+
+export const couponCodes = sqliteTable('coupon_codes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  code: text('code').notNull().unique(),
+  description: text('description'),
+  discountType: text('discount_type', { enum: ['percentage', 'fixed_amount'] }).notNull(),
+  discountValue: integer('discount_value').notNull(),
+  minOrderCents: integer('min_order_cents'),
+  maxDiscountCents: integer('max_discount_cents'),
+  usageLimit: integer('usage_limit'),
+  usageCount: integer('usage_count').default(0),
+  perUserLimit: integer('per_user_limit').default(1),
+  validFrom: integer('valid_from'),
+  validUntil: integer('valid_until'),
+  isActive: integer('is_active').default(1),
+  createdByUserId: integer('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at').notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at').notNull().default(sql`(unixepoch())`),
+}, (table) => ({
+  codeIdx: index('idx_coupon_codes_code').on(table.code),
+  activeIdx: index('idx_coupon_codes_active').on(table.isActive),
+  validIdx: index('idx_coupon_codes_valid').on(table.validFrom, table.validUntil),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  user: one(users, {
+    fields: [orders.userId],
+    references: [users.id],
+  }),
+  items: many(orderItems),
+  couponCode: one(couponCodes, {
+    fields: [orders.couponCodeId],
+    references: [couponCodes.id],
+  }),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+}));
+
+export const couponCodesRelations = relations(couponCodes, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [couponCodes.createdByUserId],
+    references: [users.id],
+  }),
+  orders: many(orders),
+}));
+
+export type Order = typeof orders.$inferSelect;
+export type NewOrder = typeof orders.$inferInsert;
+
+export type OrderItem = typeof orderItems.$inferSelect;
+export type NewOrderItem = typeof orderItems.$inferInsert;
+
+export type CouponCode = typeof couponCodes.$inferSelect;
+export type NewCouponCode = typeof couponCodes.$inferInsert;

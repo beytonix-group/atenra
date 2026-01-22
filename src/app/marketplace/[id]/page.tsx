@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserDashboardLayout } from "@/components/dashboard/UserDashboardLayout";
 import { PaywallGuard } from "@/components/auth/PaywallGuard";
 import { isSuperAdmin, hasCompanyAccess, hasCompanyManagementAccess, getUserOwnedCompanies } from "@/lib/auth-helpers";
-import { fetchCompanyById, fetchCompanyEmployees } from "../actions";
+import { fetchCompanyById, fetchCompanyEmployees, fetchCompanyListings } from "../actions";
 import { CompanyDetailContent } from "@/components/marketplace/CompanyDetailContent";
 
 
@@ -48,17 +48,22 @@ export default async function CompanyDetailPage({
 	// Check if user has management access (can add/remove employees)
 	const canManageEmployees = await hasCompanyManagementAccess(companyId);
 
-	// Fetch company employees only if user has access
-	const employees = canViewEmployees ? await fetchCompanyEmployees(companyId) : [];
+	// Fetch company employees and listings
+	const [employees, listings] = await Promise.all([
+		canViewEmployees ? fetchCompanyEmployees(companyId) : Promise.resolve([]),
+		fetchCompanyListings(companyId),
+	]);
 
 	const content = (
 		<Layout user={session.user} ownedCompanies={ownedCompanies}>
 			<CompanyDetailContent
 				company={company}
 				employees={employees}
+				listings={listings}
 				isAdmin={isAdmin}
 				canViewEmployees={canViewEmployees}
 				canManageEmployees={canManageEmployees}
+				canManageListings={canManageEmployees}
 			/>
 		</Layout>
 	);

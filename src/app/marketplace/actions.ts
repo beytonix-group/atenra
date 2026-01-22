@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/server/db';
-import { companies, serviceCategories, companyServiceCategories, companyUsers, users, userRoles, roles } from '@/server/db/schema';
+import { companies, serviceCategories, companyServiceCategories, companyUsers, users, userRoles, roles, companyListings } from '@/server/db/schema';
 import { eq, and, asc, inArray } from 'drizzle-orm';
 
 export type CompanyWithCategories = typeof companies.$inferSelect & {
@@ -295,5 +295,28 @@ export async function fetchCompanyEmployees(companyId: number): Promise<CompanyE
   } catch (error) {
     console.error('Error fetching company employees:', error);
     throw new Error('Failed to fetch company employees');
+  }
+}
+
+export type CompanyListingData = typeof companyListings.$inferSelect;
+
+export async function fetchCompanyListings(companyId: number): Promise<CompanyListingData[]> {
+  try {
+    const listings = await db
+      .select()
+      .from(companyListings)
+      .where(
+        and(
+          eq(companyListings.companyId, companyId),
+          eq(companyListings.isActive, 1)
+        )
+      )
+      .orderBy(asc(companyListings.sortOrder), asc(companyListings.createdAt))
+      .all();
+
+    return listings;
+  } catch (error) {
+    console.error('Error fetching company listings:', error);
+    throw new Error('Failed to fetch company listings');
   }
 }
