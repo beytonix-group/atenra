@@ -37,7 +37,7 @@ export function DiscountSection({
 			} else {
 				setCouponCode("");
 			}
-		} catch (err) {
+		} catch {
 			setError("Failed to apply coupon. Please try again.");
 		} finally {
 			setIsApplying(false);

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -33,13 +32,12 @@ interface DiscountInfo {
 }
 
 export function CheckoutContent() {
-	const router = useRouter();
 	const [items, setItems] = useState<CartItem[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [fetchError, setFetchError] = useState<string | null>(null);
 	const [isCheckingOut, setIsCheckingOut] = useState(false);
 	const [selectedPayment, setSelectedPayment] = useState<"stripe" | "paypal">("stripe");
-	const [appliedDiscount, setAppliedDiscount] = useState<DiscountInfo | null>(null);
+	const [appliedDiscount, _setAppliedDiscount] = useState<DiscountInfo | null>(null);
 
 	const fetchCartItems = useCallback(async () => {
 		try {
@@ -63,7 +61,7 @@ export function CheckoutContent() {
 		fetchCartItems();
 	}, [fetchCartItems]);
 
-	async function handleApplyCoupon(code: string): Promise<{ valid: boolean; error?: string }> {
+	async function handleApplyCoupon(_code: string): Promise<{ valid: boolean; error?: string }> {
 		// Placeholder: coupons not implemented yet
 		return { valid: false, error: "Coupon codes are not yet available" };
 	}

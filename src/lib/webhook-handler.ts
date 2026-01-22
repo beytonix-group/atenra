@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { upsertSubscription, getSubscriptionByProviderSubscriptionId } from "./subscriptions";
-import { getOrderByStripeSessionId, updateOrderStatus, clearUserCart } from "./orders";
+import { updateOrderStatus, clearUserCart } from "./orders";
 
 /**
  * Check if webhook event has already been processed (idempotency)
