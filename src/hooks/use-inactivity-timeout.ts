@@ -145,14 +145,41 @@ export function useInactivityTimeout(
     };
   }, [enabled, updateLastActivityTime]);
 
-  // Handle visibility change - reset timer when user returns to tab
+  // Handle visibility change - check timeout when user returns to tab
   useEffect(() => {
     if (!enabled || typeof window === 'undefined') return;
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // User returned to tab - reset activity
-        updateLastActivityTime(true);
+        // User returned to tab - check if timeout exceeded while away
+        const lastActivity = getLastActivityTime();
+        const elapsed = Date.now() - lastActivity;
+
+        if (elapsed >= INACTIVITY_TIMEOUT_MS) {
+          // Timeout exceeded while tab was hidden - trigger timeout immediately
+          if (!timeoutTriggeredRef.current) {
+            timeoutTriggeredRef.current = true;
+            setRemainingSeconds(0);
+            try {
+              onTimeoutRef.current?.();
+            } catch {
+              // Callback error - timeout still triggered
+            }
+          }
+        } else if (elapsed >= INACTIVITY_TIMEOUT_MS - WARNING_BEFORE_MS) {
+          // In warning period - show warning but don't reset
+          if (!warningTriggeredRef.current) {
+            warningTriggeredRef.current = true;
+            setIsWarningShown(true);
+            setRemainingSeconds(Math.ceil((INACTIVITY_TIMEOUT_MS - elapsed) / 1000));
+            try {
+              onWarningRef.current?.();
+            } catch {
+              // Callback error - warning still shown
+            }
+          }
+        }
+        // Note: Don't auto-reset on tab return - require actual user activity
       }
     };
 
@@ -161,7 +188,7 @@ export function useInactivityTimeout(
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [enabled, updateLastActivityTime]);
+  }, [enabled, getLastActivityTime]);
 
   // Handle cross-tab sync via storage event
   useEffect(() => {
