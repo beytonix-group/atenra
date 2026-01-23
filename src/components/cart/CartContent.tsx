@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Minus, Plus, Trash2, ShoppingCart, Loader2, Package, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { usePolling } from "@/hooks/use-polling";
 
 interface CartItem {
   id: number;
@@ -60,12 +61,15 @@ export function CartContent() {
         if (isInitialLoad.current) {
           setFetchError("Failed to load cart. Please try again.");
         }
+        // Throw to trigger backoff in usePolling (for non-initial loads)
+        throw new Error(`Failed to fetch cart: HTTP ${res.status}`);
       }
     } catch (error) {
       console.error("Failed to fetch cart:", error);
       if (isInitialLoad.current) {
         setFetchError("Failed to load cart. Please check your connection and try again.");
       }
+      throw error; // Re-throw to trigger backoff in usePolling
     } finally {
       setIsLoading(false);
     }
@@ -76,42 +80,17 @@ export function CartContent() {
     fetchCartItems(false);
   }, [fetchCartItems]);
 
-  // Polling with visibility API
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-
-    const startPolling = () => {
-      intervalId = setInterval(() => {
-        if (document.visibilityState === "visible") {
-          fetchCartItems(true);
-        }
-      }, POLLING_INTERVAL);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        // Refresh immediately when tab becomes visible
-        fetchCartItems(true);
-        // Restart polling
-        if (intervalId) clearInterval(intervalId);
-        startPolling();
-      } else {
-        // Stop polling when tab is hidden
-        if (intervalId) clearInterval(intervalId);
-      }
-    };
-
-    // Start polling
-    startPolling();
-
-    // Listen for visibility changes
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
+  // Polling callback for new items check
+  const pollForNewItems = useCallback(async () => {
+    await fetchCartItems(true);
   }, [fetchCartItems]);
+
+  // Polling with visibility API and backoff
+  usePolling(pollForNewItems, {
+    interval: POLLING_INTERVAL,
+    enabled: !isLoading, // Don't start polling until initial load is done
+    pollOnMount: false, // Initial load is handled separately
+  });
 
   async function updateQuantity(itemId: number, newQuantity: number) {
     if (newQuantity < 1) return;

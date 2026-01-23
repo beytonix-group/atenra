@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { getUserPresence, getUsersPresence, PresenceStatus } from '@/lib/presence';
+import { usePolling } from '@/hooks/use-polling';
 
 interface UseUserPresenceResult {
 	isOnline: boolean;
@@ -17,7 +18,7 @@ interface UseUsersPresenceResult {
 
 /**
  * Hook to get a single user's online status
- * Refreshes automatically every 30 seconds
+ * Refreshes automatically every 30 seconds with visibility API and backoff
  *
  * @example
  * const { isOnline, isLoading } = useUserPresence(userId);
@@ -25,7 +26,6 @@ interface UseUsersPresenceResult {
 export function useUserPresence(userId: number | null | undefined): UseUserPresenceResult {
 	const [isOnline, setIsOnline] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
-	const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
 	const fetchPresence = useCallback(async () => {
 		if (!userId) {
@@ -39,36 +39,30 @@ export function useUserPresence(userId: number | null | undefined): UseUserPrese
 			setIsOnline(status.isOnline);
 		} catch (error) {
 			console.error('Error fetching user presence:', error);
-			setIsOnline(false);
+			// Don't reset isOnline on error - keep the last known value
+			throw error; // Re-throw to trigger backoff
 		} finally {
 			setIsLoading(false);
 		}
 	}, [userId]);
 
-	useEffect(() => {
-		fetchPresence();
-
-		// Refresh every 30 seconds
-		intervalRef.current = setInterval(fetchPresence, 30000);
-
-		return () => {
-			if (intervalRef.current) {
-				clearInterval(intervalRef.current);
-			}
-		};
-	}, [fetchPresence]);
+	const { poll } = usePolling(fetchPresence, {
+		interval: 30000, // 30 seconds
+		enabled: userId != null,
+		pollOnMount: true,
+	});
 
 	return {
 		isOnline,
 		isLoading,
-		refetch: fetchPresence,
+		refetch: poll,
 	};
 }
 
 /**
  * Hook to get multiple users' online status
  * More efficient than calling useUserPresence multiple times
- * Refreshes automatically every 30 seconds
+ * Refreshes automatically every 30 seconds with visibility API and backoff
  *
  * @example
  * const { statuses, isLoading } = useUsersPresence([1, 2, 3]);
@@ -77,16 +71,18 @@ export function useUserPresence(userId: number | null | undefined): UseUserPrese
 export function useUsersPresence(userIds: number[]): UseUsersPresenceResult {
 	const [statuses, setStatuses] = useState<Map<number, PresenceStatus>>(new Map());
 	const [isLoading, setIsLoading] = useState(true);
-	const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
 	// Create a stable key from userIds to avoid infinite loops
 	const userIdsKey = userIds.slice().sort((a, b) => a - b).join(',');
 	const userIdsRef = useRef<number[]>(userIds);
 
 	// Update ref when key changes
-	if (userIdsKey !== userIdsRef.current.slice().sort((a, b) => a - b).join(',')) {
-		userIdsRef.current = userIds;
-	}
+	useEffect(() => {
+		if (userIdsKey !== userIdsRef.current.slice().sort((a, b) => a - b).join(',')) {
+			userIdsRef.current = userIds;
+			setIsLoading(true);
+		}
+	}, [userIdsKey, userIds]);
 
 	const fetchPresences = useCallback(async () => {
 		const ids = userIdsRef.current;
@@ -101,29 +97,24 @@ export function useUsersPresence(userIds: number[]): UseUsersPresenceResult {
 			setStatuses(statusMap);
 		} catch (error) {
 			console.error('Error fetching users presence:', error);
-			setStatuses(new Map());
+			// Don't clear statuses on error - keep the last known values
+			throw error; // Re-throw to trigger backoff
 		} finally {
 			setIsLoading(false);
 		}
+		// userIdsKey is needed to recreate callback when IDs change (ref is updated before this runs)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [userIdsKey]);
 
-	useEffect(() => {
-		setIsLoading(true);
-		fetchPresences();
-
-		// Refresh every 30 seconds
-		intervalRef.current = setInterval(fetchPresences, 30000);
-
-		return () => {
-			if (intervalRef.current) {
-				clearInterval(intervalRef.current);
-			}
-		};
-	}, [fetchPresences]);
+	const { poll } = usePolling(fetchPresences, {
+		interval: 30000, // 30 seconds
+		enabled: userIds.length > 0,
+		pollOnMount: true,
+	});
 
 	return {
 		statuses,
 		isLoading,
-		refetch: fetchPresences,
+		refetch: poll,
 	};
 }

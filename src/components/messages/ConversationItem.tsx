@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Conversation, formatMessageTime, getConversationDisplayName, truncateContent } from '@/lib/messages';
 import { cn } from '@/lib/utils';
 import { Users } from 'lucide-react';
@@ -13,7 +14,7 @@ interface ConversationItemProps {
 	onClick: () => void;
 }
 
-export function ConversationItem({
+export const ConversationItem = memo(function ConversationItem({
 	conversation,
 	currentUserId,
 	isSelected,
@@ -111,4 +112,4 @@ export function ConversationItem({
 			</div>
 		</button>
 	);
-}
+});

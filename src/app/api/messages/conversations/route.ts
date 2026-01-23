@@ -34,7 +34,7 @@ export async function GET(_request: NextRequest) {
 
 		const conversationIds = userParticipations.map(p => p.conversationId);
 
-		// Get conversations with participants and last message
+		// Get conversations
 		const conversationList = await db
 			.select({
 				id: conversations.id,
@@ -48,99 +48,135 @@ export async function GET(_request: NextRequest) {
 			.orderBy(desc(conversations.updatedAt))
 			.all();
 
-		// For each conversation, get participants and last message
-		const conversationsWithDetails = await Promise.all(
-			conversationList.map(async (conv) => {
-				// Get participants
-				const participants = await db
-					.select({
-						id: users.id,
-						displayName: users.displayName,
-						firstName: users.firstName,
-						lastName: users.lastName,
-						email: users.email,
-						avatarUrl: users.avatarUrl,
-					})
-					.from(conversationParticipants)
-					.innerJoin(users, eq(conversationParticipants.userId, users.id))
-					.where(eq(conversationParticipants.conversationId, conv.id))
-					.all();
+		// Batch query 1: All participants for all conversations
+		const allParticipants = await db
+			.select({
+				conversationId: conversationParticipants.conversationId,
+				id: users.id,
+				displayName: users.displayName,
+				firstName: users.firstName,
+				lastName: users.lastName,
+				email: users.email,
+				avatarUrl: users.avatarUrl,
+			})
+			.from(conversationParticipants)
+			.innerJoin(users, eq(conversationParticipants.userId, users.id))
+			.where(inArray(conversationParticipants.conversationId, conversationIds))
+			.all();
 
-				// Get last message
-				const lastMessage = await db
-					.select({
-						id: messages.id,
-						content: messages.content,
-						createdAt: messages.createdAt,
-						senderId: messages.senderId,
-						senderDisplayName: users.displayName,
-						senderFirstName: users.firstName,
-						senderLastName: users.lastName,
-					})
+		// Batch query 2: Current user's lastReadAt for all conversations
+		const userParticipantData = await db
+			.select({
+				conversationId: conversationParticipants.conversationId,
+				lastReadAt: conversationParticipants.lastReadAt,
+			})
+			.from(conversationParticipants)
+			.where(
+				and(
+					inArray(conversationParticipants.conversationId, conversationIds),
+					eq(conversationParticipants.userId, currentUser.id)
+				)
+			)
+			.all();
+
+		// Batch query 3: Last message for each conversation using a subquery
+		const lastMessages = await db
+			.select({
+				conversationId: messages.conversationId,
+				id: messages.id,
+				content: messages.content,
+				createdAt: messages.createdAt,
+				senderId: messages.senderId,
+				senderDisplayName: users.displayName,
+				senderFirstName: users.firstName,
+				senderLastName: users.lastName,
+			})
+			.from(messages)
+			.innerJoin(users, eq(messages.senderId, users.id))
+			.where(
+				and(
+					inArray(messages.conversationId, conversationIds),
+					eq(messages.isDeleted, 0),
+					sql`${messages.id} = (
+						SELECT MAX(m2.id) FROM messages m2
+						WHERE m2.conversation_id = ${messages.conversationId}
+						AND m2.is_deleted = 0
+					)`
+				)
+			)
+			.all();
+
+		// Build lastReadAt lookup for unread counting
+		const lastReadAtMap = new Map(userParticipantData.map(p => [p.conversationId, p.lastReadAt || 0]));
+
+		// Build lookup maps for O(1) access
+		const participantsByConversation = new Map<number, typeof allParticipants>();
+		for (const p of allParticipants) {
+			if (!participantsByConversation.has(p.conversationId)) {
+				participantsByConversation.set(p.conversationId, []);
+			}
+			participantsByConversation.get(p.conversationId)!.push(p);
+		}
+
+		const lastMessageByConversation = new Map(lastMessages.map(m => [m.conversationId, m]));
+
+		// For accurate unread count, we need to filter by lastReadAt per conversation
+		const unreadCountByConversation = new Map<number, number>();
+
+		// Initialize all conversations with 0 unread count
+		for (const convId of conversationIds) {
+			unreadCountByConversation.set(convId, 0);
+		}
+
+		// Get actual unread counts in batches (we need to check createdAt > lastReadAt per conversation)
+		// Since each conversation has different lastReadAt, we need individual queries
+		// But we can do them in parallel Promise.all
+		await Promise.all(
+			conversationIds.map(async (convId) => {
+				const lastReadAt = lastReadAtMap.get(convId) || 0;
+				const unreadResult = await db
+					.select({ count: sql<number>`count(*)` })
 					.from(messages)
-					.innerJoin(users, eq(messages.senderId, users.id))
 					.where(
 						and(
-							eq(messages.conversationId, conv.id),
-							eq(messages.isDeleted, 0)
-						)
-					)
-					.orderBy(desc(messages.createdAt))
-					.limit(1)
-					.get();
-
-				// Get unread count
-				const userParticipant = await db
-					.select({ lastReadAt: conversationParticipants.lastReadAt })
-					.from(conversationParticipants)
-					.where(
-						and(
-							eq(conversationParticipants.conversationId, conv.id),
-							eq(conversationParticipants.userId, currentUser.id)
+							eq(messages.conversationId, convId),
+							eq(messages.isDeleted, 0),
+							sql`${messages.createdAt} > ${lastReadAt}`,
+							sql`${messages.senderId} != ${currentUser.id}`
 						)
 					)
 					.get();
-
-				let unreadCount = 0;
-				if (userParticipant) {
-					const lastReadAt = userParticipant.lastReadAt || 0;
-					const unreadResult = await db
-						.select({ count: sql<number>`count(*)` })
-						.from(messages)
-						.where(
-							and(
-								eq(messages.conversationId, conv.id),
-								eq(messages.isDeleted, 0),
-								sql`${messages.createdAt} > ${lastReadAt}`,
-								sql`${messages.senderId} != ${currentUser.id}`
-							)
-						)
-						.get();
-					unreadCount = unreadResult?.count || 0;
-				}
-
-				return {
-					id: conv.id,
-					title: conv.title,
-					isGroup: conv.isGroup === 1,
-					updatedAt: conv.updatedAt,
-					participants: participants.map(p => ({
-						id: p.id,
-						displayName: p.displayName || `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.email,
-						avatarUrl: p.avatarUrl,
-					})),
-					lastMessage: lastMessage ? {
-						id: lastMessage.id,
-						content: lastMessage.content,
-						createdAt: lastMessage.createdAt,
-						senderName: lastMessage.senderDisplayName ||
-							`${lastMessage.senderFirstName || ''} ${lastMessage.senderLastName || ''}`.trim() ||
-							'Unknown',
-					} : null,
-					unreadCount,
-				};
+				unreadCountByConversation.set(convId, unreadResult?.count || 0);
 			})
 		);
+
+		// Aggregate results in JavaScript
+		const conversationsWithDetails = conversationList.map((conv) => {
+			const participants = participantsByConversation.get(conv.id) || [];
+			const lastMessage = lastMessageByConversation.get(conv.id);
+			const unreadCount = unreadCountByConversation.get(conv.id) || 0;
+
+			return {
+				id: conv.id,
+				title: conv.title,
+				isGroup: conv.isGroup === 1,
+				updatedAt: conv.updatedAt,
+				participants: participants.map(p => ({
+					id: p.id,
+					displayName: p.displayName || `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.email,
+					avatarUrl: p.avatarUrl,
+				})),
+				lastMessage: lastMessage ? {
+					id: lastMessage.id,
+					content: lastMessage.content,
+					createdAt: lastMessage.createdAt,
+					senderName: lastMessage.senderDisplayName ||
+						`${lastMessage.senderFirstName || ''} ${lastMessage.senderLastName || ''}`.trim() ||
+						'Unknown',
+				} : null,
+				unreadCount,
+			};
+		});
 
 		return NextResponse.json({ conversations: conversationsWithDetails });
 	} catch (error) {
