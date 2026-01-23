@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2, Clock, Send, X, FileText, Tag, DollarSign } from 'lucide-react';
+import { MASKED_COMPANY_NAME, MASKED_LOCATION } from '@/lib/masking';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,9 +36,10 @@ interface CompanyDetailContentProps {
 	canViewEmployees: boolean;
 	canManageEmployees: boolean;
 	canManageListings: boolean;
+	isRegularUser?: boolean;
 }
 
-export function CompanyDetailContent({ company, employees, listings, isAdmin, canViewEmployees, canManageEmployees, canManageListings }: CompanyDetailContentProps) {
+export function CompanyDetailContent({ company, employees, listings, isAdmin, canViewEmployees, canManageEmployees, canManageListings, isRegularUser = false }: CompanyDetailContentProps) {
 	const router = useRouter();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [isAddListingDialogOpen, setIsAddListingDialogOpen] = useState(false);
@@ -227,12 +229,12 @@ export function CompanyDetailContent({ company, employees, listings, isAdmin, ca
 						{/* Company Header Info */}
 						<div className="flex-1">
 							<div className="mb-3">
-								<h1 className="text-3xl font-bold mb-2">{company.name}</h1>
-								{(company.city || company.state) && (
+								<h1 className="text-3xl font-bold mb-2">{isRegularUser ? MASKED_COMPANY_NAME : company.name}</h1>
+								{(company.city || company.state || isRegularUser) && (
 									<div className="flex items-center gap-2 text-muted-foreground">
 										<MapPin className="h-4 w-4" />
 										<span>
-											{[company.city, company.state, company.country].filter(Boolean).join(', ')}
+											{isRegularUser ? MASKED_LOCATION : [company.city, company.state, company.country].filter(Boolean).join(', ')}
 										</span>
 									</div>
 								)}
@@ -264,75 +266,78 @@ export function CompanyDetailContent({ company, employees, listings, isAdmin, ca
 				<Separator />
 
 				<CardContent className="pt-6">
-					<div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-						{/* Left Column - Address */}
-						<div>
-							<h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">Address</h3>
-							<div className="space-y-1 text-sm">
-								{company.addressLine1 && <p>{company.addressLine1}</p>}
-								{company.addressLine2 && <p>{company.addressLine2}</p>}
-								{(company.city || company.state || company.zipCode) && (
-									<p>
-										{[company.city, company.state, company.zipCode]
-											.filter(Boolean)
-											.join(', ')}
-									</p>
-								)}
-								{company.country && <p>{company.country}</p>}
-								{!company.addressLine1 && !company.city && (
-									<p className="text-muted-foreground italic">No address information available</p>
-								)}
+					{/* Address and Contact sections - hidden for regular users */}
+					{!isRegularUser && (
+						<div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+							{/* Left Column - Address */}
+							<div>
+								<h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">Address</h3>
+								<div className="space-y-1 text-sm">
+									{company.addressLine1 && <p>{company.addressLine1}</p>}
+									{company.addressLine2 && <p>{company.addressLine2}</p>}
+									{(company.city || company.state || company.zipCode) && (
+										<p>
+											{[company.city, company.state, company.zipCode]
+												.filter(Boolean)
+												.join(', ')}
+										</p>
+									)}
+									{company.country && <p>{company.country}</p>}
+									{!company.addressLine1 && !company.city && (
+										<p className="text-muted-foreground italic">No address information available</p>
+									)}
+								</div>
+							</div>
+
+							{/* Right Column - Contact Information */}
+							<div>
+								<h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">Contact</h3>
+								<div className="space-y-3 text-sm">
+									{company.email && (
+										<div className="flex items-center gap-3">
+											<Mail className="h-4 w-4 text-muted-foreground" />
+											<a
+												href={`mailto:${company.email}`}
+												className="hover:underline text-primary"
+											>
+												{company.email}
+											</a>
+										</div>
+									)}
+
+									{company.phone && (
+										<div className="flex items-center gap-3">
+											<Phone className="h-4 w-4 text-muted-foreground" />
+											<a
+												href={`tel:${company.phone}`}
+												className="hover:underline text-primary"
+											>
+												{company.phone}
+											</a>
+										</div>
+									)}
+
+									{company.websiteUrl && (
+										<div className="flex items-center gap-3">
+											<Globe className="h-4 w-4 text-muted-foreground" />
+											<a
+												href={company.websiteUrl}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="hover:underline text-primary"
+											>
+												{company.websiteUrl.replace(/^https?:\/\//, '')}
+											</a>
+										</div>
+									)}
+
+									{(!company.email && !company.phone && !company.websiteUrl) && (
+										<p className="text-muted-foreground italic">No contact information available</p>
+									)}
+								</div>
 							</div>
 						</div>
-
-						{/* Right Column - Contact Information */}
-						<div>
-							<h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">Contact</h3>
-							<div className="space-y-3 text-sm">
-								{company.email && (
-									<div className="flex items-center gap-3">
-										<Mail className="h-4 w-4 text-muted-foreground" />
-										<a
-											href={`mailto:${company.email}`}
-											className="hover:underline text-primary"
-										>
-											{company.email}
-										</a>
-									</div>
-								)}
-
-								{company.phone && (
-									<div className="flex items-center gap-3">
-										<Phone className="h-4 w-4 text-muted-foreground" />
-										<a
-											href={`tel:${company.phone}`}
-											className="hover:underline text-primary"
-										>
-											{company.phone}
-										</a>
-									</div>
-								)}
-
-								{company.websiteUrl && (
-									<div className="flex items-center gap-3">
-										<Globe className="h-4 w-4 text-muted-foreground" />
-										<a
-											href={company.websiteUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="hover:underline text-primary"
-										>
-											{company.websiteUrl.replace(/^https?:\/\//, '')}
-										</a>
-									</div>
-								)}
-
-								{(!company.email && !company.phone && !company.websiteUrl) && (
-									<p className="text-muted-foreground italic">No contact information available</p>
-								)}
-							</div>
-						</div>
-					</div>
+					)}
 
 					{/* Admin-Only Business Information */}
 					{isAdmin && (
