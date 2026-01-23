@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Message, formatMessageTime } from '@/lib/messages';
 import { cn } from '@/lib/utils';
 import { StatusIndicator } from '@/components/ui/status-indicator';
@@ -10,7 +11,7 @@ interface MessageBubbleProps {
 	senderIsOnline?: boolean;  // For group chats - show sender's online status
 }
 
-export function MessageBubble({ message, senderIsOnline }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({ message, senderIsOnline }: MessageBubbleProps) {
 	if (message.isDeleted) {
 		return (
 			<div className={cn(
@@ -78,4 +79,4 @@ export function MessageBubble({ message, senderIsOnline }: MessageBubbleProps) {
 			/>
 		</div>
 	);
-}
+});

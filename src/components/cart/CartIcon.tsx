@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingCart, Package, Trash2, Plus, Minus, User } from "lucide-react";
@@ -11,10 +11,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { usePolling } from "@/hooks/use-polling";
 
 interface CartItem {
   id: number;
@@ -57,12 +57,13 @@ export function CartIcon() {
       const res = await fetch("/api/cart/count");
       if (!res.ok) {
         console.error(`Failed to fetch cart count: HTTP ${res.status}`);
-        return;
+        throw new Error(`HTTP ${res.status}`); // Throw to trigger backoff
       }
       const data = await res.json() as { count: number };
       setItemCount(data.count);
     } catch (error) {
       console.error("Failed to fetch cart count:", error);
+      throw error; // Re-throw to trigger backoff in usePolling
     }
   }, []);
 
@@ -156,17 +157,15 @@ export function CartIcon() {
     }
   };
 
-  useEffect(() => {
-    if (!mounted) return;
+  // Poll more frequently on /messages page (5s) since agents may add items during chat
+  const isMessagesPage = pathname?.startsWith("/messages");
+  const pollingInterval = isMessagesPage ? 5000 : 30000;
 
-    fetchCartCount();
-
-    // Poll more frequently on /messages page (5s) since agents may add items during chat
-    const isMessagesPage = pathname?.startsWith("/messages");
-    const pollingInterval = isMessagesPage ? 5000 : 30000;
-    const interval = setInterval(fetchCartCount, pollingInterval);
-    return () => clearInterval(interval);
-  }, [mounted, fetchCartCount, pathname]);
+  usePolling(fetchCartCount, {
+    interval: pollingInterval,
+    enabled: mounted,
+    pollOnMount: true,
+  });
 
   // Fetch full cart when popover opens
   useEffect(() => {
@@ -174,6 +173,16 @@ export function CartIcon() {
       fetchCartItems();
     }
   }, [isOpen, fetchCartItems]);
+
+  // Refresh items when count changes while popover is open (e.g., agent added item)
+  const prevItemCountRef = useRef(itemCount);
+  useEffect(() => {
+    if (isOpen && itemCount !== prevItemCountRef.current) {
+      // Count changed while popover is open - refresh items
+      fetchCartItems();
+    }
+    prevItemCountRef.current = itemCount;
+  }, [isOpen, itemCount, fetchCartItems]);
 
   // Calculate total
   const total = items.reduce((sum, item) => {
@@ -253,7 +262,7 @@ export function CartIcon() {
             </Link>
           </div>
         ) : (
-          <ScrollArea className="max-h-[350px]">
+          <div className="max-h-[350px] overflow-y-auto">
             <div className="divide-y">
               {items.map((item) => {
                 const isUpdating = updatingItemId === item.id;
@@ -344,7 +353,7 @@ export function CartIcon() {
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
         )}
 
         {/* Footer with subtotal */}
