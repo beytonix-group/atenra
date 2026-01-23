@@ -5,14 +5,15 @@ A comprehensive SaaS platform for professional service matching, subscription ma
 ## Tech Stack
 
 - **Next.js 15.5** with App Router
-- **OpenNext for Cloudflare** (`@opennextjs/cloudflare`) for deployment to Cloudflare Workers
+- **OpenNext for Cloudflare** (`@opennextjs/cloudflare@1.15.1`) for deployment to Cloudflare Workers
+- **Wrangler 4.60.0** for Cloudflare development and deployment
 - **Cloudflare Workers** for hosting and global edge deployment
 - **Cloudflare D1** serverless SQLite database (local + production)
 - **Drizzle ORM 0.44.5** for type-safe database operations
 - **NextAuth v5** for authentication (Google OAuth)
 - **Shadcn UI + Radix UI + Tailwind CSS** for modern component library
 - **TypeScript 5** for type safety
-- **Bun 1.1.0+** for package management and runtime
+- **Bun 1.2.21+** for package management and runtime
 - **React 19** for UI rendering
 
 ## Features
