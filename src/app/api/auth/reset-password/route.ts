@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { users, verificationTokens } from "@/server/db/schema";
 import { eq, and, gt } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { hashPasswordEdge } from "@/lib/password-utils";
 import { z } from "zod";
 
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		const hashedPassword = await bcrypt.hash(password, 12);
+		const hashedPassword = await hashPasswordEdge(password);
 
 		await db
 			.update(users)
