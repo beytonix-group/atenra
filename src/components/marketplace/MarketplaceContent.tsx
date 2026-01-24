@@ -50,28 +50,32 @@ export function MarketplaceContent({
     limit: storeLimit,
     search: storeSearch,
     hasUserSelection,
+    _hasHydrated,
     setCategory: setStoreCategory,
     setSort: setStoreSort,
     setLimit: setStoreLimit,
     setSearch: setStoreSearch,
   } = useMarketplaceStore();
 
-  // Get current filter values: store (if user has made selections) > URL > defaults
+  // Only use store values after hydration to avoid SSR mismatch
+  const useStoreValues = _hasHydrated && hasUserSelection;
+
+  // Get current filter values: store (if hydrated and user has made selections) > URL > defaults
   const currentPage = Number(searchParams.get('page') || 1);
 
   // For category: store > URL > account preference
   const categoryParam = searchParams.get('category');
-  const currentCategory = hasUserSelection && storeCategory !== null
+  const currentCategory = useStoreValues && storeCategory !== null
     ? storeCategory
     : (categoryParam !== null ? categoryParam : (defaultCategoryId ? String(defaultCategoryId) : ''));
 
   // For sort/limit/search: store > defaults
-  const currentSort = hasUserSelection ? storeSort : (searchParams.get('sort') || 'createdAt');
-  const currentLimit = hasUserSelection ? storeLimit : Number(searchParams.get('limit') || 25);
-  const currentSearch = hasUserSelection ? storeSearch : (searchParams.get('search') || '');
+  const currentSort = useStoreValues ? storeSort : (searchParams.get('sort') || 'createdAt');
+  const currentLimit = useStoreValues ? storeLimit : Number(searchParams.get('limit') || 25);
+  const currentSearch = useStoreValues ? storeSearch : (searchParams.get('search') || '');
 
-  // Local search input state with debouncing - initialize from store if user has selection
-  const [searchInput, setSearchInput] = useState(hasUserSelection ? storeSearch : currentSearch);
+  // Local search input state with debouncing - initialize from store if hydrated and user has selection
+  const [searchInput, setSearchInput] = useState(useStoreValues ? storeSearch : currentSearch);
   const [debouncedSearch] = useDebounce(searchInput, 300);
 
   // Load data when URL params change
