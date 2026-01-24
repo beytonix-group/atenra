@@ -17,6 +17,9 @@ interface UsePollingOptions {
 	pollOnVisible?: boolean;
 }
 
+/** Poll function that optionally accepts an AbortSignal */
+type PollFunction = (options?: { signal?: AbortSignal }) => Promise<void>;
+
 interface UsePollingResult {
 	/** Manually trigger a poll (resets error count) */
 	poll: () => Promise<void>;
@@ -46,7 +49,7 @@ interface UsePollingResult {
  * ```
  */
 export function usePolling(
-	pollFn: () => Promise<void>,
+	pollFn: PollFunction,
 	options: UsePollingOptions = {}
 ): UsePollingResult {
 	const {
@@ -62,6 +65,7 @@ export function usePolling(
 	const errorCountRef = useRef(0);
 	const isPollingRef = useRef(false);
 	const pollFnRef = useRef(pollFn);
+	const abortControllerRef = useRef<AbortController | null>(null);
 
 	// Keep pollFn ref up to date without causing re-renders
 	pollFnRef.current = pollFn;
@@ -74,13 +78,24 @@ export function usePolling(
 	}, []);
 
 	const poll = useCallback(async () => {
+		// Don't poll if offline
+		if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
 		if (isPollingRef.current) return;
+
+		// Cancel any in-flight request
+		abortControllerRef.current?.abort();
+		abortControllerRef.current = new AbortController();
 
 		isPollingRef.current = true;
 		try {
-			await pollFnRef.current();
+			await pollFnRef.current({ signal: abortControllerRef.current.signal });
 			errorCountRef.current = 0;
 		} catch (error) {
+			// Ignore abort errors - we caused them intentionally
+			if (error instanceof Error && error.name === 'AbortError') {
+				return;
+			}
 			console.error('Polling error:', error);
 			errorCountRef.current += 1;
 		} finally {
@@ -110,40 +125,65 @@ export function usePolling(
 				return;
 			}
 
-			// Exponential backoff on errors
+			// Exponential backoff on errors with jitter
 			const backoffMultiplier = Math.min(Math.pow(2, errorCountRef.current), maxBackoff);
-			const actualInterval = errorCountRef.current > 0
+			const baseInterval = errorCountRef.current > 0
 				? Math.min(interval * backoffMultiplier, 60000) // Max 1 minute
 				: interval;
+			// Add ±10% jitter to prevent thundering herd
+			const jitter = baseInterval * 0.1 * (Math.random() * 2 - 1);
+			const actualInterval = Math.max(baseInterval + jitter, 1000); // Min 1 second
 
 			timeoutRef.current = setTimeout(async () => {
-				// Only poll if tab is visible
-				if (document.visibilityState === 'visible') {
+				// Only poll if tab is visible and online
+				if (document.visibilityState === 'visible' && (typeof navigator === 'undefined' || navigator.onLine)) {
 					await poll();
 				}
 				schedulePoll();
 			}, actualInterval);
 		};
 
-		// Poll immediately on mount if enabled
-		if (pollOnMount) {
-			poll();
-		}
+		// Handle online/offline
+		const handleOnline = () => {
+			errorCountRef.current = 0; // Reset errors on reconnect
+			clearScheduledPoll(); // Clear existing schedule first to prevent duplicate chains
+			poll(); // Poll immediately
+			schedulePoll(); // Resume scheduling
+		};
 
-		schedulePoll();
+		const handleOffline = () => {
+			clearScheduledPoll(); // Stop polling while offline
+			abortControllerRef.current?.abort(); // Cancel any in-flight request
+		};
 
 		// Handle visibility change
 		const handleVisibilityChange = () => {
 			if (document.visibilityState === 'visible' && pollOnVisible) {
-				// Poll immediately when tab becomes visible
-				poll();
+				// Poll immediately when tab becomes visible (if online)
+				if (typeof navigator === 'undefined' || navigator.onLine) {
+					poll();
+				}
 			}
 		};
 
+		// Check if already online before starting
+		const isOnline = typeof navigator === 'undefined' || navigator.onLine;
+		if (isOnline) {
+			if (pollOnMount) {
+				poll();
+			}
+			schedulePoll();
+		}
+
+		window.addEventListener('online', handleOnline);
+		window.addEventListener('offline', handleOffline);
 		document.addEventListener('visibilitychange', handleVisibilityChange);
 
 		return () => {
 			clearScheduledPoll();
+			abortControllerRef.current?.abort();
+			window.removeEventListener('online', handleOnline);
+			window.removeEventListener('offline', handleOffline);
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
 		};
 	}, [enabled, interval, maxErrors, maxBackoff, pollOnMount, pollOnVisible, poll, clearScheduledPoll]);

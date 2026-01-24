@@ -1,36 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { fetchUnreadCount } from "@/lib/messages";
-import { usePolling } from "@/hooks/use-polling";
+import { useUnreadMessageCount as useUnreadMessageCountQuery, useInvalidateMessages } from "@/hooks/use-messages-query";
 
 interface MessagesBadgeProps {
   className?: string;
-}
-
-// Shared hook for unread message count with polling
-function useUnreadMessageCountInternal(options: { enabled: boolean; interval: number }) {
-  const [count, setCount] = useState(0);
-
-  const fetchCount = useCallback(async () => {
-    try {
-      const unreadCount = await fetchUnreadCount();
-      setCount(unreadCount);
-    } catch (error) {
-      console.error("Failed to fetch unread message count:", error);
-      // Don't reset count to 0 on error - keep the last known value
-      throw error; // Re-throw to trigger backoff in usePolling
-    }
-  }, []);
-
-  const { poll } = usePolling(fetchCount, {
-    interval: options.interval,
-    enabled: options.enabled,
-    pollOnMount: true,
-  });
-
-  return { count, refreshCount: poll };
 }
 
 export function MessagesBadge({ className }: MessagesBadgeProps) {
@@ -41,7 +16,7 @@ export function MessagesBadge({ className }: MessagesBadgeProps) {
   const isMessagesPage = pathname?.startsWith("/messages");
   const interval = isMessagesPage ? 5000 : 30000;
 
-  const { count } = useUnreadMessageCountInternal({
+  const { data: count = 0 } = useUnreadMessageCountQuery({
     enabled: mounted,
     interval,
   });
@@ -67,11 +42,12 @@ export function MessagesBadge({ className }: MessagesBadgeProps) {
 export function useUnreadMessageCount() {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const { invalidateUnreadCount } = useInvalidateMessages();
 
   const isMessagesPage = pathname?.startsWith("/messages");
   const interval = isMessagesPage ? 5000 : 30000;
 
-  const { count, refreshCount } = useUnreadMessageCountInternal({
+  const { data: count = 0 } = useUnreadMessageCountQuery({
     enabled: mounted,
     interval,
   });
@@ -80,5 +56,5 @@ export function useUnreadMessageCount() {
     setMounted(true);
   }, []);
 
-  return { count: mounted ? count : 0, refreshCount };
+  return { count: mounted ? count : 0, refreshCount: invalidateUnreadCount };
 }
