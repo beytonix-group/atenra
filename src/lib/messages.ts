@@ -157,7 +157,10 @@ export async function addParticipants(
 }
 
 // Poll for updates
-export async function pollForUpdates(since: number): Promise<{
+export async function pollForUpdates(
+	since: number,
+	signal?: AbortSignal
+): Promise<{
 	conversations: Array<{
 		id: number;
 		newMessageCount: number;
@@ -165,7 +168,7 @@ export async function pollForUpdates(since: number): Promise<{
 	}>;
 	serverTime: number;
 }> {
-	const response = await fetch(`/api/messages/poll?since=${since}`);
+	const response = await fetch(`/api/messages/poll?since=${since}`, { signal });
 	if (!response.ok) {
 		throw new Error('Failed to poll for updates');
 	}
@@ -246,11 +249,11 @@ export function truncateContent(content: string, maxLength: number = 50): string
 }
 
 // Fetch count of conversations with unread messages
-export async function fetchUnreadCount(): Promise<number> {
-	const response = await fetch('/api/messages/unread-count');
+export async function fetchUnreadCount(signal?: AbortSignal): Promise<number> {
+	const response = await fetch('/api/messages/unread-count', { signal });
 	if (!response.ok) {
 		throw new Error('Failed to fetch unread count');
 	}
-	const data = await response.json() as { count: number };
+	const data = (await response.json()) as { count: number };
 	return data.count;
 }

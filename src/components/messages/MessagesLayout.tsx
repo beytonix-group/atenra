@@ -6,8 +6,9 @@ import {
 	Conversation,
 	fetchConversations,
 	fetchConversation,
+	LastMessage,
 } from '@/lib/messages';
-import { useMessagePolling } from '@/hooks/use-message-polling';
+import { useMessagesPoll } from '@/hooks/use-messages-query';
 import { ConversationList } from './ConversationList';
 import { ConversationThread } from './ConversationThread';
 import { NewConversationDialog } from './NewConversationDialog';
@@ -76,11 +77,9 @@ export function MessagesLayout({ currentUserId }: MessagesLayoutProps) {
 		init();
 	}, [conversationIdParam, loadConversations, router]);
 
-	// Polling for updates
-	useMessagePolling({
-		interval: 5000,
-		enabled: true,
-		onNewMessages: useCallback((updates: Array<{ id: number; newMessageCount: number; lastMessage: { id: number; content: string; createdAt: number; senderName: string } | null }>) => {
+	// Polling for updates using React Query for deduplication
+	const handleNewMessages = useCallback(
+		(updates: Array<{ id: number; newMessageCount: number; lastMessage: LastMessage | null }>) => {
 			// Update conversation list with new message counts
 			setConversations(prev => {
 				const updated = [...prev];
@@ -98,7 +97,14 @@ export function MessagesLayout({ currentUserId }: MessagesLayoutProps) {
 				// Re-sort by updatedAt
 				return updated.sort((a, b) => b.updatedAt - a.updatedAt);
 			});
-		}, []),
+		},
+		[]
+	);
+
+	useMessagesPoll({
+		interval: 5000,
+		enabled: true,
+		onNewMessages: handleNewMessages,
 	});
 
 	const handleSelectConversation = useCallback((id: number) => {
