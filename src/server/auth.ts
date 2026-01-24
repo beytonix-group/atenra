@@ -106,37 +106,24 @@ export const {
 			return session;
 		},
 		async jwt({ token, user }) {
-			const now = Math.floor(Date.now() / 1000);
-			// Refresh roles from DB if older than 1 hour (3600 seconds)
-			const ROLES_REFRESH_INTERVAL = 3600;
-
 			// On sign in, store user info and roles in token
+			// Roles are only fetched once at login - no refresh until user logs out and back in
 			if (user) {
 				token.id = user.id;
 				token.email = user.email;
 				// Single DB call at login - fetch all roles and cache in token
 				const roles = await getUserRolesFromDb(user.id as string);
 				token.roles = roles;
-				token.rolesRefreshedAt = now;
 				console.log('[JWT] Sign-in: fetched roles for', user.email, '->', roles);
 			}
 
-			// Refresh roles if:
-			// 1. Token has no roles and no old role format (migration case)
-			// 2. No rolesRefreshedAt timestamp (old token format)
-			// 3. Roles were last refreshed more than ROLES_REFRESH_INTERVAL ago
-			const rolesRefreshedAt = token.rolesRefreshedAt;
-			const needsRefresh = !token.roles && !(token as { role?: string }).role;
-			const noTimestamp = rolesRefreshedAt === undefined;
-			const isStale = typeof rolesRefreshedAt === 'number' && (now - rolesRefreshedAt > ROLES_REFRESH_INTERVAL);
-
-			if (token.id && (needsRefresh || noTimestamp || isStale)) {
-				const reason = needsRefresh ? 'migration' : (noTimestamp ? 'no-timestamp' : 'stale');
-				console.log('[JWT] Refreshing roles for token.id', token.id, `(${reason})`);
+			// One-time migration for old tokens without roles
+			// Only runs if token has no roles at all (not on every request)
+			if (token.id && !token.roles && !(token as { role?: string }).role) {
+				console.log('[JWT] Migration: fetching roles for token without roles');
 				const roles = await getUserRolesFromDb(token.id as string);
 				token.roles = roles;
-				token.rolesRefreshedAt = now;
-				console.log('[JWT] Refreshed roles ->', roles);
+				console.log('[JWT] Migration: fetched roles ->', roles);
 			}
 
 			return token;

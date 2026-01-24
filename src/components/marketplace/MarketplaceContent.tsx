@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchCompanies, fetchServiceCategories, type CompanyWithCategories } from '@/app/marketplace/actions';
 import { useDebounce } from 'use-debounce';
-import { MASKED_COMPANY_NAME, MASKED_LOCATION } from '@/lib/masking';
+import { MASKED_COMPANY_NAME } from '@/lib/masking';
+import { useMarketplaceStore } from '@/stores/marketplace-store';
 
 interface MarketplaceContentProps {
   initialCompanies?: CompanyWithCategories[];
@@ -42,17 +43,39 @@ export function MarketplaceContent({
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [showingPreferences, setShowingPreferences] = useState(isUsingPreferences);
 
-  // Get current filter values from URL
-  // Only use defaultCategoryId if category param is not in URL at all
-  const currentPage = Number(searchParams.get('page') || 1);
-  const currentLimit = Number(searchParams.get('limit') || 25);
-  const categoryParam = searchParams.get('category');
-  const currentCategory = categoryParam !== null ? categoryParam : (defaultCategoryId ? String(defaultCategoryId) : '');
-  const currentSort = searchParams.get('sort') || 'createdAt';
-  const currentSearch = searchParams.get('search') || '';
+  // Get Zustand store values and actions
+  const {
+    category: storeCategory,
+    sort: storeSort,
+    limit: storeLimit,
+    search: storeSearch,
+    hasUserSelection,
+    _hasHydrated,
+    setCategory: setStoreCategory,
+    setSort: setStoreSort,
+    setLimit: setStoreLimit,
+    setSearch: setStoreSearch,
+  } = useMarketplaceStore();
 
-  // Local search input state with debouncing
-  const [searchInput, setSearchInput] = useState(currentSearch);
+  // Only use store values after hydration to avoid SSR mismatch
+  const useStoreValues = _hasHydrated && hasUserSelection;
+
+  // Get current filter values: store (if hydrated and user has made selections) > URL > defaults
+  const currentPage = Number(searchParams.get('page') || 1);
+
+  // For category: store > URL > account preference
+  const categoryParam = searchParams.get('category');
+  const currentCategory = useStoreValues && storeCategory !== null
+    ? storeCategory
+    : (categoryParam !== null ? categoryParam : (defaultCategoryId ? String(defaultCategoryId) : ''));
+
+  // For sort/limit/search: store > defaults
+  const currentSort = useStoreValues ? storeSort : (searchParams.get('sort') || 'createdAt');
+  const currentLimit = useStoreValues ? storeLimit : Number(searchParams.get('limit') || 25);
+  const currentSearch = useStoreValues ? storeSearch : (searchParams.get('search') || '');
+
+  // Local search input state with debouncing - initialize from store if hydrated and user has selection
+  const [searchInput, setSearchInput] = useState(useStoreValues ? storeSearch : currentSearch);
   const [debouncedSearch] = useDebounce(searchInput, 300);
 
   // Load data when URL params change
@@ -61,10 +84,11 @@ export function MarketplaceContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, currentLimit, currentCategory, currentSort, currentSearch]);
 
-  // Update URL when debounced search changes
+  // Update store and URL when debounced search changes
   useEffect(() => {
     if (debouncedSearch !== currentSearch) {
       setShowingPreferences(false); // Hide preferences when searching
+      setStoreSearch(debouncedSearch);
       updateUrlParams({ search: debouncedSearch || null, page: '1' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,13 +114,18 @@ export function MarketplaceContent({
   const loadCompanies = async () => {
     startTransition(async () => {
       try {
+        // Handle "oldest" sort option
+        const sortBy = currentSort === 'oldest' ? 'createdAt' : currentSort as 'name' | 'createdAt';
+        const sortOrder = currentSort === 'oldest' ? 'asc' : 'desc';
+
         let result = await fetchCompanies({
           page: currentPage,
           limit: currentLimit,
           categoryId: currentCategory ? Number(currentCategory) : undefined,
-          sortBy: currentSort as 'name' | 'createdAt',
-          sortOrder: 'desc',
-          search: currentSearch
+          sortBy,
+          sortOrder,
+          search: currentSearch,
+          isRegularUser
         });
 
         // If using preferences and no results, fall back to showing all companies
@@ -105,9 +134,10 @@ export function MarketplaceContent({
             page: currentPage,
             limit: currentLimit,
             categoryId: undefined, // No category filter
-            sortBy: currentSort as 'name' | 'createdAt',
-            sortOrder: 'desc',
-            search: currentSearch
+            sortBy,
+            sortOrder,
+            search: currentSearch,
+            isRegularUser
           });
           setShowingPreferences(false);
         }
@@ -136,14 +166,18 @@ export function MarketplaceContent({
 
   const handleCategoryChange = (value: string) => {
     setShowingPreferences(false); // User manually changed category, not using preferences
-    updateUrlParams({ category: value === 'all' ? '' : value, page: '1' });
+    const categoryValue = value === 'all' ? '' : value;
+    setStoreCategory(categoryValue);
+    updateUrlParams({ category: categoryValue, page: '1' });
   };
 
   const handleLimitChange = (value: string) => {
+    setStoreLimit(Number(value));
     updateUrlParams({ limit: value, page: '1' });
   };
 
   const handleSortChange = (value: string) => {
+    setStoreSort(value);
     updateUrlParams({ sort: value, page: '1' });
   };
 
@@ -210,7 +244,8 @@ export function MarketplaceContent({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="createdAt">Newest</SelectItem>
-                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  {!isRegularUser && <SelectItem value="name">Name</SelectItem>}
                 </SelectContent>
               </Select>
 
@@ -312,12 +347,12 @@ export function MarketplaceContent({
                       {isRegularUser ? MASKED_COMPANY_NAME : company.name}
                     </h3>
 
-                    {/* Location */}
-                    {(company.city || company.state || isRegularUser) && (
+                    {/* Location - city/state visible to all users */}
+                    {(company.city || company.state) && (
                       <div className="flex items-center gap-1 text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-2">
                         <MapPin className="h-3 w-3 flex-shrink-0" />
                         <span className="line-clamp-1">
-                          {isRegularUser ? MASKED_LOCATION : [company.city, company.state].filter(Boolean).join(', ')}
+                          {[company.city, company.state].filter(Boolean).join(', ')}
                         </span>
                       </div>
                     )}

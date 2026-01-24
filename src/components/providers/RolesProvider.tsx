@@ -24,18 +24,28 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<string[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchRoles = async () => {
+  // Extract stable values for dependency tracking
+  const userId = session?.user?.id;
+  const sessionUser = session?.user as { roles?: string[] | null } | undefined;
+  // Check if 'roles' key exists in session (even if null) vs missing entirely
+  const hasRolesKey = sessionUser ? 'roles' in sessionUser : false;
+  const sessionRoles = sessionUser?.roles;
+  // Serialize roles array for stable dependency comparison (arrays are compared by reference)
+  const sessionRolesKey = sessionRoles ? JSON.stringify(sessionRoles) : null;
+
+  // Fallback to API only when JWT session doesn't have roles key (old token migration)
+  const fetchRolesFromApi = async () => {
     try {
       const response = await fetch('/api/auth/roles');
       if (response.ok) {
         const data = await response.json() as { roles: string[] | null };
         setRoles(data.roles);
-        console.log('[RolesProvider] Fetched roles:', data.roles);
+        console.log('[RolesProvider] Fetched roles from API (fallback):', data.roles);
       } else {
         setRoles(null);
       }
     } catch (error) {
-      console.error('[RolesProvider] Failed to fetch roles:', error);
+      console.error('[RolesProvider] Failed to fetch roles from API:', error);
       setRoles(null);
     } finally {
       setIsLoading(false);
@@ -43,20 +53,29 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      fetchRoles();
+    if (status === "authenticated" && userId) {
+      if (hasRolesKey) {
+        // Roles key exists in JWT session - use it (even if null for users with no roles)
+        setRoles(sessionRoles ?? null);
+        setIsLoading(false);
+        console.log('[RolesProvider] Using roles from JWT session:', sessionRoles);
+      } else {
+        // Roles key missing - old token format, fetch from API (one-time migration)
+        console.log('[RolesProvider] No roles key in JWT session, fetching from API (migration)');
+        fetchRolesFromApi();
+      }
     } else if (status === "unauthenticated") {
       setRoles(null);
       setIsLoading(false);
     }
-  }, [status, session?.user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userId, hasRolesKey, sessionRolesKey]);
 
-  // Reset roles when user logs out
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      setRoles(null);
-    }
-  }, [status]);
+  // Refetch forces an API call (for manual refresh if needed)
+  const refetchRoles = async () => {
+    setIsLoading(true);
+    await fetchRolesFromApi();
+  };
 
   const hasRole = (role: string): boolean => {
     return roles?.includes(role) ?? false;
@@ -72,7 +91,7 @@ export function RolesProvider({ children }: { children: ReactNode }) {
       isLoading,
       hasRole,
       hasAnyRole,
-      refetchRoles: fetchRoles
+      refetchRoles
     }}>
       {children}
     </RolesContext.Provider>
