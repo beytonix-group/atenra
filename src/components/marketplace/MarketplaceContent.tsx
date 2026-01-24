@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { fetchCompanies, fetchServiceCategories, type CompanyWithCategories } from '@/app/marketplace/actions';
 import { useDebounce } from 'use-debounce';
 import { MASKED_COMPANY_NAME, MASKED_LOCATION } from '@/lib/masking';
+import { useMarketplaceStore } from '@/stores/marketplace-store';
 
 interface MarketplaceContentProps {
   initialCompanies?: CompanyWithCategories[];
@@ -42,17 +43,35 @@ export function MarketplaceContent({
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [showingPreferences, setShowingPreferences] = useState(isUsingPreferences);
 
-  // Get current filter values from URL
-  // Only use defaultCategoryId if category param is not in URL at all
-  const currentPage = Number(searchParams.get('page') || 1);
-  const currentLimit = Number(searchParams.get('limit') || 25);
-  const categoryParam = searchParams.get('category');
-  const currentCategory = categoryParam !== null ? categoryParam : (defaultCategoryId ? String(defaultCategoryId) : '');
-  const currentSort = searchParams.get('sort') || 'createdAt';
-  const currentSearch = searchParams.get('search') || '';
+  // Get Zustand store values and actions
+  const {
+    category: storeCategory,
+    sort: storeSort,
+    limit: storeLimit,
+    search: storeSearch,
+    hasUserSelection,
+    setCategory: setStoreCategory,
+    setSort: setStoreSort,
+    setLimit: setStoreLimit,
+    setSearch: setStoreSearch,
+  } = useMarketplaceStore();
 
-  // Local search input state with debouncing
-  const [searchInput, setSearchInput] = useState(currentSearch);
+  // Get current filter values: store (if user has made selections) > URL > defaults
+  const currentPage = Number(searchParams.get('page') || 1);
+
+  // For category: store > URL > account preference
+  const categoryParam = searchParams.get('category');
+  const currentCategory = hasUserSelection && storeCategory !== null
+    ? storeCategory
+    : (categoryParam !== null ? categoryParam : (defaultCategoryId ? String(defaultCategoryId) : ''));
+
+  // For sort/limit/search: store > defaults
+  const currentSort = hasUserSelection ? storeSort : (searchParams.get('sort') || 'createdAt');
+  const currentLimit = hasUserSelection ? storeLimit : Number(searchParams.get('limit') || 25);
+  const currentSearch = hasUserSelection ? storeSearch : (searchParams.get('search') || '');
+
+  // Local search input state with debouncing - initialize from store if user has selection
+  const [searchInput, setSearchInput] = useState(hasUserSelection ? storeSearch : currentSearch);
   const [debouncedSearch] = useDebounce(searchInput, 300);
 
   // Load data when URL params change
@@ -61,10 +80,11 @@ export function MarketplaceContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, currentLimit, currentCategory, currentSort, currentSearch]);
 
-  // Update URL when debounced search changes
+  // Update store and URL when debounced search changes
   useEffect(() => {
     if (debouncedSearch !== currentSearch) {
       setShowingPreferences(false); // Hide preferences when searching
+      setStoreSearch(debouncedSearch);
       updateUrlParams({ search: debouncedSearch || null, page: '1' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -136,14 +156,18 @@ export function MarketplaceContent({
 
   const handleCategoryChange = (value: string) => {
     setShowingPreferences(false); // User manually changed category, not using preferences
-    updateUrlParams({ category: value === 'all' ? '' : value, page: '1' });
+    const categoryValue = value === 'all' ? '' : value;
+    setStoreCategory(categoryValue);
+    updateUrlParams({ category: categoryValue, page: '1' });
   };
 
   const handleLimitChange = (value: string) => {
+    setStoreLimit(Number(value));
     updateUrlParams({ limit: value, page: '1' });
   };
 
   const handleSortChange = (value: string) => {
+    setStoreSort(value);
     updateUrlParams({ sort: value, page: '1' });
   };
 

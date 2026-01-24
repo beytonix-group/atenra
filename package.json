@@ -87,7 +87,8 @@
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.6",
     "yaml": "^2.8.2",
-    "zod": "^4.1.13"
+    "zod": "^4.1.13",
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240903.0",
