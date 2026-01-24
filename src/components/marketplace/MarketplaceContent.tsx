@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchCompanies, fetchServiceCategories, type CompanyWithCategories } from '@/app/marketplace/actions';
 import { useDebounce } from 'use-debounce';
-import { MASKED_COMPANY_NAME, MASKED_LOCATION } from '@/lib/masking';
+import { MASKED_COMPANY_NAME } from '@/lib/masking';
 import { useMarketplaceStore } from '@/stores/marketplace-store';
 
 interface MarketplaceContentProps {
@@ -110,13 +110,18 @@ export function MarketplaceContent({
   const loadCompanies = async () => {
     startTransition(async () => {
       try {
+        // Handle "oldest" sort option
+        const sortBy = currentSort === 'oldest' ? 'createdAt' : currentSort as 'name' | 'createdAt';
+        const sortOrder = currentSort === 'oldest' ? 'asc' : 'desc';
+
         let result = await fetchCompanies({
           page: currentPage,
           limit: currentLimit,
           categoryId: currentCategory ? Number(currentCategory) : undefined,
-          sortBy: currentSort as 'name' | 'createdAt',
-          sortOrder: 'desc',
-          search: currentSearch
+          sortBy,
+          sortOrder,
+          search: currentSearch,
+          isRegularUser
         });
 
         // If using preferences and no results, fall back to showing all companies
@@ -125,9 +130,10 @@ export function MarketplaceContent({
             page: currentPage,
             limit: currentLimit,
             categoryId: undefined, // No category filter
-            sortBy: currentSort as 'name' | 'createdAt',
-            sortOrder: 'desc',
-            search: currentSearch
+            sortBy,
+            sortOrder,
+            search: currentSearch,
+            isRegularUser
           });
           setShowingPreferences(false);
         }
@@ -234,7 +240,8 @@ export function MarketplaceContent({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="createdAt">Newest</SelectItem>
-                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  {!isRegularUser && <SelectItem value="name">Name</SelectItem>}
                 </SelectContent>
               </Select>
 
@@ -336,12 +343,12 @@ export function MarketplaceContent({
                       {isRegularUser ? MASKED_COMPANY_NAME : company.name}
                     </h3>
 
-                    {/* Location */}
-                    {(company.city || company.state || isRegularUser) && (
+                    {/* Location - city/state visible to all users */}
+                    {(company.city || company.state) && (
                       <div className="flex items-center gap-1 text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-2">
                         <MapPin className="h-3 w-3 flex-shrink-0" />
                         <span className="line-clamp-1">
-                          {isRegularUser ? MASKED_LOCATION : [company.city, company.state].filter(Boolean).join(', ')}
+                          {[company.city, company.state].filter(Boolean).join(', ')}
                         </span>
                       </div>
                     )}

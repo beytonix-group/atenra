@@ -39,6 +39,7 @@ interface FetchCompaniesParams {
   sortBy?: 'name' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
   search?: string;
+  isRegularUser?: boolean;
 }
 
 export async function fetchCompanies({
@@ -47,7 +48,8 @@ export async function fetchCompanies({
   categoryId,
   sortBy = 'createdAt',
   sortOrder = 'desc',
-  search
+  search,
+  isRegularUser = false
 }: FetchCompaniesParams = {}) {
   const offset = (page - 1) * limit;
 
@@ -117,11 +119,15 @@ export async function fetchCompanies({
         const company = records[0].company;
 
         // Check if company fields match
-        const companyMatches =
-          company.name?.toLowerCase().includes(searchTerm) ||
-          company.description?.toLowerCase().includes(searchTerm) ||
-          company.city?.toLowerCase().includes(searchTerm) ||
-          company.state?.toLowerCase().includes(searchTerm);
+        // For regular users, don't search against name (it's masked for them)
+        const companyMatches = isRegularUser
+          ? (company.description?.toLowerCase().includes(searchTerm) ||
+             company.city?.toLowerCase().includes(searchTerm) ||
+             company.state?.toLowerCase().includes(searchTerm))
+          : (company.name?.toLowerCase().includes(searchTerm) ||
+             company.description?.toLowerCase().includes(searchTerm) ||
+             company.city?.toLowerCase().includes(searchTerm) ||
+             company.state?.toLowerCase().includes(searchTerm));
 
         // Check if any category matches
         const categoryMatches = records.some(r =>

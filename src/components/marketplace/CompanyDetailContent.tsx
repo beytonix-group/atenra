@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2, Clock, Send, X, FileText, Tag, DollarSign } from 'lucide-react';
-import { MASKED_COMPANY_NAME, MASKED_LOCATION } from '@/lib/masking';
+import { ArrowLeft, Building2, MapPin, Globe, Phone, Mail, Calendar, Users, Trash2, Clock, Send, X, FileText, Tag } from 'lucide-react';
+import { MASKED_COMPANY_NAME } from '@/lib/masking';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -230,11 +230,11 @@ export function CompanyDetailContent({ company, employees, listings, isAdmin, ca
 						<div className="flex-1">
 							<div className="mb-3">
 								<h1 className="text-3xl font-bold mb-2">{isRegularUser ? MASKED_COMPANY_NAME : company.name}</h1>
-								{(company.city || company.state || isRegularUser) && (
+								{(company.city || company.state || company.zipCode) && (
 									<div className="flex items-center gap-2 text-muted-foreground">
 										<MapPin className="h-4 w-4" />
 										<span>
-											{isRegularUser ? MASKED_LOCATION : [company.city, company.state, company.country].filter(Boolean).join(', ')}
+											{[company.city, company.state, company.zipCode, company.country].filter(Boolean).join(', ')}
 										</span>
 									</div>
 								)}
@@ -259,83 +259,79 @@ export function CompanyDetailContent({ company, employees, listings, isAdmin, ca
 									))}
 								</div>
 							)}
+
+							{/* Member Since */}
+							<div className="flex items-center gap-2 text-sm text-muted-foreground mt-3">
+								<Calendar className="h-4 w-4" />
+								<span>Member since {formatDate(company.createdAt)}</span>
+							</div>
 						</div>
 					</div>
 				</CardHeader>
 
 				<Separator />
 
-				<CardContent className="pt-6">
-					{/* Address and Contact sections - hidden for regular users */}
-					{!isRegularUser && (
-						<div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-							{/* Left Column - Address */}
-							<div>
-								<h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">Address</h3>
-								<div className="space-y-1 text-sm">
-									{company.addressLine1 && <p>{company.addressLine1}</p>}
-									{company.addressLine2 && <p>{company.addressLine2}</p>}
-									{(company.city || company.state || company.zipCode) && (
-										<p>
-											{[company.city, company.state, company.zipCode]
-												.filter(Boolean)
-												.join(', ')}
-										</p>
-									)}
-									{company.country && <p>{company.country}</p>}
-									{!company.addressLine1 && !company.city && (
-										<p className="text-muted-foreground italic">No address information available</p>
-									)}
+				<CardContent className="pt-4">
+					{/* Address & Contact section - only show for non-regular users since header already shows location */}
+					{!isRegularUser && (company.addressLine1 || company.email || company.phone || company.websiteUrl) && (
+						<div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
+							{/* Left Column - Street Address (city/state/country shown in header) */}
+							{(company.addressLine1 || company.zipCode) && (
+								<div>
+									<h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">Street Address</h3>
+									<div className="space-y-1 text-sm">
+										{company.addressLine1 && <p>{company.addressLine1}</p>}
+										{company.addressLine2 && <p>{company.addressLine2}</p>}
+										{company.zipCode && <p>ZIP: {company.zipCode}</p>}
+									</div>
 								</div>
-							</div>
+							)}
 
 							{/* Right Column - Contact Information */}
-							<div>
-								<h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">Contact</h3>
-								<div className="space-y-3 text-sm">
-									{company.email && (
-										<div className="flex items-center gap-3">
-											<Mail className="h-4 w-4 text-muted-foreground" />
-											<a
-												href={`mailto:${company.email}`}
-												className="hover:underline text-primary"
-											>
-												{company.email}
-											</a>
-										</div>
-									)}
+							{(company.email || company.phone || company.websiteUrl) && (
+								<div>
+									<h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">Contact</h3>
+									<div className="space-y-3 text-sm">
+										{company.email && (
+											<div className="flex items-center gap-3">
+												<Mail className="h-4 w-4 text-muted-foreground" />
+												<a
+													href={`mailto:${company.email}`}
+													className="hover:underline text-primary"
+												>
+													{company.email}
+												</a>
+											</div>
+										)}
 
-									{company.phone && (
-										<div className="flex items-center gap-3">
-											<Phone className="h-4 w-4 text-muted-foreground" />
-											<a
-												href={`tel:${company.phone}`}
-												className="hover:underline text-primary"
-											>
-												{company.phone}
-											</a>
-										</div>
-									)}
+										{company.phone && (
+											<div className="flex items-center gap-3">
+												<Phone className="h-4 w-4 text-muted-foreground" />
+												<a
+													href={`tel:${company.phone}`}
+													className="hover:underline text-primary"
+												>
+													{company.phone}
+												</a>
+											</div>
+										)}
 
-									{company.websiteUrl && (
-										<div className="flex items-center gap-3">
-											<Globe className="h-4 w-4 text-muted-foreground" />
-											<a
-												href={company.websiteUrl}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="hover:underline text-primary"
-											>
-												{company.websiteUrl.replace(/^https?:\/\//, '')}
-											</a>
-										</div>
-									)}
-
-									{(!company.email && !company.phone && !company.websiteUrl) && (
-										<p className="text-muted-foreground italic">No contact information available</p>
-									)}
+										{company.websiteUrl && (
+											<div className="flex items-center gap-3">
+												<Globe className="h-4 w-4 text-muted-foreground" />
+												<a
+													href={company.websiteUrl}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="hover:underline text-primary"
+												>
+													{company.websiteUrl.replace(/^https?:\/\//, '')}
+												</a>
+											</div>
+										)}
+									</div>
 								</div>
-							</div>
+							)}
 						</div>
 					)}
 
@@ -373,88 +369,75 @@ export function CompanyDetailContent({ company, employees, listings, isAdmin, ca
 						</div>
 					)}
 
-					{/* Member Since - Footer */}
-					<div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 pt-4 border-t">
-						<Calendar className="h-4 w-4" />
-						<span>Member since {formatDate(company.createdAt)}</span>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Services & Listings Section */}
-			{(listings.length > 0 || canManageListings) && (
-				<Card className="mt-6">
-					<CardHeader>
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-2">
-								<Tag className="h-5 w-5 text-primary" />
-								<CardTitle>Services & Products</CardTitle>
-								{listings.length > 0 && <Badge variant="secondary">{listings.length}</Badge>}
-							</div>
-							{canManageListings && (
-								<Button onClick={() => setIsAddListingDialogOpen(true)} size="sm">
-									Add Listing
-								</Button>
-							)}
-						</div>
-					</CardHeader>
-					<CardContent>
-						{listings.length === 0 ? (
-							<div className="text-center py-8 text-muted-foreground">
-								<Tag className="h-12 w-12 mx-auto mb-3 opacity-20" />
-								<p>No listings have been added to this company yet.</p>
+					{/* Services & Listings Section - inside main card */}
+					{(listings.length > 0 || canManageListings) && (
+						<div className="mt-4">
+							<div className="flex items-center justify-between mb-4">
+								<div className="flex items-center gap-2">
+									<Tag className="h-5 w-5 text-primary" />
+									<h3 className="font-semibold text-lg">Services & Products</h3>
+									{listings.length > 0 && <Badge variant="secondary">{listings.length}</Badge>}
+								</div>
 								{canManageListings && (
-									<Button
-										onClick={() => setIsAddListingDialogOpen(true)}
-										variant="outline"
-										size="sm"
-										className="mt-4"
-									>
-										Add First Listing
+									<Button onClick={() => setIsAddListingDialogOpen(true)} size="sm">
+										Add Listing
 									</Button>
 								)}
 							</div>
-						) : (
-							<div className="grid gap-4 md:grid-cols-2">
-								{listings.map((listing) => (
-									<div
-										key={listing.id}
-										className="p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-									>
-										<div className="flex items-start justify-between mb-2">
-											<h4 className="font-medium text-base flex-1">{listing.title}</h4>
-											<div className="flex items-center gap-2 ml-2">
-												<div className="flex items-center gap-1 text-primary font-semibold whitespace-nowrap">
-													{listing.price !== null && <DollarSign className="h-4 w-4" />}
-													<span className={listing.price === null ? 'text-muted-foreground text-sm' : ''}>
+							{listings.length === 0 ? (
+								<div className="text-center py-8 text-muted-foreground">
+									<Tag className="h-12 w-12 mx-auto mb-3 opacity-20" />
+									<p>No listings have been added to this company yet.</p>
+									{canManageListings && (
+										<Button
+											onClick={() => setIsAddListingDialogOpen(true)}
+											variant="outline"
+											size="sm"
+											className="mt-4"
+										>
+											Add First Listing
+										</Button>
+									)}
+								</div>
+							) : (
+								<div className="divide-y">
+									{listings.map((listing) => (
+										<div
+											key={listing.id}
+											className="py-3 first:pt-0 last:pb-0 px-2 -mx-2 rounded-md hover:bg-muted/50 transition-colors"
+										>
+											<div className="flex items-start justify-between mb-1">
+												<h4 className="font-medium text-base flex-1">{listing.title}</h4>
+												<div className="flex items-center gap-2 ml-2">
+													<span className={`font-semibold whitespace-nowrap ${listing.price === null ? 'text-muted-foreground text-sm' : 'text-primary'}`}>
 														{formatPrice(listing.price)}
 													</span>
+													{canManageListings && (
+														<Button
+															variant="ghost"
+															size="icon"
+															onClick={() => handleDeleteListing(listing.id, listing.title)}
+															disabled={deletingListingId === listing.id}
+															className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+														>
+															<Trash2 className="h-4 w-4" />
+														</Button>
+													)}
 												</div>
-												{canManageListings && (
-													<Button
-														variant="ghost"
-														size="icon"
-														onClick={() => handleDeleteListing(listing.id, listing.title)}
-														disabled={deletingListingId === listing.id}
-														className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-													>
-														<Trash2 className="h-4 w-4" />
-													</Button>
-												)}
 											</div>
+											{listing.description && (
+												<p className="text-sm text-muted-foreground line-clamp-3">
+													{listing.description}
+												</p>
+											)}
 										</div>
-										{listing.description && (
-											<p className="text-sm text-muted-foreground line-clamp-3">
-												{listing.description}
-											</p>
-										)}
-									</div>
-								))}
-							</div>
-						)}
-					</CardContent>
-				</Card>
-			)}
+									))}
+								</div>
+							)}
+						</div>
+					)}
+				</CardContent>
+			</Card>
 
 			{/* Employees Section - Only visible to super admins and company-associated users */}
 			{canViewEmployees && (
