@@ -199,54 +199,130 @@ SUPER_USER_EMAIL=admin@example.com                   # Optional: Super admin ema
 
 ```
 src/
-├── app/                      # Next.js App Router pages
-│   ├── api/                 # API routes
-│   │   ├── auth/           # NextAuth endpoints
-│   │   ├── plans/          # Subscription plan endpoints
-│   │   ├── profile/        # User profile endpoints
-│   │   └── admin/          # Admin dashboard endpoints
-│   ├── admindashboard/     # Admin dashboard pages
-│   │   ├── analytics/      # Analytics page
-│   │   ├── billing/        # Billing management
-│   │   └── plans/          # Plan management
-│   ├── auth/               # Authentication pages (sign-in/sign-up)
-│   ├── dashboard/          # User dashboard
-│   ├── marketplace/        # Service provider marketplace
-│   ├── profile/            # User profile management
-│   ├── pricing/            # Pricing and subscription plans
-│   └── faq/                # Frequently asked questions
-├── components/              # React components
-│   ├── ui/                 # Shadcn UI components
-│   ├── admin/              # Admin dashboard components
-│   ├── auth/               # Authentication forms
-│   ├── dashboard/          # Dashboard layout and components
-│   ├── landing/            # Landing page sections
-│   ├── marketplace/        # Marketplace components
-│   └── profile/            # Profile management components
-├── lib/                     # Utility libraries
-│   ├── i18n/               # Internationalization system
-│   │   ├── LanguageContext.tsx
-│   │   ├── translations.ts
-│   │   └── new-translations.ts
-│   ├── utils/              # Helper functions
-│   ├── activity-tracker.ts # User activity tracking
-│   └── auth-helpers.ts     # Authentication utilities
-└── server/                  # Server-side code
-    ├── auth.ts             # NextAuth v5 configuration
-    └── db/                 # Database layer
-        ├── index.ts        # D1 connection
-        ├── schema.ts       # Drizzle schema definitions
-        └── auth-adapter.ts # Custom D1 adapter for NextAuth
+├── app/                          # Next.js App Router pages
+│   ├── api/                      # API routes
+│   │   ├── activity/            # Activity tracking endpoints
+│   │   ├── admin/               # Admin endpoints (users, plans, cart, roles, paypal)
+│   │   ├── auth/                # NextAuth & auth endpoints (register, verify, password reset)
+│   │   ├── billing/             # Billing & subscription management (Stripe)
+│   │   ├── cart/                # Shopping cart endpoints
+│   │   ├── chat/                # AI chat endpoint
+│   │   ├── chat-task/           # Chat task management
+│   │   ├── checkout/            # Checkout flow (Stripe & PayPal)
+│   │   ├── companies/           # Company CRUD & employees
+│   │   ├── company/             # Company dashboard API (invoices, jobs, reports)
+│   │   ├── contact/             # Contact form endpoint
+│   │   ├── messages/            # Messaging system (conversations, users, polling)
+│   │   ├── orders/              # Order management
+│   │   ├── paypal/              # PayPal integration (subscriptions, webhooks)
+│   │   ├── plans/               # Subscription plans
+│   │   ├── presence/            # User presence/status
+│   │   ├── profile/             # User profile
+│   │   ├── service-categories/  # Service category listing
+│   │   ├── support/             # Support ticket system
+│   │   └── user/                # User data (preferences, owned companies)
+│   ├── 403/                     # Access denied page
+│   ├── about/                   # About page
+│   ├── accept-invitation/       # Invitation acceptance flow
+│   ├── admin/                   # Admin landing page
+│   ├── admindashboard/          # Admin dashboard pages
+│   │   ├── analytics/          # Analytics page
+│   │   ├── billing/            # Billing management
+│   │   ├── plans/              # Plan management
+│   │   ├── profile/            # Admin profile
+│   │   ├── reports/            # Reports
+│   │   ├── support/            # Support tickets
+│   │   └── users/              # User management
+│   ├── auth/                    # Authentication pages (sign-in, error)
+│   ├── billing/                 # User billing pages (success, cancel)
+│   ├── careers/                 # Careers page
+│   ├── cart/                    # Shopping cart page
+│   ├── chat/                    # AI chat interface
+│   ├── checkout/                # Checkout flow (success, cancel)
+│   ├── company/                 # Company dashboard
+│   │   ├── select/             # Company selection
+│   │   └── [companyId]/        # Company-specific pages (invoices, jobs, reports)
+│   ├── contact/                 # Contact page
+│   ├── dashboard/               # User dashboard
+│   │   └── profile/            # Profile editing
+│   ├── faq/                     # FAQ page
+│   ├── forgot-password/         # Password reset request
+│   ├── login/                   # Login page
+│   ├── marketplace/             # Service provider marketplace
+│   │   ├── create/             # Create listing
+│   │   └── [id]/               # Business detail page
+│   ├── messages/                # Messaging center
+│   ├── more/                    # Additional options page
+│   ├── orders/                  # Order history & details
+│   │   └── [id]/               # Order detail page
+│   ├── preferences/             # User preferences
+│   ├── pricing/                 # Pricing plans
+│   ├── profile/                 # User profile page
+│   ├── register/                # Registration page
+│   ├── subscription/            # Subscription management
+│   │   └── paypal/             # PayPal subscription flow
+│   ├── support/                 # Support ticket submission
+│   └── upgrade/                 # Upgrade prompts
+├── components/                   # React components
+│   ├── about/                   # About page components
+│   ├── admin/                   # Admin dashboard components
+│   │   └── support/            # Admin support ticket components
+│   ├── auth/                    # Authentication forms
+│   ├── billing/                 # Billing & subscription UI
+│   ├── cart/                    # Shopping cart components
+│   ├── chat/                    # AI chat components
+│   ├── checkout/                # Checkout flow components
+│   ├── company/                 # Company management components
+│   ├── company-dashboard/       # Company dashboard layout & widgets
+│   ├── contact/                 # Contact form components
+│   ├── dashboard/               # Dashboard layouts (User & Admin)
+│   ├── landing/                 # Landing page sections
+│   ├── marketplace/             # Marketplace listing components
+│   ├── messages/                # Messaging UI components
+│   ├── more/                    # More options components
+│   ├── nav/                     # Navigation components
+│   ├── orders/                  # Order display components
+│   ├── paypal/                  # PayPal button components
+│   ├── preferences/             # Preferences form components
+│   ├── presence/                # Online status indicators
+│   ├── profile/                 # Profile management components
+│   ├── providers/               # React context providers (Roles, Query, etc.)
+│   ├── social/                  # Social sharing components
+│   ├── subscription/            # Subscription UI components
+│   ├── support/                 # Support ticket components
+│   ├── ui/                      # Shadcn UI components
+│   └── upgrade/                 # Upgrade prompt components
+├── hooks/                        # Custom React hooks
+├── lib/                          # Utility libraries
+│   ├── chat-functions/          # AI chat function definitions
+│   ├── i18n/                    # Internationalization system
+│   ├── theme/                   # Theme utilities
+│   ├── utils/                   # Helper functions
+│   ├── activity-tracker.ts      # User activity tracking
+│   ├── auth-helpers.ts          # Authentication utilities
+│   ├── discounts.ts             # Discount calculation
+│   ├── orders.ts                # Order management
+│   ├── paypal.ts                # PayPal API client
+│   ├── stripe.ts                # Stripe client (lazy-loaded)
+│   └── webhook-handler.ts       # Stripe webhook processing
+├── server/                       # Server-side code
+│   ├── auth.ts                  # NextAuth v5 configuration
+│   └── db/                      # Database layer
+│       ├── index.ts             # D1 connection
+│       ├── schema.ts            # Drizzle schema definitions
+│       └── auth-adapter.ts      # Custom D1 adapter for NextAuth
+├── stores/                       # Zustand state stores
+└── types/                        # TypeScript type definitions
 
-drizzle/                     # Database migrations
-├── 0000_setup.sql          # Local database setup
-├── 0000_setup_remote.sql   # Production database setup
-└── meta/                   # Migration metadata
+drizzle/                          # Database migrations
+├── 0000_setup.sql               # Local database setup
+├── 0000_setup_remote.sql        # Production database setup
+└── meta/                        # Migration metadata
 
 # Configuration files
-wrangler.jsonc               # Cloudflare Workers configuration (D1 bindings, assets)
-open-next.config.ts          # OpenNext configuration for Cloudflare
-next.config.mjs              # Next.js configuration
+wrangler.jsonc                    # Cloudflare Workers configuration (D1 bindings, assets)
+open-next.config.ts               # OpenNext configuration for Cloudflare
+next.config.mjs                   # Next.js configuration
 ```
 
 ## Authentication Setup
