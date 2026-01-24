@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { users, verificationTokens } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
+import { sendPasswordResetEmail } from "@/lib/email-service";
 import { z } from "zod";
 
 
@@ -44,6 +45,21 @@ export async function POST(req: NextRequest) {
 				},
 			});
 
+		// Send password reset email
+		const emailResult = await sendPasswordResetEmail({
+			email: existingUser.email,
+			resetToken: token,
+			userName: existingUser.displayName || existingUser.firstName || undefined,
+			expiresInHours: 24,
+		});
+
+		if (!emailResult.success) {
+			console.error("Failed to send password reset email:", emailResult.error);
+			// Clean up the orphaned token since email failed
+			await db.delete(verificationTokens).where(eq(verificationTokens.token, token));
+		}
+
+		// Return the same message regardless of success to prevent email enumeration
 		return NextResponse.json(
 			{ message: "If an account with that email exists, we've sent you a password reset link." },
 			{ status: 200 }

@@ -654,3 +654,297 @@ export async function sendTicketStatusUpdateEmail(params: SendTicketStatusUpdate
     };
   }
 }
+
+// ============================================================
+// Email Verification
+// ============================================================
+
+interface SendEmailVerificationParams {
+  email: string;
+  verificationToken: string;
+  userName?: string;
+  expiresInHours?: number;
+}
+
+/**
+ * Generate HTML email template for email verification
+ */
+function generateEmailVerificationHtml({
+  verificationToken,
+  userName,
+  expiresInHours = 24,
+}: Omit<SendEmailVerificationParams, 'email'>): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const verifyUrl = `${baseUrl}/api/auth/verify?token=${verificationToken}`;
+  const logoUrl = `${baseUrl}/logos/Horizontal_FullWhite.png`;
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify your email address</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <tr>
+      <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div style="margin-bottom: 20px;">
+          <img src="${logoUrl}" alt="Atenra" style="max-width: 250px; height: auto; display: inline-block;" />
+        </div>
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
+          Email Verification
+        </h1>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 40px 30px;">
+        <h2 style="margin: 0 0 20px 0; color: #1a1a1a; font-size: 24px; font-weight: 600;">
+          Welcome${userName ? `, ${escapeHtml(userName)}` : ''}!
+        </h2>
+        <p style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
+          Thank you for registering with Atenra. Please verify your email address by clicking the button below.
+        </p>
+        <p style="margin: 0 0 30px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
+          This link will expire in <strong>${expiresInHours} hours</strong>.
+        </p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="text-align: center; padding: 0 0 30px 0;">
+              <a href="${verifyUrl}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);">
+                Verify Email Address
+              </a>
+            </td>
+          </tr>
+        </table>
+        <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px; line-height: 1.5;">
+          Or copy and paste this link into your browser:
+        </p>
+        <p style="margin: 0 0 30px 0; padding: 12px; background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; word-break: break-all;">
+          <a href="${verifyUrl}" style="color: #667eea; text-decoration: none; font-size: 14px;">
+            ${verifyUrl}
+          </a>
+        </p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+        <p style="margin: 0; color: #a0aec0; font-size: 12px; line-height: 1.5;">
+          If you didn't create an account with us, you can safely ignore this email.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 30px; text-align: center; background-color: #f7fafc; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; color: #a0aec0; font-size: 12px;">
+          This is an automated message, please do not reply.
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Send email verification email to a new user
+ */
+export async function sendEmailVerificationEmail(params: SendEmailVerificationParams): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { email, verificationToken, userName, expiresInHours } = params;
+
+    console.log('📧 ========== EMAIL VERIFICATION ==========');
+    console.log('📧 Email:', email);
+
+    if (!RESEND_API_KEY) {
+      console.error('❌ RESEND_API_KEY is not configured');
+      return { success: false, error: 'Email service not configured - missing RESEND_API_KEY' };
+    }
+
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+    const htmlContent = generateEmailVerificationHtml({
+      verificationToken,
+      userName,
+      expiresInHours,
+    });
+
+    const response = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: email,
+        subject: 'Verify your email address - Atenra',
+        html: htmlContent,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Resend API Error:', errorData);
+      return {
+        success: false,
+        error: (errorData as { message?: string }).message || `Failed to send email: ${response.statusText}`
+      };
+    }
+
+    const data = await response.json();
+    console.log('✅ Email verification sent successfully:', data);
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Email verification error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
+// ============================================================
+// Password Reset Email
+// ============================================================
+
+interface SendPasswordResetParams {
+  email: string;
+  resetToken: string;
+  userName?: string;
+  expiresInHours?: number;
+}
+
+/**
+ * Generate HTML email template for password reset
+ */
+function generatePasswordResetHtml({
+  resetToken,
+  userName,
+  expiresInHours = 24,
+}: Omit<SendPasswordResetParams, 'email'>): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+  const logoUrl = `${baseUrl}/logos/Horizontal_FullWhite.png`;
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset your password</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <tr>
+      <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div style="margin-bottom: 20px;">
+          <img src="${logoUrl}" alt="Atenra" style="max-width: 250px; height: auto; display: inline-block;" />
+        </div>
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
+          Password Reset
+        </h1>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 40px 30px;">
+        <h2 style="margin: 0 0 20px 0; color: #1a1a1a; font-size: 24px; font-weight: 600;">
+          Reset your password${userName ? `, ${escapeHtml(userName)}` : ''}
+        </h2>
+        <p style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
+          We received a request to reset your password. Click the button below to create a new password.
+        </p>
+        <p style="margin: 0 0 30px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
+          This link will expire in <strong>${expiresInHours} hours</strong>.
+        </p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="text-align: center; padding: 0 0 30px 0;">
+              <a href="${resetUrl}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);">
+                Reset Password
+              </a>
+            </td>
+          </tr>
+        </table>
+        <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px; line-height: 1.5;">
+          Or copy and paste this link into your browser:
+        </p>
+        <p style="margin: 0 0 30px 0; padding: 12px; background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; word-break: break-all;">
+          <a href="${resetUrl}" style="color: #667eea; text-decoration: none; font-size: 14px;">
+            ${resetUrl}
+          </a>
+        </p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+        <p style="margin: 0; color: #a0aec0; font-size: 12px; line-height: 1.5;">
+          If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 30px; text-align: center; background-color: #f7fafc; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; color: #a0aec0; font-size: 12px;">
+          This is an automated message, please do not reply.
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Send password reset email
+ */
+export async function sendPasswordResetEmail(params: SendPasswordResetParams): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { email, resetToken, userName, expiresInHours } = params;
+
+    console.log('📧 ========== PASSWORD RESET EMAIL ==========');
+    console.log('📧 Email:', email);
+
+    if (!RESEND_API_KEY) {
+      console.error('❌ RESEND_API_KEY is not configured');
+      return { success: false, error: 'Email service not configured - missing RESEND_API_KEY' };
+    }
+
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+    const htmlContent = generatePasswordResetHtml({
+      resetToken,
+      userName,
+      expiresInHours,
+    });
+
+    const response = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: email,
+        subject: 'Reset your password - Atenra',
+        html: htmlContent,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Resend API Error:', errorData);
+      return {
+        success: false,
+        error: (errorData as { message?: string }).message || `Failed to send email: ${response.statusText}`
+      };
+    }
+
+    const data = await response.json();
+    console.log('✅ Password reset email sent successfully:', data);
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Password reset email error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}

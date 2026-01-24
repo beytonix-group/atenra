@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { users } from "@/server/db/schema";
+import { emailVerificationTokens } from "@/server/db/verification-tokens";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { hashPasswordEdge } from "@/lib/password-utils";
+import { sendEmailVerificationEmail } from "@/lib/email-service";
 import { z } from "zod";
 import { trackActivity } from "@/lib/server-activity-tracker";
 
@@ -32,9 +34,8 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Hash password
-		const saltRounds = 12;
-		const passwordHash = await bcrypt.hash(password, saltRounds);
+		// Hash password using PBKDF2 (edge-compatible)
+		const passwordHash = await hashPasswordEdge(password);
 
 		// Split name into first and last name
 		const nameParts = name.trim().split(" ");
@@ -56,14 +57,30 @@ export async function POST(request: NextRequest) {
 			.returning()
 			.get();
 
-		// TODO: Generate verification token
-		// const verificationToken = crypto.randomUUID();
-		
-		// Store verification token (you might want to create a separate table for this)
-		// For now, we'll return success and implement email sending
+		// Generate verification token
+		const verificationToken = crypto.randomUUID();
+		const expiresAt = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 24 hours
 
-		// TODO: Send verification email
-		// await sendVerificationEmail(email, verificationToken);
+		// Store verification token
+		await db.insert(emailVerificationTokens).values({
+			email: email.toLowerCase(),
+			token: verificationToken,
+			expires: expiresAt,
+		});
+
+		// Send verification email
+		const emailResult = await sendEmailVerificationEmail({
+			email: email.toLowerCase(),
+			verificationToken,
+			userName: name,
+			expiresInHours: 24,
+		});
+
+		if (!emailResult.success) {
+			console.error("Failed to send verification email:", emailResult.error);
+			// Clean up the orphaned token since email failed
+			await db.delete(emailVerificationTokens).where(eq(emailVerificationTokens.token, verificationToken));
+		}
 
 		// Track user registration
 		if (newUser) {
@@ -73,6 +90,7 @@ export async function POST(request: NextRequest) {
 				info: {
 					email: newUser.email,
 					registrationMethod: "email",
+					verificationEmailSent: emailResult.success,
 				},
 				request,
 			});
@@ -80,8 +98,11 @@ export async function POST(request: NextRequest) {
 
 		return NextResponse.json({
 			success: true,
-			message: "Registration successful. Please check your email to verify your account.",
+			message: emailResult.success
+				? "Registration successful. Please check your email to verify your account."
+				: "Account created. We had trouble sending a verification email - please use the resend option if you don't receive it.",
 			userId: newUser.id,
+			emailSent: emailResult.success,
 		});
 
 	} catch (error) {
