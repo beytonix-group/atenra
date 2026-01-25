@@ -20,6 +20,7 @@ export { BucketCachePurge } from './.open-next/worker.js';
 // Export our custom Durable Objects for WebSocket
 export { ConversationWebSocket } from './src/durable-objects/conversation-ws';
 export { CartWebSocket } from './src/durable-objects/cart-ws';
+export { UserWebSocket } from './src/durable-objects/user-ws';
 
 interface ConversationTokenData {
 	userId: number;
@@ -34,6 +35,12 @@ interface CartTokenData {
 	exp: number;
 }
 
+interface UserTokenData {
+	userId: number;
+	type: 'user';
+	exp: number;
+}
+
 interface ConversationTokenValidationResult {
 	data: ConversationTokenData | null;
 	error: string | null;
@@ -41,6 +48,11 @@ interface ConversationTokenValidationResult {
 
 interface CartTokenValidationResult {
 	data: CartTokenData | null;
+	error: string | null;
+}
+
+interface UserTokenValidationResult {
+	data: UserTokenData | null;
 	error: string | null;
 }
 
@@ -187,6 +199,30 @@ async function validateCartToken(
 	return result;
 }
 
+/**
+ * Validate user WebSocket token
+ */
+async function validateUserToken(
+	token: string,
+	authSecret: string
+): Promise<UserTokenValidationResult> {
+	const result = await validateTokenPayload<UserTokenData>(token, authSecret);
+	if (!result.data) {
+		return result;
+	}
+
+	// Validate required fields for user token
+	if (!result.data.userId || result.data.type !== 'user') {
+		console.error('User token validation failed: missing required fields or wrong type', {
+			hasUserId: !!result.data.userId,
+			type: result.data.type,
+		});
+		return { data: null, error: 'Missing required fields' };
+	}
+
+	return result;
+}
+
 // Extended env interface for auth secret
 interface ExtendedEnv extends CloudflareEnv {
 	AUTH_SECRET?: string;
@@ -272,6 +308,42 @@ export default {
 			doUrl.searchParams.set('userId', tokenData.userId.toString());
 			doUrl.searchParams.set('cartUserId', tokenData.cartUserId.toString());
 			doUrl.searchParams.set('role', tokenData.role);
+
+			return stub.fetch(doUrl.toString(), {
+				headers: request.headers,
+			});
+		}
+
+		// Handle WebSocket upgrade requests to /api/ws/user-connect
+		if (
+			url.pathname === '/api/ws/user-connect' &&
+			request.headers.get('Upgrade') === 'websocket'
+		) {
+			const token = url.searchParams.get('token');
+
+			if (!token) {
+				return new Response('Missing token', { status: 401 });
+			}
+
+			// Get AUTH_SECRET from environment
+			const authSecret = env.AUTH_SECRET;
+			if (!authSecret) {
+				console.error('AUTH_SECRET not configured for user WebSocket token validation');
+				return new Response('Server configuration error', { status: 500 });
+			}
+
+			const { data: tokenData, error } = await validateUserToken(token, authSecret);
+			if (!tokenData) {
+				return new Response(error || 'Invalid token', { status: 401 });
+			}
+
+			// Get the Durable Object for this user
+			const doId = env.USER_WS.idFromName(`user-${tokenData.userId}`);
+			const stub = env.USER_WS.get(doId);
+
+			// Forward to DO with user info in query params
+			const doUrl = new URL(request.url);
+			doUrl.searchParams.set('userId', tokenData.userId.toString());
 
 			return stub.fetch(doUrl.toString(), {
 				headers: request.headers,

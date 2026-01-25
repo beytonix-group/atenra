@@ -8,6 +8,7 @@ interface CloudflareEnv {
 	// Durable Objects
 	CONVERSATION_WS: DurableObjectNamespace;
 	CART_WS: DurableObjectNamespace;
+	USER_WS: DurableObjectNamespace;
 
 	// PayPal Configuration
 	PAYPAL_CLIENT_ID?: string;

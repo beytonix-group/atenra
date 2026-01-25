@@ -35,6 +35,10 @@
       {
         "name": "CART_WS",
         "class_name": "CartWebSocket"
+      },
+      {
+        "name": "USER_WS",
+        "class_name": "UserWebSocket"
       }
     ]
   },
@@ -47,6 +51,10 @@
     {
       "tag": "v2",
       "new_sqlite_classes": ["CartWebSocket"]
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": ["UserWebSocket"]
     }
   ],
   // Public environment variables (visible to client-side)

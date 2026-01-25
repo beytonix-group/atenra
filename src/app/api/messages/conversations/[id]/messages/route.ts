@@ -1,10 +1,11 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { conversations, conversationParticipants, messages, users } from "@/server/db/schema";
-import { eq, and, desc, lt, gt, asc, sql } from "drizzle-orm";
+import { eq, and, desc, lt, gt, asc, sql, ne } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { z } from "zod";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { broadcastUnreadCountChange } from "@/lib/user-broadcast";
 
 
 const sendMessageSchema = z.object({
@@ -248,6 +249,52 @@ export async function POST(
 				error: wsError instanceof Error ? wsError.message : String(wsError),
 				conversationId,
 				messageId: newMessage.id,
+			});
+		}
+
+		// Broadcast unread count change to other participants via User WebSocket
+		try {
+			// Get all participants except the sender
+			const otherParticipants = await db
+				.select({ userId: conversationParticipants.userId })
+				.from(conversationParticipants)
+				.where(
+					and(
+						eq(conversationParticipants.conversationId, conversationId),
+						ne(conversationParticipants.userId, currentUser.id)
+					)
+				)
+				.all();
+
+			// Broadcast unread count to each participant
+			for (const participant of otherParticipants) {
+				// Calculate unread count for this participant
+				const unreadResult = await db
+					.select({
+						count: sql<number>`count(distinct ${conversationParticipants.conversationId})`,
+					})
+					.from(conversationParticipants)
+					.innerJoin(
+						messages,
+						eq(messages.conversationId, conversationParticipants.conversationId)
+					)
+					.where(
+						and(
+							eq(conversationParticipants.userId, participant.userId),
+							sql`${messages.createdAt} > coalesce(${conversationParticipants.lastReadAt}, 0)`,
+							ne(messages.senderId, participant.userId),
+							eq(messages.isDeleted, 0)
+						)
+					)
+					.get();
+
+				const unreadCount = unreadResult?.count ?? 0;
+				await broadcastUnreadCountChange(participant.userId, unreadCount);
+			}
+		} catch (unreadBroadcastError) {
+			console.error('Failed to broadcast unread count:', {
+				error: unreadBroadcastError instanceof Error ? unreadBroadcastError.message : String(unreadBroadcastError),
+				conversationId,
 			});
 		}
 
