@@ -99,10 +99,27 @@ export class ConversationWebSocket extends DurableObject<CloudflareEnv> {
 			return;
 		}
 
+		// Handle ArrayBuffer messages
+		let messageStr: string;
+		if (message instanceof ArrayBuffer) {
+			try {
+				messageStr = new TextDecoder().decode(message);
+			} catch (decodeError) {
+				console.error('WebSocket ArrayBuffer decode error:', {
+					error: decodeError instanceof Error ? decodeError.message : String(decodeError),
+					userId: attachment.userId,
+					conversationId: attachment.conversationId,
+				});
+				return;
+			}
+		} else {
+			messageStr = message;
+		}
+
 		// Parse message JSON separately from handling
 		let data: { type?: string };
 		try {
-			data = JSON.parse(message as string);
+			data = JSON.parse(messageStr);
 		} catch (parseError) {
 			console.error('WebSocket message parse error:', {
 				error: parseError instanceof Error ? parseError.message : String(parseError),
@@ -141,6 +158,16 @@ export class ConversationWebSocket extends DurableObject<CloudflareEnv> {
 						type: data.type,
 						userId: attachment.userId,
 					});
+					// Send error response for unknown message types
+					try {
+						ws.send(JSON.stringify({
+							type: 'error',
+							code: 'UNKNOWN_MESSAGE_TYPE',
+							message: `Unknown message type: ${data.type}`,
+						}));
+					} catch {
+						// Ignore send errors for error responses
+					}
 				// Ping/pong handled automatically by setWebSocketAutoResponse
 			}
 		} catch (handlingError) {
@@ -162,6 +189,14 @@ export class ConversationWebSocket extends DurableObject<CloudflareEnv> {
 		reason: string,
 		wasClean: boolean
 	): Promise<void> {
+		const attachment = ws.deserializeAttachment() as SessionAttachment | null;
+		console.log('WebSocket connection closed:', {
+			code,
+			reason: reason || 'none',
+			wasClean,
+			userId: attachment?.userId,
+			conversationId: attachment?.conversationId,
+		});
 		// Connection cleanup is automatic with hibernation API
 		ws.close(code, reason);
 	}

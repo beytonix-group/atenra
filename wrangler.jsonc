@@ -38,7 +38,7 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_classes": ["ConversationWebSocket"]
+      "new_sqlite_classes": ["ConversationWebSocket"]
     }
   ],
   // Public environment variables (visible to client-side)

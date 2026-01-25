@@ -163,6 +163,11 @@ export function useConversationWebSocket({
 			};
 
 			ws.onerror = () => {
+				console.error('WebSocket connection error:', {
+					conversationId,
+					readyState: ws.readyState,
+					url: wsUrl,
+				});
 				setError(new Error('WebSocket connection error'));
 				isConnectingRef.current = false;
 			};
@@ -220,24 +225,32 @@ export function useConversationWebSocket({
 	// Send typing indicator
 	const sendTyping = useCallback(() => {
 		if (wsRef.current?.readyState === WebSocket.OPEN && conversationId) {
-			wsRef.current.send(
-				JSON.stringify({
-					type: 'typing',
-					conversationId,
-				})
-			);
+			try {
+				wsRef.current.send(
+					JSON.stringify({
+						type: 'typing',
+						conversationId,
+					})
+				);
+			} catch (e) {
+				console.error('Failed to send typing indicator:', e);
+			}
 		}
 	}, [conversationId]);
 
 	// Send read receipt
 	const sendRead = useCallback(() => {
 		if (wsRef.current?.readyState === WebSocket.OPEN && conversationId) {
-			wsRef.current.send(
-				JSON.stringify({
-					type: 'read',
-					conversationId,
-				})
-			);
+			try {
+				wsRef.current.send(
+					JSON.stringify({
+						type: 'read',
+						conversationId,
+					})
+				);
+			} catch (e) {
+				console.error('Failed to send read receipt:', e);
+			}
 		}
 	}, [conversationId]);
 

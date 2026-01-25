@@ -268,6 +268,7 @@ export async function POST(
 				},
 				isOwn: true,
 			},
+			realtimeDelivered,
 		});
 	} catch (error) {
 		console.error("Error sending message:", error);
