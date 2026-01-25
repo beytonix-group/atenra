@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 export const WARNING_BEFORE_MS = 1 * 60 * 1000; // 1 minute warning
 export const INACTIVITY_STORAGE_KEY = 'atenra-last-activity';
-const CHECK_INTERVAL_MS = 1000; // Check every second
+const CHECK_INTERVAL_MS = 5000; // Check every 5 seconds (reduced from 1s to minimize re-renders)
 const ACTIVITY_THROTTLE_MS = 5000; // Throttle localStorage writes
 
 interface UseInactivityTimeoutOptions {
@@ -220,7 +220,8 @@ export function useInactivityTimeout(
       const remaining = Math.max(0, INACTIVITY_TIMEOUT_MS - elapsed);
       const remainingSec = Math.ceil(remaining / 1000);
 
-      setRemainingSeconds(remainingSec);
+      // Only update state if value changed to avoid unnecessary re-renders
+      setRemainingSeconds(prev => prev !== remainingSec ? remainingSec : prev);
 
       // Check if we should show warning (1 minute before timeout)
       if (remaining <= WARNING_BEFORE_MS && remaining > 0) {

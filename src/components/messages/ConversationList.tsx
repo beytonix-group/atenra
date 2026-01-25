@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Conversation } from '@/lib/messages';
 import { ConversationItem } from './ConversationItem';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, MessageSquare, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useUsersPresence } from '@/hooks/use-user-presence';
 
 interface ConversationListProps {
 	conversations: Conversation[];
@@ -26,6 +27,24 @@ export function ConversationList({
 	isLoading = false,
 }: ConversationListProps) {
 	const [searchQuery, setSearchQuery] = useState('');
+
+	// Batch presence fetching: collect all user IDs from 1-on-1 conversations
+	// This replaces N individual useUserPresence calls with a single batch request
+	const presenceUserIds = useMemo(() => {
+		const ids: number[] = [];
+		for (const conv of conversations) {
+			if (!conv.isGroup) {
+				const otherParticipant = conv.participants.find(p => p.id !== currentUserId);
+				if (otherParticipant) {
+					ids.push(otherParticipant.id);
+				}
+			}
+		}
+		return ids;
+	}, [conversations, currentUserId]);
+
+	// Single batch fetch for all users' presence status
+	const { statuses: presenceStatuses } = useUsersPresence(presenceUserIds);
 
 	const filteredConversations = conversations.filter(conv => {
 		if (!searchQuery.trim()) return true;
@@ -102,15 +121,26 @@ export function ConversationList({
 						</div>
 					) : (
 						<div className="space-y-1">
-							{filteredConversations.map((conversation) => (
-								<ConversationItem
-									key={conversation.id}
-									conversation={conversation}
-									currentUserId={currentUserId}
-									isSelected={selectedConversationId === conversation.id}
-									onClick={() => onSelectConversation(conversation.id)}
-								/>
-							))}
+							{filteredConversations.map((conversation) => {
+								// Get pre-fetched presence status for 1-on-1 conversations
+								let presenceStatus: boolean | undefined;
+								if (!conversation.isGroup) {
+									const otherParticipant = conversation.participants.find(p => p.id !== currentUserId);
+									if (otherParticipant) {
+										presenceStatus = presenceStatuses.get(otherParticipant.id)?.isOnline;
+									}
+								}
+								return (
+									<ConversationItem
+										key={conversation.id}
+										conversation={conversation}
+										currentUserId={currentUserId}
+										isSelected={selectedConversationId === conversation.id}
+										onClick={() => onSelectConversation(conversation.id)}
+										presenceStatus={presenceStatus}
+									/>
+								);
+							})}
 						</div>
 					)}
 				</div>
