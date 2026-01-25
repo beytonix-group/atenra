@@ -3,6 +3,7 @@ import { db } from '@/server/db';
 import { cartItems } from '@/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { authenticateAndGetUser } from '@/lib/cart-helpers';
+import { broadcastItemAdded, broadcastCartCleared } from '@/lib/cart-broadcast';
 
 // GET - List all cart items for current user
 export async function GET() {
@@ -83,9 +84,35 @@ export async function POST(request: NextRequest) {
       })
       .returning({ id: cartItems.id });
 
+    const newItemId = result[0]?.id;
+
+    if (newItemId === undefined) {
+      console.error('Cart insert did not return an ID');
+      return NextResponse.json({ error: 'Failed to add item to cart' }, { status: 500 });
+    }
+
+    // Broadcast via WebSocket (non-blocking)
+    broadcastItemAdded(
+      user.id,
+      {
+        id: newItemId,
+        title,
+        description: description ?? null, // Normalize undefined to null
+        quantity,
+        unitPriceCents: null,
+      },
+      { userId: user.id, role: 'owner' }
+    ).catch((err) => {
+      console.error('Failed to broadcast cart item added:', {
+        error: err instanceof Error ? err.message : String(err),
+        userId: user.id,
+        itemId: newItemId,
+      });
+    });
+
     return NextResponse.json({
       message: 'Item added to cart',
-      itemId: result[0]?.id,
+      itemId: newItemId,
     }, { status: 201 });
   } catch (error) {
     console.error('Error adding to cart:', error);
@@ -106,6 +133,17 @@ export async function DELETE() {
     await db
       .delete(cartItems)
       .where(eq(cartItems.userId, user.id));
+
+    // Broadcast via WebSocket (non-blocking)
+    broadcastCartCleared(
+      user.id,
+      { userId: user.id, role: 'owner' }
+    ).catch((error) => {
+      console.error('Failed to broadcast cart cleared:', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: user.id,
+      });
+    });
 
     return NextResponse.json({ message: 'Cart cleared' });
   } catch (error) {

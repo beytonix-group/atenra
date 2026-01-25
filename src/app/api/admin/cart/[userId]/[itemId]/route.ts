@@ -4,6 +4,7 @@ import { cartItems, users } from "@/server/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { getCurrentUser, canManageUserCarts } from "@/lib/auth-helpers";
 import { logRemoveItem, logEditItem, getClientIp } from "@/lib/cart-audit";
+import { broadcastItemRemoved, broadcastItemUpdated } from "@/lib/cart-broadcast";
 
 interface RouteParams {
   params: Promise<{ userId: string; itemId: string }>;
@@ -71,14 +72,37 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         )
       );
 
-    // Log the action for audit
+    // Log the action for audit (non-blocking - cart operation was successful)
     const ipAddress = getClientIp(request);
-    await logRemoveItem(
+    try {
+      await logRemoveItem(
+        targetUserId,
+        currentUser.id,
+        itemToDelete,
+        ipAddress
+      );
+    } catch (auditError) {
+      console.error('Audit logging failed:', {
+        error: auditError instanceof Error ? auditError.message : String(auditError),
+        action: 'remove_item',
+        targetUserId,
+        adminUserId: currentUser.id,
+      });
+      // Continue - the cart operation was still successful
+    }
+
+    // Broadcast via WebSocket (non-blocking)
+    broadcastItemRemoved(
       targetUserId,
-      currentUser.id,
-      itemToDelete,
-      ipAddress
-    );
+      targetItemId,
+      { userId: currentUser.id, role: 'agent' }
+    ).catch((error) => {
+      console.error('Failed to broadcast cart item removal:', {
+        error: error instanceof Error ? error.message : String(error),
+        targetUserId,
+        itemId: targetItemId,
+      });
+    });
 
     return NextResponse.json({ message: "Item removed successfully" });
   } catch (error) {
@@ -119,11 +143,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const body = await request.json() as {
+    let body: {
       title?: string;
       description?: string | null;
       unitPriceCents?: number | null;
     };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
 
     const { title, description, unitPriceCents } = body;
 
@@ -157,6 +186,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         title: cartItems.title,
         description: cartItems.description,
         unitPriceCents: cartItems.unitPriceCents,
+        quantity: cartItems.quantity,
       })
       .from(cartItems)
       .where(
@@ -201,15 +231,44 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       })
       .where(eq(cartItems.id, targetItemId));
 
-    // Log the action for audit
+    // Log the action for audit (non-blocking - cart operation was successful)
     const ipAddress = getClientIp(request);
-    await logEditItem(
+    try {
+      await logEditItem(
+        targetUserId,
+        currentUser.id,
+        { id: item.id, title: updates.title as string ?? item.title, description: updates.description as string ?? item.description },
+        changes,
+        ipAddress
+      );
+    } catch (auditError) {
+      console.error('Audit logging failed:', {
+        error: auditError instanceof Error ? auditError.message : String(auditError),
+        action: 'edit_item',
+        targetUserId,
+        adminUserId: currentUser.id,
+      });
+      // Continue - the cart operation was still successful
+    }
+
+    // Broadcast via WebSocket (non-blocking)
+    broadcastItemUpdated(
       targetUserId,
-      currentUser.id,
-      { id: item.id, title: updates.title as string ?? item.title, description: updates.description as string ?? item.description },
-      changes,
-      ipAddress
-    );
+      {
+        id: targetItemId,
+        title: (updates.title as string) ?? item.title,
+        description: (updates.description as string | null) ?? item.description,
+        quantity: item.quantity,
+        unitPriceCents: (updates.unitPriceCents as number | null) ?? item.unitPriceCents,
+      },
+      { userId: currentUser.id, role: 'agent' }
+    ).catch((error) => {
+      console.error('Failed to broadcast cart item update:', {
+        error: error instanceof Error ? error.message : String(error),
+        targetUserId,
+        itemId: targetItemId,
+      });
+    });
 
     return NextResponse.json({ message: "Item updated successfully" });
   } catch (error) {

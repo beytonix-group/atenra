@@ -15,6 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePolling } from "@/hooks/use-polling";
+import { useCartWebSocket } from "@/hooks/use-cart-websocket";
+import type { TriggeredBy, CartItemData } from "@/lib/cart-websocket-types";
 
 interface CartItem {
   id: number;
@@ -87,6 +89,55 @@ export function CartIcon() {
     }
   }, []);
 
+  // WebSocket for real-time cart updates
+  const { isConnected: isWsConnected, error: wsError } = useCartWebSocket({
+    cartUserId: undefined, // undefined = own cart
+    enabled: mounted,
+    onItemAdded: useCallback((item: CartItemData, triggeredBy: TriggeredBy) => {
+      setItemCount(prev => prev + item.quantity);
+      if (triggeredBy.role === 'agent') {
+        toast.info('An agent added an item to your cart');
+      }
+      // Refresh full items if popover is open
+      if (isOpen) {
+        fetchCartItems();
+      }
+    }, [isOpen, fetchCartItems]),
+    onItemRemoved: useCallback(() => {
+      // Refresh cart data
+      fetchCartCount();
+      if (isOpen) {
+        fetchCartItems();
+      }
+    }, [isOpen, fetchCartCount, fetchCartItems]),
+    onItemUpdated: useCallback(() => {
+      // Refresh cart data
+      if (isOpen) {
+        fetchCartItems();
+      }
+    }, [isOpen, fetchCartItems]),
+    onCartCleared: useCallback((triggeredBy: TriggeredBy) => {
+      setItemCount(0);
+      setItems([]);
+      if (triggeredBy.role === 'agent') {
+        toast.info('An agent cleared your cart');
+      }
+    }, []),
+    onError: useCallback((error: Error) => {
+      // Only show critical errors to user, not transient connection issues
+      if (error.message.includes('Session expired') || error.message.includes('sign in')) {
+        toast.error(error.message);
+      }
+    }, []),
+  });
+
+  // Log WebSocket errors for debugging (non-critical ones)
+  useEffect(() => {
+    if (wsError) {
+      console.error('Cart WebSocket error:', wsError.message);
+    }
+  }, [wsError]);
+
   // Update item quantity
   const updateQuantity = async (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -157,9 +208,12 @@ export function CartIcon() {
     }
   };
 
-  // Poll more frequently on /messages page (5s) since agents may add items during chat
+  // Polling interval: shorter when WebSocket disconnected, longer when connected
+  // When connected, polling serves as fallback; when disconnected, it's the primary mechanism
   const isMessagesPage = pathname?.startsWith("/messages");
-  const pollingInterval = isMessagesPage ? 5000 : 30000;
+  const pollingInterval = isWsConnected
+    ? 60000  // 60s when WebSocket connected (fallback only)
+    : (isMessagesPage ? 5000 : 10000);  // 5s on messages page, 10s elsewhere when WS disconnected
 
   usePolling(fetchCartCount, {
     interval: pollingInterval,

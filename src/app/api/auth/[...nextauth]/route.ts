@@ -7,15 +7,15 @@ import { users, roles, userRoles, authUsers } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPasswordPBKDF2 } from "@/lib/password-utils";
 import { getEnv } from "@/lib/env-edge";
-
+import { getUserRolesFromDb } from "@/lib/user-roles-db";
 
 const auth = NextAuth({
     secret: getEnv("AUTH_SECRET"),
     trustHost: true,
     adapter: D1Adapter,
-    debug: true,
+    debug: false,
     session: {
-      strategy: "jwt", // Use JWT for compatibility with both OAuth and Credentials
+      strategy: "jwt",
       maxAge: 15 * 24 * 60 * 60, // 15 days
     },
     pages: {
@@ -24,18 +24,30 @@ const auth = NextAuth({
     },
     callbacks: {
       async session({ session, token }) {
-        // Add user id and email from token to session
         if (token) {
+          // Determine roles from token
+          let roles: string[] | null = null;
+          if (token.roles) {
+            roles = token.roles as string[];
+          } else if ((token as { role?: string }).role) {
+            roles = [(token as { role: string }).role];
+          }
+
           session.user.id = token.id as string;
           session.user.email = token.email as string;
+          Object.assign(session.user, { roles });
+          (session as { roles?: string[] | null }).roles = roles;
         }
         return session;
       },
       async jwt({ token, user }) {
-        // On sign in, store user info in token
+        // On sign in, store user info and roles in token
+        // Roles are cached in the JWT - users must sign out/in to refresh roles
         if (user) {
           token.id = user.id;
           token.email = user.email;
+          const roles = await getUserRolesFromDb(user.id as string);
+          token.roles = roles;
         }
         return token;
       }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useConversationContext } from "@/hooks/use-conversation-context";
+import { useCartWebSocket } from "@/hooks/use-cart-websocket";
+import type { CartItemData } from "@/lib/cart-websocket-types";
 
 export function FloatingCartManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -84,9 +86,86 @@ export function FloatingCartManager() {
     error: participantsError,
   } = useConversationContext();
 
+  // Fetch current user's internal ID to filter out self from participants
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch('/api/user/me');
+        if (!mounted) return;
+        if (res.ok) {
+          const data = await res.json() as { id: number };
+          setCurrentUserId(data.id);
+        } else {
+          console.error('Failed to fetch current user:', { status: res.status });
+        }
+      } catch (error) {
+        if (mounted) {
+          console.error('Failed to fetch current user:', error);
+        }
+      }
+    }
+    fetchCurrentUser();
+    return () => { mounted = false; };
+  }, []);
+
+  // Filter out current user (agent) from participants - they shouldn't add items to their own cart via this UI
+  const filteredParticipants = useMemo(() => {
+    if (!currentUserId) return participants;
+    return participants.filter(p => p.id !== currentUserId);
+  }, [participants, currentUserId]);
+
+  // WebSocket for real-time updates when viewing a user's cart
+  useCartWebSocket({
+    cartUserId: selectedUser?.id ?? undefined,
+    enabled: !!selectedUser && isOpen,
+    onItemAdded: useCallback((item: CartItemData) => {
+      // Another agent or the user added an item
+      setCartItems((prev) => {
+        if (prev.some(i => i.id === item.id)) {
+          return prev;
+        }
+        const now = Math.floor(Date.now() / 1000);
+        return [...prev, {
+          id: item.id,
+          title: item.title,
+          description: item.description ?? null,
+          quantity: item.quantity,
+          unitPriceCents: item.unitPriceCents ?? null,
+          addedByUserId: null,
+          createdAt: now,
+          updatedAt: now,
+        }];
+      });
+    }, []),
+    onItemRemoved: useCallback((itemId: number) => {
+      setCartItems((prev) => prev.filter((item) => item.id !== itemId));
+    }, []),
+    onItemUpdated: useCallback((item: CartItemData) => {
+      setCartItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id
+            ? {
+                ...i,
+                title: item.title,
+                description: item.description ?? null,
+                quantity: item.quantity,
+                unitPriceCents: item.unitPriceCents ?? null,
+              }
+            : i
+        )
+      );
+    }, []),
+    onCartCleared: useCallback(() => {
+      setCartItems([]);
+    }, []),
+  });
+
   // Handler for participant selection from dropdown
   const handleSelectParticipant = async (participantId: string) => {
-    const participant = participants.find(p => p.id === parseInt(participantId));
+    const participant = filteredParticipants.find(p => p.id === parseInt(participantId));
     if (!participant) {
       console.error('Participant not found:', { participantId });
       toast.error('Could not find selected participant');
@@ -158,7 +237,15 @@ export function FloatingCartManager() {
     });
     setSearchQuery("");
     setSearchResults([]);
-    await loadUserCart(user.id);
+    try {
+      await loadUserCart(user.id);
+    } catch (error) {
+      console.error('Failed to load cart after user selection:', {
+        userId: user.id,
+        error,
+      });
+      // Error is already toasted in loadUserCart
+    }
   };
 
   // Add item to cart
@@ -321,9 +408,9 @@ export function FloatingCartManager() {
                     <div className="text-sm text-destructive py-2">
                       {participantsError}
                     </div>
-                  ) : participants.length === 0 ? (
+                  ) : filteredParticipants.length === 0 ? (
                     <div className="text-sm text-muted-foreground py-2">
-                      No participants found
+                      No other participants found
                     </div>
                   ) : (
                     <Select
@@ -334,7 +421,7 @@ export function FloatingCartManager() {
                         <SelectValue placeholder="Select a participant..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {participants.map((p) => (
+                        {filteredParticipants.map((p) => (
                           <SelectItem key={p.id} value={p.id.toString()}>
                             <div className="flex items-center gap-2">
                               <Avatar className="h-6 w-6">

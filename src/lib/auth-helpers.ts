@@ -1,8 +1,11 @@
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { users, userRoles, roles, companyUsers, companies, type Company } from "@/server/db/schema";
+import { users, companyUsers, companies, type Company } from "@/server/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
+
+// Re-export from shared file for backward compatibility
+export { getUserRolesFromDb } from "@/lib/user-roles-db";
 
 /**
  * Check if current user is super admin (for API routes)
@@ -39,38 +42,6 @@ export async function checkSuperAdmin() {
 		isAuthorized: true,
 		response: null
 	};
-}
-
-/**
- * Fetch all user roles from database by authUserId
- * Use this only when you need to query DB directly (e.g., for users other than current user)
- * Returns an array of role names (e.g., ['super_admin', 'manager'])
- */
-export async function getUserRolesFromDb(authUserId: string): Promise<string[] | null> {
-	try {
-		const user = await db
-			.select()
-			.from(users)
-			.where(eq(users.authUserId, authUserId))
-			.get();
-
-		if (!user) return null;
-
-		const userRolesList = await db
-			.select({
-				roleName: roles.name
-			})
-			.from(userRoles)
-			.innerJoin(roles, eq(userRoles.roleId, roles.id))
-			.where(eq(userRoles.userId, user.id))
-			.all();
-
-		if (userRolesList.length === 0) return null;
-		return userRolesList.map(r => r.roleName);
-	} catch (error) {
-		console.error("Error getting user roles:", error);
-		return null;
-	}
 }
 
 /**

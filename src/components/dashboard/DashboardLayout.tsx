@@ -189,9 +189,12 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen border-r border-border/50 bg-sidebar transition-all duration-300",
+          "fixed left-0 top-0 h-screen border-r border-border/50 bg-sidebar transition-all duration-300",
           sidebarCollapsed ? "w-16" : "w-64",
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          // Mobile: slide in/out, higher z-index to appear above everything
+          mobileMenuOpen ? "translate-x-0 z-50" : "-translate-x-full z-50",
+          // Desktop: always visible
+          "lg:translate-x-0 lg:z-40"
         )}
       >
         <div className="flex h-full flex-col overflow-hidden">
@@ -362,10 +365,10 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
         </div>
       </aside>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay - appears above all content but below sidebar */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={toggleMobileMenu}
         />
       )}
@@ -373,7 +376,8 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
       {/* Main Content Area */}
       <div
         className={cn(
-          "flex flex-1 flex-col transition-all duration-300",
+          "flex flex-1 flex-col transition-all duration-300 min-w-0 relative z-0",
+          // Only need margin on desktop where sidebar is fixed
           sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
         )}
       >
@@ -441,7 +445,7 @@ export function DashboardLayout({ children, user, ownedCompanies }: DashboardLay
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-muted/10 p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/10 p-4 lg:p-6">
           {children}
         </main>
       </div>

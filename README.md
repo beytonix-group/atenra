@@ -220,7 +220,10 @@ src/
 │   │   ├── profile/             # User profile
 │   │   ├── service-categories/  # Service category listing
 │   │   ├── support/             # Support ticket system
-│   │   └── user/                # User data (preferences, owned companies)
+│   │   ├── user/                # User data (preferences, owned companies)
+│   │   └── ws/                  # WebSocket token endpoints
+│   │       ├── token/          # Conversation & user WebSocket tokens
+│   │       └── cart-token/     # Cart WebSocket tokens
 │   ├── 403/                     # Access denied page
 │   ├── about/                   # About page
 │   ├── accept-invitation/       # Invitation acceptance flow
@@ -293,6 +296,10 @@ src/
 │   ├── ui/                      # Shadcn UI components
 │   └── upgrade/                 # Upgrade prompt components
 ├── hooks/                        # Custom React hooks
+│   ├── use-conversation-websocket.ts  # Conversation WebSocket connection
+│   ├── use-cart-websocket.ts          # Cart WebSocket connection
+│   ├── use-user-websocket.ts          # User WebSocket (unread count updates)
+│   └── use-messages-query.ts          # Message polling with WebSocket integration
 ├── lib/                          # Utility libraries
 │   ├── chat-functions/          # AI chat function definitions
 │   ├── i18n/                    # Internationalization system
@@ -304,13 +311,22 @@ src/
 │   ├── orders.ts                # Order management
 │   ├── paypal.ts                # PayPal API client
 │   ├── stripe.ts                # Stripe client (lazy-loaded)
-│   └── webhook-handler.ts       # Stripe webhook processing
+│   ├── webhook-handler.ts       # Stripe webhook processing
+│   ├── websocket-types.ts       # Conversation WebSocket message types
+│   ├── cart-websocket-types.ts  # Cart WebSocket message types
+│   ├── user-websocket-types.ts  # User WebSocket message types
+│   ├── cart-broadcast.ts        # Cart WebSocket broadcast helper
+│   └── user-broadcast.ts        # User WebSocket broadcast helper
 ├── server/                       # Server-side code
 │   ├── auth.ts                  # NextAuth v5 configuration
 │   └── db/                      # Database layer
 │       ├── index.ts             # D1 connection
 │       ├── schema.ts            # Drizzle schema definitions
 │       └── auth-adapter.ts      # Custom D1 adapter for NextAuth
+├── durable-objects/              # Cloudflare Durable Objects for WebSocket
+│   ├── conversation-ws.ts       # Per-conversation WebSocket (messages, typing)
+│   ├── cart-ws.ts               # Per-cart WebSocket (real-time cart sync)
+│   └── user-ws.ts               # Per-user WebSocket (unread count, notifications)
 ├── stores/                       # Zustand state stores
 └── types/                        # TypeScript type definitions
 
@@ -320,7 +336,8 @@ drizzle/                          # Database migrations
 └── meta/                        # Migration metadata
 
 # Configuration files
-wrangler.jsonc                    # Cloudflare Workers configuration (D1 bindings, assets)
+wrangler.jsonc                    # Cloudflare Workers configuration (D1, Durable Objects)
+custom-worker.ts                  # Custom worker entry (WebSocket routing, DO exports)
 open-next.config.ts               # OpenNext configuration for Cloudflare
 next.config.mjs                   # Next.js configuration
 ```
