@@ -5,13 +5,14 @@ import { Conversation, formatMessageTime, getConversationDisplayName, truncateCo
 import { cn } from '@/lib/utils';
 import { Users } from 'lucide-react';
 import { StatusIndicator } from '@/components/ui/status-indicator';
-import { useUserPresence } from '@/hooks/use-user-presence';
 
 interface ConversationItemProps {
 	conversation: Conversation;
 	currentUserId: number;
 	isSelected: boolean;
 	onClick: () => void;
+	/** Pre-fetched presence status from parent (for 1-on-1 conversations) */
+	presenceStatus?: boolean;
 }
 
 export const ConversationItem = memo(function ConversationItem({
@@ -19,14 +20,16 @@ export const ConversationItem = memo(function ConversationItem({
 	currentUserId,
 	isSelected,
 	onClick,
+	presenceStatus,
 }: ConversationItemProps) {
 	const displayName = getConversationDisplayName(conversation, currentUserId);
 	const otherParticipants = conversation.participants.filter(p => p.id !== currentUserId);
 	const firstParticipant = otherParticipants[0];
 
 	// Only show status indicator for 1-on-1 conversations
+	// Use pre-fetched presence status from parent to avoid N+1 polling
 	const showStatusIndicator = !conversation.isGroup && firstParticipant;
-	const { isOnline } = useUserPresence(showStatusIndicator ? firstParticipant.id : null);
+	const isOnline = presenceStatus ?? false;
 
 	return (
 		<button

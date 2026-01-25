@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useMemo, useCallback, ReactNode } from "react";
 import { useSession } from "next-auth/react";
 
 interface RolesContextType {
@@ -34,7 +34,7 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   const sessionRolesKey = sessionRoles ? JSON.stringify(sessionRoles) : null;
 
   // Fallback to API only when JWT session doesn't have roles key (old token migration)
-  const fetchRolesFromApi = async () => {
+  const fetchRolesFromApi = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/roles');
       if (response.ok) {
@@ -50,7 +50,7 @@ export function RolesProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (status === "authenticated" && userId) {
@@ -72,27 +72,31 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   }, [status, userId, hasRolesKey, sessionRolesKey]);
 
   // Refetch forces an API call (for manual refresh if needed)
-  const refetchRoles = async () => {
+  const refetchRoles = useCallback(async () => {
     setIsLoading(true);
     await fetchRolesFromApi();
-  };
+  }, [fetchRolesFromApi]);
 
-  const hasRole = (role: string): boolean => {
+  // Memoize callback functions to prevent unnecessary re-renders
+  const hasRole = useCallback((role: string): boolean => {
     return roles?.includes(role) ?? false;
-  };
+  }, [roles]);
 
-  const hasAnyRole = (checkRoles: string[]): boolean => {
+  const hasAnyRole = useCallback((checkRoles: string[]): boolean => {
     return checkRoles.some(role => roles?.includes(role));
-  };
+  }, [roles]);
+
+  // Memoize the context value to prevent cascading re-renders
+  const contextValue = useMemo(() => ({
+    roles,
+    isLoading,
+    hasRole,
+    hasAnyRole,
+    refetchRoles
+  }), [roles, isLoading, hasRole, hasAnyRole, refetchRoles]);
 
   return (
-    <RolesContext.Provider value={{
-      roles,
-      isLoading,
-      hasRole,
-      hasAnyRole,
-      refetchRoles
-    }}>
+    <RolesContext.Provider value={contextValue}>
       {children}
     </RolesContext.Provider>
   );

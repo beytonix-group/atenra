@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import {
 	Conversation,
 	Message,
@@ -179,7 +179,8 @@ export function ConversationThread({
 		setMessages(prev => [...prev, newMessage]);
 	};
 
-	const messageGroups = groupMessagesByDate(messages);
+	// Memoize message grouping to avoid recalculating on every render
+	const messageGroups = useMemo(() => groupMessagesByDate(messages), [messages]);
 
 	return (
 		<div className="flex flex-col h-full">
