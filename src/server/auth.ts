@@ -6,45 +6,7 @@ import { db } from "./db";
 import { users, roles, userRoles, authUsers } from "./db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPasswordPBKDF2 } from "@/lib/password-utils";
-
-/**
- * Fetch all user roles from database by authUserId (used during login)
- * This is called once at login and the result is cached in the JWT token
- * Returns an array of role names (e.g., ['super_admin', 'manager'])
- */
-async function getUserRolesFromDb(authUserId: string): Promise<string[] | null> {
-	try {
-		console.log('[getUserRolesFromDb] Looking up user with authUserId:', authUserId);
-
-		const user = await db
-			.select()
-			.from(users)
-			.where(eq(users.authUserId, authUserId))
-			.get();
-
-		console.log('[getUserRolesFromDb] Found user:', user?.id, user?.email);
-
-		if (!user) return null;
-
-		const userRolesList = await db
-			.select({
-				roleName: roles.name
-			})
-			.from(userRoles)
-			.innerJoin(roles, eq(userRoles.roleId, roles.id))
-			.where(eq(userRoles.userId, user.id))
-			.all();
-
-		console.log('[getUserRolesFromDb] Found roles:', userRolesList);
-
-		// Return null if no roles, otherwise return array of role names
-		if (userRolesList.length === 0) return null;
-		return userRolesList.map(r => r.roleName);
-	} catch (error) {
-		console.error("Error fetching user roles:", error);
-		return null;
-	}
-}
+import { getUserRolesFromDb } from "@/lib/user-roles-db";
 
 // Helper to get environment variables that works in both local and Cloudflare
 function getEnvVar(name: string): string {
@@ -71,7 +33,7 @@ export const {
 	secret: getEnvVar("AUTH_SECRET"),
 	trustHost: true,
 	adapter: D1Adapter,
-	debug: true,
+	debug: false,
 	session: {
 		strategy: "jwt", // Use JWT for compatibility with both OAuth and Credentials
 		maxAge: 15 * 24 * 60 * 60, // 15 days
@@ -82,10 +44,7 @@ export const {
 	},
 	callbacks: {
 		async session({ session, token }) {
-			// Add user id, email, and roles from token to session
-			console.log('[Session Callback] token.roles:', token?.roles);
 			if (token) {
-				// Determine roles from token
 				let roles: string[] | null = null;
 				if (token.roles) {
 					roles = token.roles as string[];
@@ -93,39 +52,22 @@ export const {
 					roles = [(token as { role: string }).role];
 				}
 
-				// Mutate the session object directly
 				session.user.id = token.id as string;
 				session.user.email = token.email as string;
 				Object.assign(session.user, { roles });
-
-				// Also store roles at session level as backup (in case user.roles gets stripped)
 				(session as { roles?: string[] | null }).roles = roles;
-
-				console.log('[Session Callback] Final session:', JSON.stringify(session));
 			}
 			return session;
 		},
 		async jwt({ token, user }) {
 			// On sign in, store user info and roles in token
-			// Roles are only fetched once at login - no refresh until user logs out and back in
+			// Roles are cached in the JWT - users must sign out/in to refresh roles
 			if (user) {
 				token.id = user.id;
 				token.email = user.email;
-				// Single DB call at login - fetch all roles and cache in token
 				const roles = await getUserRolesFromDb(user.id as string);
 				token.roles = roles;
-				console.log('[JWT] Sign-in: fetched roles for', user.email, '->', roles);
 			}
-
-			// One-time migration for old tokens without roles
-			// Only runs if token has no roles at all (not on every request)
-			if (token.id && !token.roles && !(token as { role?: string }).role) {
-				console.log('[JWT] Migration: fetching roles for token without roles');
-				const roles = await getUserRolesFromDb(token.id as string);
-				token.roles = roles;
-				console.log('[JWT] Migration: fetched roles ->', roles);
-			}
-
 			return token;
 		}
 	},

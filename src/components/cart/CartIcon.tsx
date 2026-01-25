@@ -90,7 +90,7 @@ export function CartIcon() {
   }, []);
 
   // WebSocket for real-time cart updates
-  const { isConnected: isWsConnected } = useCartWebSocket({
+  const { isConnected: isWsConnected, error: wsError } = useCartWebSocket({
     cartUserId: undefined, // undefined = own cart
     enabled: mounted,
     onItemAdded: useCallback((item: CartItemData, triggeredBy: TriggeredBy) => {
@@ -123,7 +123,20 @@ export function CartIcon() {
         toast.info('An agent cleared your cart');
       }
     }, []),
+    onError: useCallback((error: Error) => {
+      // Only show critical errors to user, not transient connection issues
+      if (error.message.includes('Session expired') || error.message.includes('sign in')) {
+        toast.error(error.message);
+      }
+    }, []),
   });
+
+  // Log WebSocket errors for debugging (non-critical ones)
+  useEffect(() => {
+    if (wsError) {
+      console.error('Cart WebSocket error:', wsError.message);
+    }
+  }, [wsError]);
 
   // Update item quantity
   const updateQuantity = async (itemId: number, newQuantity: number) => {
@@ -200,7 +213,7 @@ export function CartIcon() {
   const isMessagesPage = pathname?.startsWith("/messages");
   const pollingInterval = isWsConnected
     ? 60000  // 60s when WebSocket connected (fallback only)
-    : (isMessagesPage ? 5000 : 30000);  // 5s on messages page, 30s elsewhere
+    : (isMessagesPage ? 5000 : 10000);  // 5s on messages page, 10s elsewhere when WS disconnected
 
   usePolling(fetchCartCount, {
     interval: pollingInterval,

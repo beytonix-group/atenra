@@ -187,9 +187,9 @@ export function MarketplaceContent({
 
 
   return (
-    <div className="w-full -mt-4 lg:-mt-6">
+    <div className="w-full">
       {/* Header */}
-      <div className="bg-background border-b border-border -mx-4 lg:-mx-6 px-3 md:px-4 lg:px-6 mb-4 md:mb-6 sticky top-[-1rem] lg:top-[-1.5rem] z-50 shadow-md">
+      <div className="bg-background border-b border-border px-3 md:px-4 mb-4 md:mb-6 lg:sticky lg:top-0 z-10 shadow-md">
         <div className="max-w-full py-2 md:py-3">
           <div className="flex flex-col gap-2 md:gap-3">
             {/* Search Bar and Add Company Button */}

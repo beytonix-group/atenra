@@ -7,12 +7,15 @@
     "bun": ">=1.2.21"
   },
   "scripts": {
-    "dev": "bunx wrangler dev --local",
+    "dev": "bunx wrangler dev --local --port 3000",
     "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "clean": "rm -rf .next .wrangler/tmp",
+    "clean:all": "rm -rf .next .open-next .wrangler/tmp",
+    "rebuild": "rm -rf .next .open-next .wrangler/tmp && bunx opennextjs-cloudflare build",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",

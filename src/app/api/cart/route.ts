@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       {
         id: newItemId,
         title,
-        description,
+        description: description ?? null, // Normalize undefined to null
         quantity,
         unitPriceCents: null,
       },

@@ -175,6 +175,7 @@ export function CartContent() {
           )
         );
       } else {
+        console.error('Failed to update quantity:', { status: res.status, itemId, newQuantity });
         toast.error("Failed to update quantity. Please try again.");
       }
     } catch (error) {
@@ -201,6 +202,7 @@ export function CartContent() {
         setItems((prev) => prev.filter((item) => item.id !== itemId));
         toast.success("Item removed from cart");
       } else {
+        console.error('Failed to remove item:', { status: res.status, itemId });
         toast.error("Failed to remove item. Please try again.");
       }
     } catch (error) {
@@ -231,6 +233,7 @@ export function CartContent() {
         setItems([]);
         toast.success("Cart cleared");
       } else {
+        console.error('Failed to clear cart:', { status: res.status });
         toast.error("Failed to clear cart. Please try again.");
       }
     } catch (error) {
