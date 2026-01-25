@@ -4,6 +4,7 @@ import { cartItems, users } from "@/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { getCurrentUser, canManageUserCarts } from "@/lib/auth-helpers";
 import { logAddItem, getClientIp } from "@/lib/cart-audit";
+import { broadcastItemAdded } from "@/lib/cart-broadcast";
 
 interface RouteParams {
   params: Promise<{ userId: string }>;
@@ -110,7 +111,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const body = await request.json() as { title?: string; description?: string; unitPriceCents?: number };
+    let body: { title?: string; description?: string; unitPriceCents?: number };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
     const { title, description, unitPriceCents } = body;
 
     // Validate input
@@ -153,14 +159,43 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Failed to add item" }, { status: 500 });
     }
 
-    // Log the action for audit
+    // Log the action for audit (non-blocking - cart operation was successful)
     const ipAddress = getClientIp(request);
-    await logAddItem(
+    try {
+      await logAddItem(
+        targetUserId,
+        currentUser.id,
+        { id: newItemId, title: title.trim(), description: description?.trim() },
+        ipAddress
+      );
+    } catch (auditError) {
+      console.error('Audit logging failed:', {
+        error: auditError instanceof Error ? auditError.message : String(auditError),
+        action: 'add_item',
+        targetUserId,
+        adminUserId: currentUser.id,
+      });
+      // Continue - the cart operation was still successful
+    }
+
+    // Broadcast via WebSocket (non-blocking)
+    broadcastItemAdded(
       targetUserId,
-      currentUser.id,
-      { id: newItemId, title: title.trim(), description: description?.trim() },
-      ipAddress
-    );
+      {
+        id: newItemId,
+        title: title.trim(),
+        description: description?.trim() || null,
+        quantity: 1,
+        unitPriceCents: unitPriceCents ?? null,
+      },
+      { userId: currentUser.id, role: 'agent' }
+    ).catch((error) => {
+      console.error('Failed to broadcast cart item added:', {
+        error: error instanceof Error ? error.message : String(error),
+        targetUserId,
+        itemId: newItemId,
+      });
+    });
 
     return NextResponse.json(
       { id: newItemId, message: "Item added successfully" },

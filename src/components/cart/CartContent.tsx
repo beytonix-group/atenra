@@ -9,6 +9,8 @@ import { Minus, Plus, Trash2, ShoppingCart, Loader2, Package, AlertCircle } from
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { usePolling } from "@/hooks/use-polling";
+import { useCartWebSocket } from "@/hooks/use-cart-websocket";
+import type { TriggeredBy, CartItemData } from "@/lib/cart-websocket-types";
 
 interface CartItem {
   id: number;
@@ -75,6 +77,66 @@ export function CartContent() {
     }
   }, []);
 
+  // WebSocket for real-time cart updates
+  const { isConnected: isWsConnected } = useCartWebSocket({
+    cartUserId: undefined, // undefined = own cart
+    enabled: !isLoading,
+    onItemAdded: useCallback((item: CartItemData, triggeredBy: TriggeredBy) => {
+      // Add new item to state
+      setItems((prev) => {
+        // Check if item already exists
+        if (prev.some(i => i.id === item.id)) {
+          return prev;
+        }
+        previousItemIds.current.add(item.id);
+        return [...prev, {
+          id: item.id,
+          title: item.title,
+          description: item.description ?? null,
+          quantity: item.quantity,
+          unitPriceCents: item.unitPriceCents ?? null,
+          createdAt: Math.floor(Date.now() / 1000),
+          addedByUserId: triggeredBy.role === 'agent' ? triggeredBy.userId : undefined,
+        }];
+      });
+      if (triggeredBy.role === 'agent') {
+        toast.info('An agent added an item to your cart');
+      }
+    }, []),
+    onItemRemoved: useCallback((itemId: number, triggeredBy: TriggeredBy) => {
+      setItems((prev) => prev.filter((item) => item.id !== itemId));
+      previousItemIds.current.delete(itemId);
+      if (triggeredBy.role === 'agent') {
+        toast.info('An agent removed an item from your cart');
+      }
+    }, []),
+    onItemUpdated: useCallback((item: CartItemData, triggeredBy: TriggeredBy) => {
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id
+            ? {
+                ...i,
+                title: item.title,
+                description: item.description ?? null,
+                quantity: item.quantity,
+                unitPriceCents: item.unitPriceCents ?? null,
+              }
+            : i
+        )
+      );
+      if (triggeredBy.role === 'agent') {
+        toast.info('An agent updated an item in your cart');
+      }
+    }, []),
+    onCartCleared: useCallback((triggeredBy: TriggeredBy) => {
+      setItems([]);
+      previousItemIds.current.clear();
+      if (triggeredBy.role === 'agent') {
+        toast.info('An agent cleared your cart');
+      }
+    }, []),
+  });
+
   // Initial load
   useEffect(() => {
     fetchCartItems(false);
@@ -86,8 +148,10 @@ export function CartContent() {
   }, [fetchCartItems]);
 
   // Polling with visibility API and backoff
+  // Use longer interval when WebSocket is connected (fallback only)
+  const pollingInterval = isWsConnected ? 60000 : POLLING_INTERVAL;
   usePolling(pollForNewItems, {
-    interval: POLLING_INTERVAL,
+    interval: pollingInterval,
     enabled: !isLoading, // Don't start polling until initial load is done
     pollOnMount: false, // Initial load is handled separately
   });

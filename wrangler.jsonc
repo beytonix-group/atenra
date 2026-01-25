@@ -25,12 +25,16 @@
       "migrations_dir": "./drizzle"
     }
   ],
-  // Durable Objects for WebSocket real-time messaging
+  // Durable Objects for WebSocket real-time features
   "durable_objects": {
     "bindings": [
       {
         "name": "CONVERSATION_WS",
         "class_name": "ConversationWebSocket"
+      },
+      {
+        "name": "CART_WS",
+        "class_name": "CartWebSocket"
       }
     ]
   },
@@ -39,9 +43,14 @@
     {
       "tag": "v1",
       "new_sqlite_classes": ["ConversationWebSocket"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["CartWebSocket"]
     }
   ],
   // Public environment variables (visible to client-side)
+  // NOTE: INTERNAL_BROADCAST_SECRET must be set via `bunx wrangler secret put INTERNAL_BROADCAST_SECRET`
   "vars": {
     "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51SEJXhLBeHmjMLrjUMxoMhhF8i5PoK0ftRgFqfH9rLa51oHsHtnF7A3vAxgU0kDo7z5s4HAJpdrQ0BhrshqyQrWk008Rt9XmYC",
     "NEXT_PUBLIC_PAYPAL_CLIENT_ID": "AZUwCO5V23jJtS2FnittGJ_O1JZgdRoMHO4Ge2e1egwsx3u0TrsFwIbLoekwViozrUecSBtPnfOb7sq9"

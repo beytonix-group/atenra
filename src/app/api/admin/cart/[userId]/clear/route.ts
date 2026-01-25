@@ -4,6 +4,7 @@ import { cartItems, users } from "@/server/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { getCurrentUser, canManageUserCarts } from "@/lib/auth-helpers";
 import { logClearAll, getClientIp } from "@/lib/cart-audit";
+import { broadcastCartCleared } from "@/lib/cart-broadcast";
 
 interface RouteParams {
   params: Promise<{ userId: string }>;
@@ -59,9 +60,30 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .where(eq(cartItems.userId, targetUserId))
       .run();
 
-    // Log the action for audit
+    // Log the action for audit (non-blocking - cart operation was successful)
     const ipAddress = getClientIp(request);
-    await logClearAll(targetUserId, currentUser.id, itemCount, ipAddress);
+    try {
+      await logClearAll(targetUserId, currentUser.id, itemCount, ipAddress);
+    } catch (auditError) {
+      console.error('Audit logging failed:', {
+        error: auditError instanceof Error ? auditError.message : String(auditError),
+        action: 'clear_all',
+        targetUserId,
+        adminUserId: currentUser.id,
+      });
+      // Continue - the cart operation was still successful
+    }
+
+    // Broadcast via WebSocket (non-blocking)
+    broadcastCartCleared(
+      targetUserId,
+      { userId: currentUser.id, role: 'agent' }
+    ).catch((error) => {
+      console.error('Failed to broadcast cart cleared:', {
+        error: error instanceof Error ? error.message : String(error),
+        targetUserId,
+      });
+    });
 
     return NextResponse.json({
       message: "Cart cleared successfully",

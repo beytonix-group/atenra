@@ -3,6 +3,7 @@ import { db } from '@/server/db';
 import { cartItems } from '@/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { authenticateAndGetUser } from '@/lib/cart-helpers';
+import { broadcastItemUpdated, broadcastItemRemoved } from '@/lib/cart-broadcast';
 
 interface UpdateCartItemRequest {
   quantity?: number;
@@ -95,6 +96,25 @@ export async function PATCH(
       .set(updateData)
       .where(eq(cartItems.id, itemId));
 
+    // Broadcast via WebSocket (non-blocking)
+    broadcastItemUpdated(
+      user.id,
+      {
+        id: itemId,
+        title: title ?? existingItem.title,
+        description: description ?? existingItem.description,
+        quantity: quantity ?? existingItem.quantity,
+        unitPriceCents: existingItem.unitPriceCents,
+      },
+      { userId: user.id, role: 'owner' }
+    ).catch((error) => {
+      console.error('Failed to broadcast cart item update:', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: user.id,
+        itemId,
+      });
+    });
+
     return NextResponse.json({ message: 'Cart item updated' });
   } catch (error) {
     console.error('Error updating cart item:', error);
@@ -134,6 +154,19 @@ export async function DELETE(
     if (result.length === 0) {
       return NextResponse.json({ error: 'Cart item not found' }, { status: 404 });
     }
+
+    // Broadcast via WebSocket (non-blocking)
+    broadcastItemRemoved(
+      user.id,
+      itemId,
+      { userId: user.id, role: 'owner' }
+    ).catch((error) => {
+      console.error('Failed to broadcast cart item removal:', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: user.id,
+        itemId,
+      });
+    });
 
     return NextResponse.json({ message: 'Cart item removed' });
   } catch (error) {

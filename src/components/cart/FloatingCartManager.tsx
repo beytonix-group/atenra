@@ -48,6 +48,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useConversationContext } from "@/hooks/use-conversation-context";
+import { useCartWebSocket } from "@/hooks/use-cart-websocket";
+import type { CartItemData } from "@/lib/cart-websocket-types";
 
 export function FloatingCartManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -83,6 +85,52 @@ export function FloatingCartManager() {
     isLoading: isLoadingParticipants,
     error: participantsError,
   } = useConversationContext();
+
+  // WebSocket for real-time updates when viewing a user's cart
+  useCartWebSocket({
+    cartUserId: selectedUser?.id ?? undefined,
+    enabled: !!selectedUser && isOpen,
+    onItemAdded: useCallback((item: CartItemData) => {
+      // Another agent or the user added an item
+      setCartItems((prev) => {
+        if (prev.some(i => i.id === item.id)) {
+          return prev;
+        }
+        const now = Math.floor(Date.now() / 1000);
+        return [...prev, {
+          id: item.id,
+          title: item.title,
+          description: item.description ?? null,
+          quantity: item.quantity,
+          unitPriceCents: item.unitPriceCents ?? null,
+          addedByUserId: null,
+          createdAt: now,
+          updatedAt: now,
+        }];
+      });
+    }, []),
+    onItemRemoved: useCallback((itemId: number) => {
+      setCartItems((prev) => prev.filter((item) => item.id !== itemId));
+    }, []),
+    onItemUpdated: useCallback((item: CartItemData) => {
+      setCartItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id
+            ? {
+                ...i,
+                title: item.title,
+                description: item.description ?? null,
+                quantity: item.quantity,
+                unitPriceCents: item.unitPriceCents ?? null,
+              }
+            : i
+        )
+      );
+    }, []),
+    onCartCleared: useCallback(() => {
+      setCartItems([]);
+    }, []),
+  });
 
   // Handler for participant selection from dropdown
   const handleSelectParticipant = async (participantId: string) => {

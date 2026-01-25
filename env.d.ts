@@ -7,6 +7,7 @@ interface CloudflareEnv {
 
 	// Durable Objects
 	CONVERSATION_WS: DurableObjectNamespace;
+	CART_WS: DurableObjectNamespace;
 
 	// PayPal Configuration
 	PAYPAL_CLIENT_ID?: string;
@@ -26,4 +27,7 @@ interface CloudflareEnv {
 
 	// Other
 	SUPER_USER_EMAIL?: string;
+
+	// Internal WebSocket broadcast secret
+	INTERNAL_BROADCAST_SECRET?: string;
 }

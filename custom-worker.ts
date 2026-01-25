@@ -17,17 +17,30 @@ export { DOShardedTagCache } from './.open-next/worker.js';
 // @ts-ignore - Generated at build time by OpenNext
 export { BucketCachePurge } from './.open-next/worker.js';
 
-// Export our custom Durable Object for WebSocket conversations
+// Export our custom Durable Objects for WebSocket
 export { ConversationWebSocket } from './src/durable-objects/conversation-ws';
+export { CartWebSocket } from './src/durable-objects/cart-ws';
 
-interface TokenData {
+interface ConversationTokenData {
 	userId: number;
 	conversationId: number;
 	exp: number;
 }
 
-interface TokenValidationResult {
-	data: TokenData | null;
+interface CartTokenData {
+	userId: number;
+	cartUserId: number;
+	role: 'owner' | 'agent';
+	exp: number;
+}
+
+interface ConversationTokenValidationResult {
+	data: ConversationTokenData | null;
+	error: string | null;
+}
+
+interface CartTokenValidationResult {
+	data: CartTokenData | null;
 	error: string | null;
 }
 
@@ -66,14 +79,14 @@ async function verifySignature(
 }
 
 /**
- * Validate and decode the WebSocket token.
+ * Validate and decode a WebSocket token.
  * Token format: base64url(payload).base64url(signature)
- * Returns result object with data or error details.
+ * Returns the decoded payload or null if invalid.
  */
-async function validateToken(
+async function validateTokenPayload<T>(
 	token: string,
 	authSecret: string
-): Promise<TokenValidationResult> {
+): Promise<{ data: T | null; error: string | null }> {
 	// Split token into payload and signature
 	const parts = token.split('.');
 	if (parts.length !== 2) {
@@ -91,11 +104,11 @@ async function validateToken(
 	}
 
 	// Decode and parse payload
-	let decoded: TokenData;
+	let decoded: T & { exp?: number };
 	try {
 		decoded = JSON.parse(
 			Buffer.from(payload, 'base64url').toString('utf-8')
-		) as TokenData;
+		) as T & { exp?: number };
 	} catch (e) {
 		console.error('Token validation failed: payload decode/parse error', {
 			error: e instanceof Error ? e.message : String(e),
@@ -105,7 +118,7 @@ async function validateToken(
 
 	// Check expiry
 	const now = Math.floor(Date.now() / 1000);
-	if (decoded.exp < now) {
+	if (decoded.exp && decoded.exp < now) {
 		console.warn('Token validation failed: token expired', {
 			expiredAt: decoded.exp,
 			now,
@@ -114,16 +127,64 @@ async function validateToken(
 		return { data: null, error: 'Token expired' };
 	}
 
-	// Validate required fields
-	if (!decoded.userId || !decoded.conversationId) {
-		console.error('Token validation failed: missing required fields', {
-			hasUserId: !!decoded.userId,
-			hasConversationId: !!decoded.conversationId,
+	return { data: decoded, error: null };
+}
+
+/**
+ * Validate conversation WebSocket token
+ */
+async function validateConversationToken(
+	token: string,
+	authSecret: string
+): Promise<ConversationTokenValidationResult> {
+	const result = await validateTokenPayload<ConversationTokenData>(token, authSecret);
+	if (!result.data) {
+		return result;
+	}
+
+	// Validate required fields for conversation token
+	if (!result.data.userId || !result.data.conversationId) {
+		console.error('Conversation token validation failed: missing required fields', {
+			hasUserId: !!result.data.userId,
+			hasConversationId: !!result.data.conversationId,
 		});
 		return { data: null, error: 'Missing required fields' };
 	}
 
-	return { data: decoded, error: null };
+	return result;
+}
+
+/**
+ * Validate cart WebSocket token
+ */
+async function validateCartToken(
+	token: string,
+	authSecret: string
+): Promise<CartTokenValidationResult> {
+	const result = await validateTokenPayload<CartTokenData>(token, authSecret);
+	if (!result.data) {
+		return result;
+	}
+
+	// Validate required fields for cart token
+	if (!result.data.userId || !result.data.cartUserId || !result.data.role) {
+		console.error('Cart token validation failed: missing required fields', {
+			hasUserId: !!result.data.userId,
+			hasCartUserId: !!result.data.cartUserId,
+			hasRole: !!result.data.role,
+		});
+		return { data: null, error: 'Missing required fields' };
+	}
+
+	// Validate role is valid
+	if (result.data.role !== 'owner' && result.data.role !== 'agent') {
+		console.error('Cart token validation failed: invalid role', {
+			role: result.data.role,
+		});
+		return { data: null, error: 'Invalid role' };
+	}
+
+	return result;
 }
 
 // Extended env interface for auth secret
@@ -158,7 +219,7 @@ export default {
 				return new Response('Server configuration error', { status: 500 });
 			}
 
-			const { data: tokenData, error } = await validateToken(token, authSecret);
+			const { data: tokenData, error } = await validateConversationToken(token, authSecret);
 			if (!tokenData) {
 				return new Response(error || 'Invalid token', { status: 401 });
 			}
@@ -173,6 +234,44 @@ export default {
 			const doUrl = new URL(request.url);
 			doUrl.searchParams.set('userId', tokenData.userId.toString());
 			doUrl.searchParams.set('conversationId', tokenData.conversationId.toString());
+
+			return stub.fetch(doUrl.toString(), {
+				headers: request.headers,
+			});
+		}
+
+		// Handle WebSocket upgrade requests to /api/ws/cart-connect
+		if (
+			url.pathname === '/api/ws/cart-connect' &&
+			request.headers.get('Upgrade') === 'websocket'
+		) {
+			const token = url.searchParams.get('token');
+
+			if (!token) {
+				return new Response('Missing token', { status: 401 });
+			}
+
+			// Get AUTH_SECRET from environment
+			const authSecret = env.AUTH_SECRET;
+			if (!authSecret) {
+				console.error('AUTH_SECRET not configured for cart WebSocket token validation');
+				return new Response('Server configuration error', { status: 500 });
+			}
+
+			const { data: tokenData, error } = await validateCartToken(token, authSecret);
+			if (!tokenData) {
+				return new Response(error || 'Invalid token', { status: 401 });
+			}
+
+			// Get the Durable Object for this user's cart
+			const doId = env.CART_WS.idFromName(`cart-${tokenData.cartUserId}`);
+			const stub = env.CART_WS.get(doId);
+
+			// Forward to DO with user info in query params
+			const doUrl = new URL(request.url);
+			doUrl.searchParams.set('userId', tokenData.userId.toString());
+			doUrl.searchParams.set('cartUserId', tokenData.cartUserId.toString());
+			doUrl.searchParams.set('role', tokenData.role);
 
 			return stub.fetch(doUrl.toString(), {
 				headers: request.headers,
