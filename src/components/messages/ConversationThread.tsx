@@ -18,6 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { useUserPresence, useUsersPresence } from '@/hooks/use-user-presence';
 import { usePolling } from '@/hooks/use-polling';
+import { useConversationWebSocket } from '@/hooks/use-conversation-websocket';
 import {
 	MoreHorizontal,
 	Users,
@@ -127,7 +128,35 @@ export function ConversationThread({
 		latestMessageIdRef.current = messages.length > 0 ? messages[messages.length - 1].id : undefined;
 	}, [messages]);
 
-	// Poll for new messages with visibility API and backoff
+	// WebSocket connection for real-time updates
+	const handleWebSocketMessage = useCallback(
+		(newMessage: Message) => {
+			setMessages(prev => {
+				// Check if message already exists (deduplication)
+				if (prev.some(m => m.id === newMessage.id)) {
+					return prev;
+				}
+				// Mark as own message if from current user
+				const messageWithOwnership = {
+					...newMessage,
+					isOwn: newMessage.sender.id === currentUserId,
+				};
+				return [...prev, messageWithOwnership];
+			});
+
+			// Mark as read since we're viewing
+			markConversationAsRead(conversation.id).catch(console.error);
+		},
+		[conversation.id, currentUserId]
+	);
+
+	const { isConnected: wsConnected } = useConversationWebSocket({
+		conversationId: conversation.id,
+		enabled: !isLoading,
+		onMessage: handleWebSocketMessage,
+	});
+
+	// Poll for new messages with visibility API and backoff (fallback when WebSocket is not connected)
 	const pollNewMessages = useCallback(async () => {
 		try {
 			const data = await fetchMessages(conversation.id, { after: latestMessageIdRef.current, limit: 50 });
@@ -152,9 +181,10 @@ export function ConversationThread({
 		}
 	}, [conversation.id]);
 
+	// Polling is disabled when WebSocket is connected (real-time via WS)
 	usePolling(pollNewMessages, {
-		interval: 5000, // Increased from 3s to 5s
-		enabled: !isLoading,
+		interval: 5000,
+		enabled: !isLoading && !wsConnected, // Disable polling when WebSocket is connected
 		pollOnMount: false, // Initial load is handled separately
 	});
 
@@ -173,10 +203,16 @@ export function ConversationThread({
 		setIsLoadingMore(false);
 	};
 
-	// Send message
+	// Send message with deduplication (in case WebSocket already added it)
 	const handleSend = async (content: string) => {
 		const newMessage = await sendMessage(conversation.id, content, 'html');
-		setMessages(prev => [...prev, newMessage]);
+		setMessages(prev => {
+			// Check if message already exists (could be added by WebSocket)
+			if (prev.some(m => m.id === newMessage.id)) {
+				return prev;
+			}
+			return [...prev, newMessage];
+		});
 	};
 
 	// Memoize message grouping to avoid recalculating on every render

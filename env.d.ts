@@ -5,6 +5,9 @@
 interface CloudflareEnv {
 	DATABASE: D1Database;
 
+	// Durable Objects
+	CONVERSATION_WS: DurableObjectNamespace;
+
 	// PayPal Configuration
 	PAYPAL_CLIENT_ID?: string;
 	PAYPAL_CLIENT_SECRET?: string;

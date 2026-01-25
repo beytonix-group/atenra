@@ -4,6 +4,7 @@ import { conversations, conversationParticipants, messages, users } from "@/serv
 import { eq, and, desc, lt, gt, asc, sql } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { z } from "zod";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 
 const sendMessageSchema = z.object({
@@ -197,6 +198,58 @@ export async function POST(
 					eq(conversationParticipants.userId, currentUser.id)
 				)
 			);
+
+		// Broadcast message via WebSocket Durable Object
+		let realtimeDelivered = false;
+		try {
+			const { env } = getCloudflareContext();
+			const conversationWs = env.CONVERSATION_WS as DurableObjectNamespace | undefined;
+			if (conversationWs) {
+				const doId = conversationWs.idFromName(`conversation-${conversationId}`);
+				const stub = conversationWs.get(doId);
+				const broadcastPayload = {
+					action: 'broadcast',
+					message: {
+						id: newMessage.id,
+						content: newMessage.content,
+						contentType: newMessage.contentType || 'html',
+						createdAt: newMessage.createdAt,
+						sender: {
+							id: currentUser.id,
+							displayName:
+								currentUser.displayName ||
+								`${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() ||
+								currentUser.email,
+							avatarUrl: currentUser.avatarUrl,
+						},
+					},
+				};
+
+				const broadcastResponse = await stub.fetch('https://do-internal/broadcast', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(broadcastPayload),
+				});
+
+				if (broadcastResponse.ok) {
+					realtimeDelivered = true;
+				} else {
+					console.error('DO broadcast returned non-OK status:', {
+						status: broadcastResponse.status,
+						conversationId,
+						messageId: newMessage.id,
+					});
+				}
+			} else {
+				console.warn('CONVERSATION_WS not available in environment');
+			}
+		} catch (wsError) {
+			console.error('Failed to broadcast message via WebSocket:', {
+				error: wsError instanceof Error ? wsError.message : String(wsError),
+				conversationId,
+				messageId: newMessage.id,
+			});
+		}
 
 		return NextResponse.json({
 			message: {
