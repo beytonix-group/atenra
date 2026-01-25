@@ -7,7 +7,8 @@
     "bun": ">=1.2.21"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "bunx wrangler dev --local",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "main": ".open-next/worker.js",
+  "main": "./custom-worker.ts",
   "name": "atenra",
   "compatibility_date": "2024-12-30",
   "compatibility_flags": [
@@ -23,6 +23,22 @@
       "database_name": "atenra-dev-db",
       "database_id": "7ed327c0-e838-4fd5-8369-a6b5e90dd04d",
       "migrations_dir": "./drizzle"
+    }
+  ],
+  // Durable Objects for WebSocket real-time messaging
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CONVERSATION_WS",
+        "class_name": "ConversationWebSocket"
+      }
+    ]
+  },
+  // DO migrations (required for first deployment)
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["ConversationWebSocket"]
     }
   ],
   // Public environment variables (visible to client-side)
