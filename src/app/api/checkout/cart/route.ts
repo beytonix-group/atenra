@@ -5,6 +5,7 @@ import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
 import { createOrderFromCart, updateOrderStatus } from "@/lib/orders";
 import { calculateOrderDiscount } from "@/lib/discounts";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 interface CartItem {
 	id: number;
@@ -32,6 +33,20 @@ export async function POST(request: Request): Promise<NextResponse> {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
+		// Rate limiting
+		const rateLimitResult = checkRateLimit(`checkout:${session.user.id}`, RATE_LIMITS.checkout);
+		if (!rateLimitResult.allowed) {
+			return NextResponse.json(
+				{ error: "Too many checkout attempts. Please wait before trying again." },
+				{
+					status: 429,
+					headers: {
+						"Retry-After": String(Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)),
+					},
+				}
+			);
+		}
+
 		// Get user ID from database
 		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
@@ -49,6 +64,52 @@ export async function POST(request: Request): Promise<NextResponse> {
 
 		if (!user) {
 			return NextResponse.json({ error: "User not found" }, { status: 404 });
+		}
+
+		// Check for existing pending order within the last hour (deduplication)
+		const oneHourAgo = Math.floor(Date.now() / 1000) - 3600;
+		const existingOrder = await db
+			.prepare(
+				`
+				SELECT id, order_number, stripe_checkout_session_id
+				FROM orders
+				WHERE user_id = ? AND status = 'pending' AND created_at > ? AND stripe_checkout_session_id IS NOT NULL
+				ORDER BY created_at DESC LIMIT 1
+			`
+			)
+			.bind(user.id, oneHourAgo)
+			.first<{ id: number; order_number: string; stripe_checkout_session_id: string }>();
+
+		if (existingOrder?.stripe_checkout_session_id) {
+			// Try to retrieve the existing session
+			try {
+				const existingSession = await stripe.checkout.sessions.retrieve(existingOrder.stripe_checkout_session_id);
+				// Only return existing session if it's still open
+				if (existingSession.status === "open" && existingSession.url) {
+					console.log(`[Checkout] Reusing existing session ${existingOrder.stripe_checkout_session_id} for user ${user.id}`);
+					return NextResponse.json({
+						url: existingSession.url,
+						orderId: existingOrder.id,
+						orderNumber: existingOrder.order_number,
+						reused: true,
+					});
+				}
+				// Session exists but not open - safe to create new one
+				console.log(`[Checkout] Existing session ${existingOrder.stripe_checkout_session_id} status: ${existingSession.status}, creating new session`);
+			} catch (sessionError: any) {
+				// Log the error for debugging
+				console.error(`[Checkout] Failed to retrieve existing Stripe session ${existingOrder.stripe_checkout_session_id}:`, sessionError?.message);
+				// Only continue for "resource not found" errors (expired/deleted sessions)
+				// For auth failures, network issues, etc., surface the error to avoid duplicate charges
+				const isNotFoundError = sessionError?.code === 'resource_missing' || sessionError?.statusCode === 404;
+				if (!isNotFoundError) {
+					return NextResponse.json(
+						{ error: "Unable to verify existing checkout session. Please try again." },
+						{ status: 503 }
+					);
+				}
+				// Session truly doesn't exist, safe to create new one
+			}
 		}
 
 		// Get cart items
@@ -87,8 +148,13 @@ export async function POST(request: Request): Promise<NextResponse> {
 			);
 		}
 
-		// Parse request body
-		const body = await request.json().catch(() => ({})) as CheckoutRequest;
+		// Parse request body (coupon code is optional, so we log but don't fail on parse errors)
+		let body: CheckoutRequest = {};
+		try {
+			body = await request.json() as CheckoutRequest;
+		} catch {
+			console.warn(`[Checkout] Failed to parse request body for user ${user.id}, proceeding without coupon`);
+		}
 
 		// Calculate subtotal
 		const subtotalCents = cartItems.reduce((sum, item) => {
@@ -112,7 +178,16 @@ export async function POST(request: Request): Promise<NextResponse> {
 		);
 
 		// Get or create Stripe customer
-		const customerId = await getOrCreateStripeCustomer(user.id);
+		let customerId: string;
+		try {
+			customerId = await getOrCreateStripeCustomer(user.id);
+		} catch (customerError: any) {
+			console.error("Error creating Stripe customer:", customerError);
+			return NextResponse.json(
+				{ error: "Unable to set up payment. Please try again." },
+				{ status: 500 }
+			);
+		}
 
 		// Create Stripe Checkout Session for one-time payment
 		const appUrl = getAppUrl();
@@ -169,7 +244,10 @@ export async function POST(request: Request): Promise<NextResponse> {
 	} catch (error: any) {
 		console.error("Error creating checkout session:", error);
 		return NextResponse.json(
-			{ error: error?.message ?? "Failed to create checkout session" },
+			{
+				error: "Failed to create checkout session",
+				...(process.env.NODE_ENV === "development" && { details: error?.message }),
+			},
 			{ status: 500 }
 		);
 	}

@@ -62,12 +62,17 @@ export function getStripe(): Stripe {
 }
 
 /**
- * Legacy export for backwards compatibility
- * WARNING: This may not work on Cloudflare Workers - use getStripe() instead
+ * Legacy export - DEPRECATED
+ * This proxy throws an error to prevent accidental usage.
+ * Use getStripe() instead for proper lazy initialization.
  */
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder", {
-	apiVersion: "2025-10-29.clover",
-	typescript: true,
+export const stripe = new Proxy({} as Stripe, {
+	get() {
+		throw new Error(
+			"Direct 'stripe' import is deprecated and will not work on Cloudflare Workers. " +
+			"Use getStripe() instead for proper lazy initialization."
+		);
+	},
 });
 
 /**

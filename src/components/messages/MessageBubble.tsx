@@ -1,9 +1,22 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { Message, formatMessageTime } from '@/lib/messages';
 import { cn } from '@/lib/utils';
 import { StatusIndicator } from '@/components/ui/status-indicator';
+
+// Configure DOMPurify to allow only safe formatting tags
+const ALLOWED_TAGS = ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'span', 'div'];
+const ALLOWED_ATTR = ['href', 'target', 'rel', 'class'];
+
+function sanitizeMessageContent(content: string): string {
+	return DOMPurify.sanitize(content, {
+		ALLOWED_TAGS,
+		ALLOWED_ATTR,
+		ALLOW_DATA_ATTR: false,
+	});
+}
 
 interface MessageBubbleProps {
 	message: Message;
@@ -12,6 +25,12 @@ interface MessageBubbleProps {
 }
 
 export const MessageBubble = memo(function MessageBubble({ message, senderIsOnline }: MessageBubbleProps) {
+	// Sanitize message content to prevent XSS attacks
+	const sanitizedContent = useMemo(() =>
+		sanitizeMessageContent(message.content),
+		[message.content]
+	);
+
 	if (message.isDeleted) {
 		return (
 			<div className={cn(
@@ -46,7 +65,7 @@ export const MessageBubble = memo(function MessageBubble({ message, senderIsOnli
 				<div className="rounded-2xl px-4 py-2 bg-primary text-primary-foreground rounded-br-md max-w-[70%]">
 					<div
 						className="prose prose-sm dark:prose-invert max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0 prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-em:text-primary-foreground"
-						dangerouslySetInnerHTML={{ __html: message.content }}
+						dangerouslySetInnerHTML={{ __html: sanitizedContent }}
 					/>
 				</div>
 			</div>
@@ -75,7 +94,7 @@ export const MessageBubble = memo(function MessageBubble({ message, senderIsOnli
 			{/* Message content */}
 			<div
 				className="prose prose-sm dark:prose-invert max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0"
-				dangerouslySetInnerHTML={{ __html: message.content }}
+				dangerouslySetInnerHTML={{ __html: sanitizedContent }}
 			/>
 		</div>
 	);

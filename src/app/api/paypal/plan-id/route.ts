@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { auth } from "@/server/auth";
 
 
 /**
@@ -20,6 +21,12 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  */
 export async function GET(request: Request): Promise<NextResponse> {
 	try {
+		// Require authentication
+		const session = await auth();
+		if (!session?.user?.id) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
 		const { searchParams } = new URL(request.url);
 		const planId = searchParams.get("planId");
 

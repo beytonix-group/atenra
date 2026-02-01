@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import { z } from "zod";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { broadcastUnreadCountChange } from "@/lib/user-broadcast";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 
 const sendMessageSchema = z.object({
@@ -167,13 +168,18 @@ export async function POST(
 		const body = await request.json();
 		const validatedData = sendMessageSchema.parse(body);
 
+		// Sanitize HTML content to prevent stored XSS attacks
+		const sanitizedContent = validatedData.contentType === 'html'
+			? sanitizeHtml(validatedData.content)
+			: validatedData.content;
+
 		// Create message
 		const newMessage = await db
 			.insert(messages)
 			.values({
 				conversationId,
 				senderId: currentUser.id,
-				content: validatedData.content,
+				content: sanitizedContent,
 				contentType: validatedData.contentType,
 			})
 			.returning()
