@@ -51,8 +51,14 @@ export async function POST(request: Request): Promise<NextResponse> {
 		try {
 			event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
 			console.log("✅ Webhook signature verified successfully");
-		} catch (err: any) {
-			console.error("❌ Webhook signature verification failed. Check STRIPE_WEBHOOK_SECRET configuration.");
+		} catch (verificationError: any) {
+			console.error("❌ Webhook signature verification failed:", {
+				errorType: verificationError?.type,
+				errorMessage: verificationError?.message,
+				signaturePresent: !!signature,
+				bodyLength: body?.length,
+				secretConfigured: !!webhookSecret,
+			});
 			return NextResponse.json({ error: "Webhook signature verification failed" }, { status: 400 });
 		}
 
@@ -65,6 +71,12 @@ export async function POST(request: Request): Promise<NextResponse> {
 	} catch (error: any) {
 		console.error("Error processing webhook:", error);
 		// Return 500 so Stripe will retry
-		return NextResponse.json({ error: error?.message ?? "Internal server error" }, { status: 500 });
+		return NextResponse.json(
+			{
+				error: "Internal server error",
+				...(process.env.NODE_ENV === "development" && { details: error?.message }),
+			},
+			{ status: 500 }
+		);
 	}
 }
