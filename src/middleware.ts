@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "@/server/auth";
+import { validateOrigin, getAllowedOrigins, isStateChangingMethod } from "@/lib/csrf";
 
 // All routes that require authentication
 const protectedRoutes = [
@@ -24,9 +25,48 @@ const regularUserBlockedRoutes = [
 	"/admin",
 ];
 
+// API routes that require CSRF protection (state-changing operations)
+const csrfProtectedApiRoutes = [
+	"/api/admin",
+	"/api/billing",
+	"/api/cart",
+	"/api/checkout",
+	"/api/companies",
+	"/api/messages",
+	"/api/orders",
+	"/api/profile",
+	"/api/support",
+	"/api/user",
+];
+
 export default async function middleware(request: NextRequest) {
-	const session = await auth();
 	const pathname = request.nextUrl.pathname;
+
+	// CSRF Protection: Validate Origin header for state-changing API requests
+	if (pathname.startsWith('/api') && isStateChangingMethod(request.method)) {
+		const isProtectedRoute = csrfProtectedApiRoutes.some(route =>
+			pathname.startsWith(route)
+		);
+
+		if (isProtectedRoute) {
+			const allowedOrigins = getAllowedOrigins();
+			const originValidation = validateOrigin(request, allowedOrigins);
+
+			if (!originValidation.valid) {
+				console.warn('CSRF protection blocked request:', {
+					path: pathname,
+					method: request.method,
+					error: originValidation.error,
+				});
+				return NextResponse.json(
+					{ error: 'Invalid request origin' },
+					{ status: 403 }
+				);
+			}
+		}
+	}
+
+	const session = await auth();
 
 	const isAuthenticated = !!session?.user;
 
@@ -79,12 +119,13 @@ export const config = {
 	matcher: [
 		/*
 		 * Match all request paths except for the ones starting with:
-		 * - api (API routes)
 		 * - _next/static (static files)
 		 * - _next/image (image optimization files)
 		 * - favicon.ico (favicon file)
-		 * - public folder
+		 * - public folder files with extensions
+		 *
+		 * Note: API routes are now included for CSRF protection
 		 */
-		"/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|_next).*)",
+		"/((?!_next/static|_next/image|favicon.ico|.*\\..*|_next).*)",
 	],
 };

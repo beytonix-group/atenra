@@ -101,10 +101,21 @@ interface PayPalWebhookVerificationResponse {
 }
 
 /**
+ * Cached PayPal OAuth Token
+ */
+interface CachedPayPalToken {
+	accessToken: string;
+	expiresAt: number;
+}
+
+// Module-level token cache
+let paypalTokenCache: CachedPayPalToken | null = null;
+
+/**
  * Get PayPal OAuth 2.0 Access Token
  *
  * Uses client credentials flow to obtain an access token for server-to-server API calls.
- * Tokens are valid for approximately 9 hours.
+ * Tokens are cached and reused until 5 minutes before expiration to reduce API calls.
  *
  * @param env - Server environment variables (from Cloudflare Pages or process.env)
  * @returns Access token string
@@ -115,6 +126,13 @@ export async function getPayPalAccessToken(env?: {
 	PAYPAL_CLIENT_SECRET?: string;
 	PAYPAL_API_BASE?: string;
 }): Promise<string> {
+	const now = Date.now();
+
+	// Return cached token if valid (with 5-minute buffer before expiry)
+	if (paypalTokenCache && paypalTokenCache.expiresAt > now + 5 * 60 * 1000) {
+		return paypalTokenCache.accessToken;
+	}
+
 	const clientId = env?.PAYPAL_CLIENT_ID || process.env.PAYPAL_CLIENT_ID;
 	const clientSecret = env?.PAYPAL_CLIENT_SECRET || process.env.PAYPAL_CLIENT_SECRET;
 	const apiBase = env?.PAYPAL_API_BASE || process.env.PAYPAL_API_BASE || "https://api-m.sandbox.paypal.com";
@@ -141,6 +159,13 @@ export async function getPayPalAccessToken(env?: {
 	}
 
 	const data = (await response.json()) as PayPalTokenResponse;
+
+	// Cache the token with expiration
+	paypalTokenCache = {
+		accessToken: data.access_token,
+		expiresAt: now + data.expires_in * 1000,
+	};
+
 	return data.access_token;
 }
 

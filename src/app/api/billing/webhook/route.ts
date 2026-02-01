@@ -52,9 +52,8 @@ export async function POST(request: Request): Promise<NextResponse> {
 			event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
 			console.log("✅ Webhook signature verified successfully");
 		} catch (err: any) {
-			console.error("❌ Webhook signature verification failed:", err.message);
-			console.error("Webhook secret starts with:", webhookSecret?.substring(0, 10));
-			return NextResponse.json({ error: `Webhook signature verification failed: ${err.message}` }, { status: 400 });
+			console.error("❌ Webhook signature verification failed. Check STRIPE_WEBHOOK_SECRET configuration.");
+			return NextResponse.json({ error: "Webhook signature verification failed" }, { status: 400 });
 		}
 
 		console.log(`Processing webhook event: ${event.id} (${event.type})`);

@@ -5,6 +5,7 @@ import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
 import { createOrderFromCart, updateOrderStatus } from "@/lib/orders";
 import { calculateOrderDiscount } from "@/lib/discounts";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 interface CartItem {
 	id: number;
@@ -32,6 +33,20 @@ export async function POST(request: Request): Promise<NextResponse> {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
+		// Rate limiting
+		const rateLimitResult = checkRateLimit(`checkout:${session.user.id}`, RATE_LIMITS.checkout);
+		if (!rateLimitResult.allowed) {
+			return NextResponse.json(
+				{ error: "Too many checkout attempts. Please wait before trying again." },
+				{
+					status: 429,
+					headers: {
+						"Retry-After": String(Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)),
+					},
+				}
+			);
+		}
+
 		// Get user ID from database
 		const env = getCloudflareContext().env;
 		const db = env.DATABASE as D1Database;
@@ -49,6 +64,38 @@ export async function POST(request: Request): Promise<NextResponse> {
 
 		if (!user) {
 			return NextResponse.json({ error: "User not found" }, { status: 404 });
+		}
+
+		// Check for existing pending order within the last hour (deduplication)
+		const oneHourAgo = Math.floor(Date.now() / 1000) - 3600;
+		const existingOrder = await db
+			.prepare(
+				`
+				SELECT id, order_number, stripe_checkout_session_id
+				FROM orders
+				WHERE user_id = ? AND status = 'pending' AND created_at > ? AND stripe_checkout_session_id IS NOT NULL
+				ORDER BY created_at DESC LIMIT 1
+			`
+			)
+			.bind(user.id, oneHourAgo)
+			.first<{ id: number; order_number: string; stripe_checkout_session_id: string }>();
+
+		if (existingOrder?.stripe_checkout_session_id) {
+			// Try to retrieve the existing session
+			try {
+				const existingSession = await stripe.checkout.sessions.retrieve(existingOrder.stripe_checkout_session_id);
+				// Only return existing session if it's still open
+				if (existingSession.status === "open" && existingSession.url) {
+					return NextResponse.json({
+						url: existingSession.url,
+						orderId: existingOrder.id,
+						orderNumber: existingOrder.order_number,
+						reused: true,
+					});
+				}
+			} catch {
+				// Session expired or invalid, continue to create new one
+			}
 		}
 
 		// Get cart items

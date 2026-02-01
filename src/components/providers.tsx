@@ -10,31 +10,36 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import ChatWidgetProvider from "@/components/providers/ChatWidgetProvider";
 import CartManagerProvider from "@/components/providers/CartManagerProvider";
 import InactivityTimeoutProvider from "@/components/providers/InactivityTimeoutProvider";
+import { CookieConsentProvider } from "@/components/providers/CookieConsentProvider";
+import { CookieConsentBanner } from "@/components/cookie-consent/CookieConsentBanner";
 import { ReactNode } from "react";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
-      <QueryProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-          storageKey="theme"
-        >
-          <LanguageProvider>
-            <RolesProvider>
-              <ActivityProvider />
-              <PresenceProvider />
-              <InactivityTimeoutProvider />
-              <ChatWidgetProvider />
-              <CartManagerProvider />
-              {children}
-            </RolesProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-      </QueryProvider>
+      <CookieConsentProvider>
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+            storageKey="theme"
+          >
+            <LanguageProvider>
+              <RolesProvider>
+                <ActivityProvider />
+                <PresenceProvider />
+                <InactivityTimeoutProvider />
+                <ChatWidgetProvider />
+                <CartManagerProvider />
+                <CookieConsentBanner />
+                {children}
+              </RolesProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </QueryProvider>
+      </CookieConsentProvider>
     </SessionProvider>
   );
 }

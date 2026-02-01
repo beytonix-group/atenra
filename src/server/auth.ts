@@ -24,6 +24,9 @@ function getEnvVar(name: string): string {
 
 // NextAuth URL is set via environment variable NEXTAUTH_URL
 
+// Check if running in production
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const {
 	auth,
 	handlers,
@@ -41,6 +44,36 @@ export const {
 	pages: {
 		signIn: "/login",
 		error: "/auth/error",
+	},
+	// Secure cookie configuration
+	cookies: {
+		sessionToken: {
+			name: isProduction ? '__Secure-authjs.session-token' : 'authjs.session-token',
+			options: {
+				httpOnly: true,
+				sameSite: 'lax',
+				path: '/',
+				secure: isProduction,
+			},
+		},
+		callbackUrl: {
+			name: isProduction ? '__Secure-authjs.callback-url' : 'authjs.callback-url',
+			options: {
+				httpOnly: true,
+				sameSite: 'lax',
+				path: '/',
+				secure: isProduction,
+			},
+		},
+		csrfToken: {
+			name: isProduction ? '__Host-authjs.csrf-token' : 'authjs.csrf-token',
+			options: {
+				httpOnly: true,
+				sameSite: 'lax',
+				path: '/',
+				secure: isProduction,
+			},
+		},
 	},
 	callbacks: {
 		async session({ session, token }) {

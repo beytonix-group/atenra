@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { cartAuditLogs, users } from "@/server/db/schema";
-import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
+import { eq, and, gte, lte, desc, sql, inArray } from "drizzle-orm";
 import { getCurrentUser, canManageUserCarts } from "@/lib/auth-helpers";
 
 function safeJsonParse(str: string | null): unknown {
@@ -106,17 +106,21 @@ export async function GET(request: NextRequest) {
       userIds.add(log.employeeUserId);
     });
 
-    const userInfo = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        displayName: users.displayName,
-        firstName: users.firstName,
-        lastName: users.lastName,
-      })
-      .from(users)
-      .where(sql`${users.id} IN (${[...userIds].join(',')})`)
-      .all();
+    // Use inArray() for type-safe SQL IN clause (prevents SQL injection)
+    const userIdArray = [...userIds];
+    const userInfo = userIdArray.length > 0
+      ? await db
+          .select({
+            id: users.id,
+            email: users.email,
+            displayName: users.displayName,
+            firstName: users.firstName,
+            lastName: users.lastName,
+          })
+          .from(users)
+          .where(inArray(users.id, userIdArray))
+          .all()
+      : [];
 
     const userMap = new Map(userInfo.map(u => [
       u.id,
