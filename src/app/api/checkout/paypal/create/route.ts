@@ -154,7 +154,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		let body: CreatePayPalOrderRequest = {};
 		try {
 			body = await request.json() as CreatePayPalOrderRequest;
-		} catch (parseError) {
+		} catch {
 			console.warn(`[PayPal Checkout] Failed to parse request body for user ${user.id}, proceeding without coupon`);
 		}
 

@@ -152,7 +152,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		let body: CheckoutRequest = {};
 		try {
 			body = await request.json() as CheckoutRequest;
-		} catch (parseError) {
+		} catch {
 			console.warn(`[Checkout] Failed to parse request body for user ${user.id}, proceeding without coupon`);
 		}
 
